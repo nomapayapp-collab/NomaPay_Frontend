@@ -13,7 +13,8 @@ type LogoVariant =
   | "lockup-claro"
   | "lockup-oscuro"
   | "mono-blanco"
-  | "mono-tinta";
+  | "mono-tinta"
+  | "isologo-blanco";
  
 const FILES: Record<LogoVariant, string> = {
   icono: "/logo/nomapay-icono.svg",
@@ -21,6 +22,7 @@ const FILES: Record<LogoVariant, string> = {
   "lockup-oscuro": "/logo/nomapay-lockup-oscuro.svg",
   "mono-blanco": "/logo/nomapay-mono-blanco.svg",
   "mono-tinta": "/logo/nomapay-mono-tinta.svg",
+  "isologo-blanco": "/logo/nomapay-isologo-blanco.svg",
 };
  
 type Props = {
