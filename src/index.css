@@ -7,8 +7,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
-@plugin "flowbite/plugin";
-@source "../../node_modules/flowbite";
+@custom-variant dark (&:not(:where(.light, .light *))); /* por defecto dark */
 
 /* ==========================================================================
    THEME — tokens de diseño. En v4, todo lo que empieza con --color-*,
@@ -121,7 +120,7 @@
     @apply text-white hover:opacity-90;
   }
   .btn--outline {
-    @apply bg-white/[.08] border border-white/[.14] text-text-dark-primary hover:bg-white/[.14];
+    @apply bg-white/8 border border-white/[.14] text-text-dark-primary hover:bg-white/[.14];
   }
   body.light .btn--outline {
     @apply bg-transparent border-border-light text-text-light-primary hover:bg-surface-light-input;
@@ -162,7 +161,7 @@
     @apply text-text-light-tertiary;
   }
  .card__amount {
-  @apply text-[38px] font-bold leading-none tracking-[-0.025em] text-text-dark-primary;
+  @apply text-[38px] font-bold leading-none tracking-tight text-text-dark-primary;
   font-variant-numeric: tabular-nums;
 }
   body.light .card__amount {
@@ -222,10 +221,10 @@
   .toast--error   { @apply bg-magenta-100 text-magenta-700; }
 
   .skeleton {
-    @apply animate-pulse rounded-control bg-white/[.08];
+    @apply animate-pulse rounded-control bg-white/8;
   }
   body.light .skeleton {
-    @apply bg-black/[.06];
+    @apply bg-black/6;
   }
 
   .brand-rule {
