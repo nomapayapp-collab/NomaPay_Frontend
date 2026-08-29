@@ -1,6 +1,6 @@
 import { useState, forwardRef, useId } from "react";
 import type { InputHTMLAttributes } from "react";
-import { IconEye, IconEyeOff } from "../../assets/icons/icons";
+import { IconEye, IconEyeOff } from "../../assets/icons/Icons";
 
 /**
  * Input — el único campo de texto que debería existir en toda la app.
