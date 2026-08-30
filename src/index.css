@@ -278,3 +278,20 @@
     @apply text-text-light-tertiary;
   }
 }
+
+@layer utilities {
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes dash {
+    to { stroke-dashoffset: -32; }
+  }
+  .animate-dash {
+    animation: dash 3s linear infinite;
+  }
+}

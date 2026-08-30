@@ -4,7 +4,7 @@ export type AuthUser = {
   email: string;
   country: string;
   alias: string;
-
+  profileCompleted: boolean;
 };
 
 export type LoginPayload = {
