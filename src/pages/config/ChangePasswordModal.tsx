@@ -80,7 +80,6 @@ export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps)
           label="Contraseña nueva"
           id="newPassword"
           type="password"
-          autoComplete="new-password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
         />
@@ -88,7 +87,6 @@ export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps)
           label="Confirmar contraseña nueva"
           id="confirmPassword"
           type="password"
-          autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
