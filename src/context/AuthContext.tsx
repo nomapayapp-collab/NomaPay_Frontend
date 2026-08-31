@@ -1,7 +1,7 @@
 import { createContext, useState, useEffect, type ReactNode } from "react";
 import * as authService from "../services/authService";
 import type { AuthUser, LoginPayload, AuthResponse } from "../types/auth";
-
+import { SPLASH_SEEN_KEY } from "../hooks/useSplash";
 /**
  * context/AuthContext.tsx — estado global de sesión.
  * No se usa directo: los componentes consumen esto a través del hook useAuth().
@@ -20,6 +20,7 @@ export const AuthContext = createContext<AuthContextValue | undefined>(undefined
 
 const TOKEN_KEY = "nomapay_token";
 const USER_KEY = "nomapay_user";
+const REFRESH_TOKEN_KEY = "nomapay_refresh_token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -35,26 +36,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  function persistSession(response: AuthResponse) {
-    localStorage.setItem(TOKEN_KEY, response.token);
-    localStorage.setItem(USER_KEY, JSON.stringify(response.user));
-    setUser(response.user);
-  }
+ function persistSession(response: AuthResponse) {
+  localStorage.setItem(TOKEN_KEY, response.accessToken);
+  localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+  localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+  sessionStorage.removeItem(SPLASH_SEEN_KEY); 
+  setUser(response.user);
+}
   function updateUser(updatedUser: AuthUser) {
     localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
     setUser(updatedUser);
   }
   async function login(payload: LoginPayload) {
-    const response = await authService.login(payload);
-    persistSession(response);
-  }
+  const response = await authService.login(payload);
+  persistSession(response);
+}
 
 
-  function logout() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setUser(null);
+ function logout() {
+  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+  if (refreshToken) {
+    authService.logoutRequest(refreshToken).catch(() => {
+      // si falla la revocación del lado del server, igual cerramos sesión local
+    });
   }
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  setUser(null);
+}
 
   return (
     <AuthContext.Provider
