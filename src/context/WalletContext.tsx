@@ -2,16 +2,17 @@ import { createContext, useCallback, useEffect, useState, type ReactNode } from 
 import type { Wallet } from "../types/wallet";
 import * as authService from "../services/authService";
 import { MOCK_WALLET } from "../constants/mockWallet";
+import { useAuth } from "../hooks/useAuth";
 
 /**
  * saldo, monedas y movimientos del usuario.
  * No se usa directo: los componentes consumen esto a través del hook useWallet().
  *
- * El saldo (balances) ya sale del back real (GET /api/wallets/me). Las
- * cotizaciones y los movimientos recientes todavía NO tienen endpoint en el
- * back, así que por ahora siguen mockeados — se reemplazan acá mismo cuando
- * exista /exchange-rates y /movements (Sprint 2), sin que BalanceCard,
- * ExchangeRatesList ni RecentMovements tengan que cambiar.
+ * El saldo (balances) ya sale del back real (GET /api/wallets/me), pero solo
+ * lo pedimos si hay sesión iniciada — si no, mostramos datos de ejemplo sin
+ * pegarle al backend (evita el 401 en la landing pública).
+ * Las cotizaciones y los movimientos recientes todavía NO tienen endpoint en
+ * el back, así que por ahora siguen mockeados.
  */
 type WalletContextValue = {
   wallet: Wallet;
@@ -23,6 +24,7 @@ type WalletContextValue = {
 export const WalletContext = createContext<WalletContextValue | undefined>(undefined);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [wallet, setWallet] = useState<Wallet>(MOCK_WALLET);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +59,18 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (authLoading) return; // todavía hidratando la sesión, esperamos
+
+    if (!isAuthenticated) {
+      // no hay sesión (ej: estamos en la landing): no pedimos el wallet
+      setWallet(MOCK_WALLET);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     fetchWallet();
-  }, [fetchWallet]);
+  }, [authLoading, isAuthenticated, fetchWallet]);
 
   return (
     <WalletContext.Provider value={{ wallet, loading, error, refetch: fetchWallet }}>
