@@ -1,13 +1,86 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="/logo/nomapay-icono.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>nomapay-frontend</title>
+    <meta name="theme-color" content="#0F1330" />
+    <title>NomaPay | Cobrá global. Viví local.</title>
+
+    <meta
+      name="description"
+      content="La billetera digital para moverte entre monedas sin fronteras: saldo en ARS, USD y BRL, cotización del día y tu propio alias para cobrar."
+    />
+    <meta
+      name="keywords"
+      content="NomaPay, billetera digital, billetera multi-moneda, ARS, USD, BRL, alias para cobrar, cotización del dólar, fintech Argentina"
+    />
+    <meta name="author" content="NomaPay" />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:site_name" content="NomaPay" />
+    <meta property="og:title" content="NomaPay — Cobrá global. Viví local." />
+    <meta
+      property="og:description"
+      content="Tu billetera para cobrar, ver tu saldo y moverte entre monedas — ARS, USD y BRL en un solo lugar."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://noma-pay-frontend-noma-pay.vercel.app/" />
+
+    <style>
+      /* Fondo de marca desde el primer instante, antes de que cargue cualquier CSS/JS */
+      html, body { background: #0F1330; margin: 0; }
+
+      #initial-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        background: #0F1330;
+        font-family: Archivo, ui-sans-serif, system-ui, sans-serif;
+        text-align: center;
+        padding: 0 24px;
+      }
+      #initial-loader img { width: 180px; height: auto; }
+      #initial-loader h1 {
+        color: #F5F4FF;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+      }
+      #initial-loader p {
+        color: rgba(245, 244, 255, 0.6);
+        font-size: 13px;
+        margin: 4px 0 0;
+      }
+      #initial-loader .bar {
+        width: 160px;
+        height: 3px;
+        border-radius: 999px;
+        margin-top: 20px;
+        background: linear-gradient(135deg, #6633F2 0%, #4A6BF5 45%, #1FA9EE 75%, #12E0D4 100%);
+        animation: initial-loader-pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes initial-loader-pulse {
+        0%, 100% { opacity: 0.35; }
+        50% { opacity: 1; }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="initial-loader">
+        <img src="/logo/nomapay-lockup-oscuro.svg" alt="NomaPay" />
+        <div>
+          <h1>Bienvenido a NomaPay</h1>
+          <p>Cobrá global. Viví local.</p>
+        </div>
+        <div class="bar"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

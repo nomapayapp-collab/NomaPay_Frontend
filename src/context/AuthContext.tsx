@@ -10,8 +10,9 @@ import { SPLASH_SEEN_KEY } from "../hooks/useSplash";
 type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
-  loading: boolean; // true mientras se hidrata la sesión al cargar la app
+  loading: boolean;
   login: (payload: LoginPayload) => Promise<void>;
+  loginWithGoogle: (idToken: string) => Promise<void>;
   updateUser: (user: AuthUser) => void;
   logout: () => void;
 };
@@ -36,39 +37,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
- function persistSession(response: AuthResponse) {
-  localStorage.setItem(TOKEN_KEY, response.accessToken);
-  localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
-  localStorage.setItem(USER_KEY, JSON.stringify(response.user));
-  sessionStorage.removeItem(SPLASH_SEEN_KEY); 
-  setUser(response.user);
-}
+  function persistSession(response: AuthResponse) {
+    localStorage.setItem(TOKEN_KEY, response.accessToken);
+    localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+    sessionStorage.removeItem(SPLASH_SEEN_KEY);
+    setUser(response.user);
+  }
   function updateUser(updatedUser: AuthUser) {
     localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
     setUser(updatedUser);
   }
   async function login(payload: LoginPayload) {
-  const response = await authService.login(payload);
+    const response = await authService.login(payload);
+    persistSession(response);
+  }
+  async function loginWithGoogle(idToken: string) {
+  const response = await authService.loginWithGoogle(idToken);
   persistSession(response);
 }
 
-
- function logout() {
-  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-  if (refreshToken) {
-    authService.logoutRequest(refreshToken).catch(() => {
-      // si falla la revocación del lado del server, igual cerramos sesión local
-    });
+  function logout() {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (refreshToken) {
+      authService.logoutRequest(refreshToken).catch(() => {
+        // si falla la revocación del lado del server, igual cerramos sesión local
+      });
+    }
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    setUser(null);
   }
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  setUser(null);
-}
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, loading, login, updateUser, logout }}
+      value={{ user, isAuthenticated: !!user, loading, login, loginWithGoogle, updateUser, logout }}
     >
       {children}
     </AuthContext.Provider>
