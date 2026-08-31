@@ -1,4 +1,5 @@
 import axios from "axios";
+const TOKEN_KEY = "nomapay_token";
 
 /**
  
@@ -16,7 +17,13 @@ export const api = axios.create({
 });
 
 // Adjunta el token guardado a cada request, si existe
-
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 // Si el backend responde 401 (token vencido/inválido), limpiamos la sesión local
 api.interceptors.response.use(

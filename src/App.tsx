@@ -4,13 +4,14 @@ import { AuthProvider } from "./context/AuthContext";
 import { WalletProvider } from "./context/WalletContext";
 import { ThemeInit } from "../.flowbite-react/init";
 
-
 function App() {
-
   return (
     <BrowserRouter>
+      <ThemeInit />
       <AuthProvider>
-        <AppRoutes />
+        <WalletProvider>
+          <AppRoutes />
+        </WalletProvider>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -2,8 +2,10 @@ import { api } from "./api";
 
 import type {
   AuthResponse,
+  AuthUser,
   LoginPayload,
   RegisterPayload,
+  CompleteProfilePayload,
 } from "../types/auth";
 
 export async function login(
@@ -42,5 +44,14 @@ export async function loginWithGoogle(
     { idToken }
   );
 
+  return data;
+}
+
+export async function completeProfile(
+  payload: CompleteProfilePayload
+): Promise<AuthUser> {
+  // TODO: confirmar con Gastón/Gisella el path y método exacto.
+  // Asumo PATCH /api/users/me devolviendo el AuthUser actualizado.
+  const { data } = await api.patch<AuthUser>("/api/users/me", payload);
   return data;
 }
