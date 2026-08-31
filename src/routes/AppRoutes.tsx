@@ -4,6 +4,7 @@ import Login from "../pages/Login";
 import { Root } from "./Root";
 import { ProtectedRoute } from "./ProtectedRoute";
 import Config from "../pages/config/Config";
+import NotFound from "../pages/NotFound";
 
 export default function AppRoutes() {
   return (
@@ -19,6 +20,7 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
