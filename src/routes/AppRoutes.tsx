@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Register from "../pages/register/Register";
 import Login from "../pages/Login";
 import { Root } from "./Root";
 //import Register from "../pages/register/Register";//
@@ -8,11 +9,9 @@ import { Root } from "./Root";
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Root />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
-      {/* <Route path="/register" element={<Register />} /> */}
-      {/* <Route path="/profile" element={<ProtectedRoute><Config /></ProtectedRoute>} /> */}
-      {/* Pendientes: /recuperar-contrasena, /wallet, /exchange, /transfer, /history, /summary */}
+      <Route path="/register" element={<Register />} />
     </Routes>
   );
 }
