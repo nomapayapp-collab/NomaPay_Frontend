@@ -1,15 +1,13 @@
-import type { CurrencyCode } from "./wallet";
-
 export type AuthUser = {
-  id: string;
+  id: number;
   name: string;
   surname: string;
   email: string;
-  country: string;
+  username: string;
   alias: string;
-  cbu: string;
-  preferredCurrency: CurrencyCode;
-  profileCompleted: boolean;
+  cbu: string | null;
+  country?: string | null;
+  profilePictureUrl?: string | null;
 };
 
 export type LoginPayload = {
@@ -25,15 +23,28 @@ export type RegisterPayload = {
   password: string;
 };
 
+// Login/Google devuelven tokens + user. Register devuelve solo el user (sin sesión).
 export type AuthResponse = {
   user: AuthUser;
-  token: string;
+  accessToken: string;
+  refreshToken: string;
 };
 
-export type CompleteProfilePayload = {
-  name: string;
-  surname: string;
-  alias: string;
-  preferredCurrency: CurrencyCode;
-  password?: string; // opcional: solo se manda si se quiere cambiar
+export type RegisterResponse = AuthUser;
+
+// Solo country y username se aplican de verdad en el backend hoy.
+export type UpdateProfilePayload = {
+  country?: string;
+  alias?: string;
+  username?: string; 
 };
+
+export type ChangePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type UpdatePreferredCurrencyPayload = {
+  preferredCurrency: string;
+};
+
