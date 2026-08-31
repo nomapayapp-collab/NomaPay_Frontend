@@ -13,12 +13,8 @@ function App() {
 
   return (
     <BrowserRouter>
-      <ThemeInit />
       <AuthProvider>
-        <WalletProvider>
-          {/* El sprite del logo se monta UNA sola vez acá arriba de todo */}
-          <AppRoutes />
-        </WalletProvider>
+        <AppRoutes />
       </AuthProvider>
     </BrowserRouter>
   );

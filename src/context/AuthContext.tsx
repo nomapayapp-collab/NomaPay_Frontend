@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   function persistSession(response: AuthResponse) {
-    localStorage.setItem(TOKEN_KEY, response.accessToken);
+    localStorage.setItem(TOKEN_KEY, response.token);
     localStorage.setItem(USER_KEY, JSON.stringify(response.user));
     setUser(response.user);
   }
