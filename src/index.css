@@ -108,10 +108,11 @@
    ========================================================================== */
 @layer components {
 
-  .btn {
+   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-control px-5 py-3
-           font-medium text-[14px] leading-none transition-opacity duration-150
-           disabled:opacity-40 disabled:pointer-events-none;
+           font-medium text-[14px] leading-none transition-[opacity,transform] duration-150
+           hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]
+           disabled:opacity-40 disabled:pointer-events-none disabled:hover:translate-y-0;
   }
   .btn--primary {
     background-image: var(--gradient-swoosh);

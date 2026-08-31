@@ -9,10 +9,12 @@ import { LandingTrust } from "./LandingTrust";
 import { LandingFAQ } from "./LandingFAQ";
 import { LandingCTA } from "./LandingCTA";
 import { LandingFooter } from "./LandingFooter";
+import { ScrollProgressBar } from "../../components/ui/ScrollProgressBar";
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-surface-dark">
+      <ScrollProgressBar />
       <LandingNavbar />
       <LandingHero />
       <LandingStats />
