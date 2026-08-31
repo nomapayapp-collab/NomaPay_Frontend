@@ -1,4 +1,4 @@
-export type CurrencyCode = "ARS" | "USD" | "BRL" | "MXN";
+export type CurrencyCode = "ARS" | "USD" | "BRL" ;
 
 export type Currency = {
   code: CurrencyCode;

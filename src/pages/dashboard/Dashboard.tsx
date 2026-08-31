@@ -8,8 +8,7 @@ import { RecentMovements } from "../../components/wallet/RecentMovements";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const firstName = user?.fullName.split(" ")[0] ?? "";
-
+  const firstName = user?.name.split(" ")[0] ?? "";
   return (
     <div className="min-h-screen flex flex-col bg-surface-dark">
       <div className="flex-1 px-5 pt-8 pb-4 max-w-md w-full mx-auto">

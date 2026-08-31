@@ -1,11 +1,7 @@
 import type { ReactNode } from "react";
-import { IconBell, IconUser } from "../../assets/icons/Icons";
+import { useNavigate } from "react-router-dom";
+import { IconUser } from "../../assets/icons/Icons";
 
-/**
- * encabezado de las pantallas logueadas. con el mismo patrón: título (+ saludo
- * opcional, solo en Home) y dos botones circulares a la derecha (por
- * defecto: notificaciones + perfil).
- */
 type HeaderProps = {
   greeting?: string;
   title: string;
@@ -14,6 +10,8 @@ type HeaderProps = {
 };
 
 export function Header({ greeting, title, subtitle, actions }: HeaderProps) {
+  const navigate = useNavigate();
+
   return (
     <header className="flex items-start justify-between mb-6">
       <div>
@@ -25,10 +23,12 @@ export function Header({ greeting, title, subtitle, actions }: HeaderProps) {
       <div className="flex items-center gap-2 shrink-0">
         {actions ?? (
           <>
-            <button type="button" className="icon-btn" aria-label="Notificaciones">
-              <IconBell className="w-5 h-5" />
-            </button>
-            <button type="button" className="icon-btn" aria-label="Mi perfil">
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Mi perfil"
+              onClick={() => navigate("/profile")}
+            >
               <IconUser className="w-5 h-5" />
             </button>
           </>

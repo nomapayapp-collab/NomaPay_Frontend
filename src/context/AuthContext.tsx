@@ -12,7 +12,7 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   loading: boolean; // true mientras se hidrata la sesión al cargar la app
   login: (payload: LoginPayload) => Promise<void>;
-  
+  updateUser: (user: AuthUser) => void;
   logout: () => void;
 };
 
@@ -40,7 +40,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(USER_KEY, JSON.stringify(response.user));
     setUser(response.user);
   }
-
+  function updateUser(updatedUser: AuthUser) {
+    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+    setUser(updatedUser);
+  }
   async function login(payload: LoginPayload) {
     const response = await authService.login(payload);
     persistSession(response);
@@ -55,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, loading, login, logout }}
+      value={{ user, isAuthenticated: !!user, loading, login, updateUser, logout }}
     >
       {children}
     </AuthContext.Provider>
