@@ -4,8 +4,8 @@ import { COUNTRIES } from "../../constants/countries";
 import { register } from "../../services/authService";
 
 type RegisterErrors = {
-  firstName?: string;
-  lastName?: string;
+  name?: string;
+  surname?: string;
   country?: string;
   email?: string;
   password?: string;
@@ -15,8 +15,8 @@ type RegisterErrors = {
 export default function Register() {
   const navigate = useNavigate();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [name, setname] = useState("");
+  const [surname, setsurname] = useState("");
   const [country, setCountry] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,12 +29,12 @@ export default function Register() {
   function validateForm() {
     const newErrors: RegisterErrors = {};
 
-    if (!firstName.trim()) {
-      newErrors.firstName = "El nombre es obligatorio";
+    if (!name.trim()) {
+      newErrors.name = "El nombre es obligatorio";
     }
 
-    if (!lastName.trim()) {
-      newErrors.lastName = "El apellido es obligatorio";
+    if (!surname.trim()) {
+      newErrors.surname="El apellido es obligatorio";
     }
 
     if (!country) {
@@ -81,8 +81,8 @@ export default function Register() {
       setLoading(true);
 
       await register({
-        firstName,
-        lastName,
+       name,
+        surname,
         country,
         email,
         password,
@@ -122,52 +122,52 @@ export default function Register() {
         >
           <div>
             <label
-              htmlFor="firstName"
+              htmlFor="name"
               className="mb-2 block text-sm font-medium text-slate-200"
             >
               Nombre
             </label>
 
             <input
-              id="firstName"
+              id="name"
               type="text"
-              value={firstName}
+              value={name}
               onChange={(event) =>
-                setFirstName(event.target.value)
+                setname(event.target.value)
               }
               placeholder="Nombre"
               className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-400"
             />
 
-            {errors.firstName && (
+            {errors.name && (
               <p className="mt-1 text-sm text-red-400">
-                {errors.firstName}
+                {errors.name}
               </p>
             )}
           </div>
 
           <div>
             <label
-              htmlFor="lastName"
+              htmlFor="surname"
               className="mb-2 block text-sm font-medium text-slate-200"
             >
               Apellido
             </label>
 
             <input
-              id="lastName"
+              id="surname"
               type="text"
-              value={lastName}
+              value={surname}
               onChange={(event) =>
-                setLastName(event.target.value)
+                setsurname(event.target.value)
               }
               placeholder="Apellido"
               className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white outline-none focus:border-cyan-400"
             />
 
-            {errors.lastName && (
+            {errors.surname && (
               <p className="mt-1 text-sm text-red-400">
-                {errors.lastName}
+                {errors.surname}
               </p>
             )}
           </div>

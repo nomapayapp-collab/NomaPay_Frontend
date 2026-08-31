@@ -1,6 +1,6 @@
 export type AuthUser = {
   id: string;
-  fullName: string;
+  name: string;
   email: string;
   country: string;
   alias: string;
@@ -12,8 +12,8 @@ export type LoginPayload = {
 };
 
 export type RegisterPayload = {
-  firstName: string;
-  lastName: string;
+  name: string;
+  surname: string;
   country: string;
   email: string;
   password: string;
