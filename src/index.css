@@ -1,0 +1,298 @@
+/* ==========================================================================
+   NomaPay — Hoja de estilos principal (Tailwind CSS v4)
+   Guardar en: src/styles/index.css
+   Importar UNA VEZ en src/main.tsx: import "./styles/index.css"
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+@import "flowbite-react/plugin/tailwindcss";
+@source "../.flowbite-react/class-list.json";
+@custom-variant dark (&:not(:where(.light, .light *))); /* por defecto dark */
+
+/* ==========================================================================
+   THEME — tokens de diseño. En v4, todo lo que empieza con --color-*,
+   --font-*, --radius-* o --shadow-* genera automáticamente utilidades de
+   Tailwind (bg-violet-500, rounded-control, shadow-elevation-lg, etc.)
+   ========================================================================== */
+@theme {
+  --font-sans: "Archivo", ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #0F1330;
+
+  --color-violet-100: #EFE8FF;
+  --color-violet-300: #C9AEFF;
+  --color-violet-500: #7B3BFF;
+  --color-violet-700: #5A1FE0;
+  --color-violet-900: #33108C;
+
+  --color-turquoise-100: #DDFBF8;
+  --color-turquoise-300: #8DF0E8;
+  --color-turquoise-500: #12E0D4;
+  --color-turquoise-700: #00A79D;
+  --color-turquoise-900: #00544E;
+
+  --color-magenta-100: #FFE4EF;
+  --color-magenta-300: #FF9CC4;
+  --color-magenta-500: #FF2E88;
+  --color-magenta-700: #C1005E;
+  --color-magenta-900: #6E0036;
+
+  --color-amber-100: #FFF6DC;
+  --color-amber-500: #FFD23F;
+  --color-amber-700: #8A6600;
+
+  --color-destructive: #E01B4C;
+
+  --color-surface-dark-base: #0B0F24;
+  --color-surface-dark: #0F1330;
+  --color-surface-dark-elevated: #171C3D;
+  --color-border-dark: rgba(255, 255, 255, 0.10);
+
+  --color-surface-light-base: #F5F6FA;
+  --color-surface-light: #FFFFFF;
+  --color-surface-light-input: #EDEFF7;
+  --color-border-light: #E7E9F2;
+
+  --color-text-dark-primary: #FFFFFF;
+  --color-text-dark-secondary: #C3C7DE;
+  --color-text-dark-tertiary: #7E85A8;
+
+  --color-text-light-primary: #0F1330;
+  --color-text-light-secondary: #4A5070;
+  --color-text-light-tertiary: #7E85A8;
+
+  --radius-control: 12px;
+  --radius-card: 16px;
+
+  --shadow-elevation-sm: 0 2px 8px rgba(15, 19, 48, 0.10);
+  --shadow-elevation-lg: 0 10px 32px rgba(15, 19, 48, 0.16);
+}
+
+/* Gradientes de marca como variables CSS planas (se usan con background-image directo) */
+:root {
+  --gradient-swoosh: linear-gradient(135deg, #6633F2 0%, #4A6BF5 45%, #1FA9EE 75%, #12E0D4 100%);
+  --gradient-pay: linear-gradient(90deg, #4D5FFF 0%, #B23FE0 50%, #FF2E88 100%);
+  --gradient-spectrum: linear-gradient(90deg, #0F1330 0%, #7B3BFF 28%, #FF2E88 52%, #12E0D4 78%, #FFD23F 100%);
+  --gradient-aura: radial-gradient(120% 90% at 15% 0%, rgba(123,59,255,0.55) 0%, rgba(18,224,212,0.18) 45%, rgba(15,19,48,0) 75%);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+@layer base {
+  body {
+    @apply bg-surface-dark text-text-dark-primary antialiased font-sans;
+  }
+  body.light {
+    @apply bg-surface-light-base text-text-light-primary;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    @apply outline-none ring-2 ring-violet-500 ring-offset-2 ring-offset-surface-dark;
+  }
+  body.light :is(a, button, input, select, textarea):focus-visible {
+    @apply ring-offset-surface-light;
+  }
+}
+
+/* ==========================================================================
+   COMPONENTES — .block / .block__element / .block--modifier
+   ========================================================================== */
+@layer components {
+
+   .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-control px-5 py-3
+           font-medium text-[14px] leading-none transition-[opacity,transform] duration-150
+           hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]
+           disabled:opacity-40 disabled:pointer-events-none disabled:hover:translate-y-0;
+  }
+  .btn--primary {
+    background-image: var(--gradient-swoosh);
+    @apply text-white hover:opacity-90;
+  }
+  .btn--secondary {
+    background-image: var(--gradient-pay);
+    @apply text-white hover:opacity-90;
+  }
+  .btn--outline {
+    @apply bg-white/8 border border-white/[.14] text-text-dark-primary hover:bg-white/[.14];
+  }
+  body.light .btn--outline {
+    @apply bg-transparent border-border-light text-text-light-primary hover:bg-surface-light-input;
+  }
+  .btn--ghost {
+    @apply bg-transparent text-text-dark-secondary hover:text-text-dark-primary;
+  }
+  body.light .btn--ghost {
+    @apply text-text-light-secondary hover:text-text-light-primary;
+  }
+  .btn--destructive {
+    @apply bg-destructive text-white hover:opacity-90;
+  }
+  .btn--sm {
+    @apply px-3.5 py-2 text-[13px];
+  }
+  .btn--icon-only {
+    @apply p-3 aspect-square;
+  }
+    /* Círculo translúcido para acciones secundarias (notificaciones, perfil,
+     accesos rápidos) — distinto de .btn--icon-only, que es una variante del
+     Button principal con fondo sólido según el variant. */
+  .icon-btn {
+    @apply w-10 h-10 rounded-full flex items-center justify-center bg-white/8 hover:bg-white/14 text-text-dark-primary transition-colors;
+  }
+  body.light .icon-btn {
+    @apply bg-black/6 hover:bg-black/10 text-text-light-primary;
+  }
+  .icon-btn--lg {
+    @apply w-14 h-14;
+  }
+
+  .card {
+    @apply rounded-card p-6 bg-surface-dark border border-border-dark;
+  }
+  body.light .card {
+    @apply bg-surface-light border-border-light shadow-elevation-sm;
+  }
+  .card--elevated {
+    @apply shadow-elevation-lg;
+  }
+  .card--aura {
+    background-image: var(--gradient-aura);
+    @apply bg-surface-dark;
+  }
+  .card__title {
+    @apply text-[11px] font-semibold tracking-[0.14em] uppercase text-text-dark-tertiary;
+  }
+  body.light .card__title {
+    @apply text-text-light-tertiary;
+  }
+ .card__amount {
+  @apply text-[38px] font-bold leading-none tracking-tight text-text-dark-primary;
+  font-variant-numeric: tabular-nums;
+}
+  body.light .card__amount {
+    @apply text-text-light-primary;
+  }
+
+  .input {
+    @apply w-full rounded-control px-4 py-3.5 text-[15px]
+           bg-surface-dark-elevated border border-border-dark
+           text-text-dark-primary placeholder:text-text-dark-tertiary;
+  }
+  body.light .input {
+    @apply bg-surface-light-input border-border-light
+           text-text-light-primary placeholder:text-text-light-tertiary;
+  }
+  .input--error {
+    @apply border-magenta-500;
+  }
+  .input__label {
+    @apply block text-[12.5px] font-medium text-text-dark-secondary mb-1.5;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full px-3 py-1.5 text-[12.5px] font-medium bg-white/8 text-text-dark-primary;
+  }
+  body.light .chip {
+    @apply bg-black/6 text-text-light-primary;
+  }
+  body.light .input__label {
+    @apply text-text-light-secondary;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-3 py-1.5 text-[11.5px] font-semibold;
+  }
+  .badge--success { @apply bg-turquoise-100 text-turquoise-700; }
+  .badge--warning { @apply bg-amber-100 text-amber-700; }
+  .badge--error   { @apply bg-magenta-100 text-magenta-700; }
+  .badge--info    { @apply bg-violet-100 text-violet-700; }
+
+  .alert-note {
+    @apply rounded-control border p-4;
+  }
+  .alert-note__title {
+    @apply text-[11px] font-semibold tracking-[0.14em] uppercase mb-1;
+  }
+  .alert-note__description {
+    @apply text-[13px] text-text-dark-secondary;
+  }
+  body.light .alert-note__description {
+    @apply text-text-light-secondary;
+  }
+  .alert-note--error   { @apply border-magenta-500 bg-magenta-100/10; }
+  .alert-note--error .alert-note__title { @apply text-magenta-500; }
+  .alert-note--warning { @apply border-amber-500 bg-amber-100/10; }
+  .alert-note--warning .alert-note__title { @apply text-amber-700; }
+  .alert-note--info    { @apply border-violet-500 bg-violet-100/10; }
+  .alert-note--info .alert-note__title { @apply text-violet-500; }
+
+  .toast {
+    @apply rounded-control px-4 py-3 flex items-center gap-2.5 shadow-elevation-lg text-[13.5px] font-medium;
+  }
+  .toast--success { @apply bg-turquoise-100 text-turquoise-700; }
+  .toast--error   { @apply bg-magenta-100 text-magenta-700; }
+
+  .skeleton {
+    @apply animate-pulse rounded-control bg-white/8;
+  }
+  body.light .skeleton {
+    @apply bg-black/6;
+  }
+
+  .brand-rule {
+    background-image: var(--gradient-spectrum);
+    @apply h-1 rounded-full;
+  }
+
+  .tabbar {
+    @apply flex items-center justify-around border-t border-border-dark bg-surface-dark px-2 py-3;
+  }
+  body.light .tabbar {
+    @apply border-border-light bg-surface-light;
+  }
+  .tabbar__item {
+    @apply flex flex-col items-center gap-1 text-[10px] text-text-dark-tertiary;
+  }
+  .tabbar__item--active {
+    @apply text-violet-500;
+  }
+
+  .title {
+    @apply text-2xl font-semibold text-text-dark-primary;
+  }
+  body.light .title {
+    @apply text-text-light-primary;
+  }
+  .subtitle {
+    @apply text-[15px] text-text-dark-tertiary;
+  }
+  body.light .subtitle {
+    @apply text-text-light-tertiary;
+  }
+}
+
+@layer utilities {
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes dash {
+    to { stroke-dashoffset: -32; }
+  }
+  .animate-dash {
+    animation: dash 3s linear infinite;
+  }
+}
