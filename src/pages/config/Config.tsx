@@ -1,64 +1,131 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { Avatar } from "../../components/ui/Avatar";
+import { EditAliasModal } from "./EditAliasModal";
+import { ChangePasswordModal } from "./ChangePasswordModal";
+import {
+  IconCheck,
+  IconChevronRight,
+  IconCopy,
+  IconBack,
+  IconEdit,
+} from "../../assets/icons/Icons";
 
 import { useAuth } from "../../hooks/useAuth";
 import * as authService from "../../services/authService";
 import type { CurrencyCode } from "../../types/wallet";
+import { COUNTRIES } from "../../constants/countries";
+import { Select } from "../../components/ui/Select";
+import { useWallet } from "../../hooks/useWallet";
 
 const CURRENCIES: CurrencyCode[] = ["ARS", "USD", "BRL"];
 
+function extractErrorMessage(err: unknown, fallback: string): string {
+  if (axios.isAxiosError(err) && typeof err.response?.data?.error === "string") {
+    return err.response.data.error;
+  }
+  return fallback;
+}
+
 export default function Config() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
+  const { refetch: refetchWallet } = useWallet();
   const navigate = useNavigate();
 
-  const [name, setName] = useState(user?.name ?? "");
-  const [surname, setSurname] = useState(user?.surname ?? "");
-  const [alias, setAlias] = useState(
-    user?.alias || `${user?.name ?? ""}.${user?.surname ?? ""}`.toLowerCase()
-  );
-  const [preferredCurrency, setPreferredCurrency] = useState<CurrencyCode>(
-    user?.preferredCurrency ?? "ARS"
-  );
-  const [password, setPassword] = useState("");
+  const [name, setNameState] = useState(user?.name ?? "");
+  const [surname, setSurnameState] = useState(user?.surname ?? "");
+  const [country, setCountry] = useState(user?.country ?? COUNTRIES[0].code);
+  const [alias, setAlias] = useState(user?.alias ?? "");
+  const [preferredCurrency, setPreferredCurrency] = useState<CurrencyCode>("USD");
 
+  const [copiedField, setCopiedField] = useState<"alias" | "cbu" | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [aliasModalOpen, setAliasModalOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+
+  useEffect(() => {
+    authService
+      .getMyProfile()
+      .then((profile) => {
+        setNameState(profile.name);
+        setSurnameState(profile.surname);
+        setCountry(profile.country ?? COUNTRIES[0].code);
+        setAlias(profile.alias ?? "");
+      })
+      .catch(() => { });
+
+    authService
+      .getMyWallet()
+      .then((wallet) => setPreferredCurrency(wallet.preferredCurrency))
+      .catch(() => { });
+  }, []);
+
+  async function copyToClipboard(text: string, field: "alias" | "cbu") {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 1500);
+    } catch {
+      // no se pudo copiar al portapapeles — no rompemos la UI por esto
+    }
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    try {
-      const updatedUser = await authService.completeProfile({
-        name,
-        surname,
-        alias,
-        preferredCurrency,
-        ...(password ? { password } : {}),
-      });
+    const errors: string[] = [];
 
-      updateUser(updatedUser);
-      navigate("/");
+    try {
+      await authService.updatePreferredCurrency(preferredCurrency);
+      refetchWallet();
     } catch (err) {
-      console.error("Error al completar perfil:", err);
-      setError("No pudimos guardar tus datos. Probá de nuevo en un momento.");
-    } finally {
-      setLoading(false);
+      errors.push(extractErrorMessage(err, "No pudimos actualizar la moneda preferida."));
+    }
+
+    try {
+      await authService.updatePreferredCurrency(preferredCurrency);
+    } catch (err) {
+      errors.push(extractErrorMessage(err, "No pudimos actualizar la moneda preferida."));
+    }
+
+    setLoading(false);
+
+    if (errors.length > 0) {
+      setError(errors.join(" "));
+    } else {
+      navigate(-1);
     }
   }
 
+  const displayName = [name, surname].filter(Boolean).join(" ");
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-10 bg-surface-dark">
-      <div className="w-full max-w-sm">
-        <h1 className="title mb-1 text-center">Completá tu perfil</h1>
-        <p className="subtitle mb-7 text-center">
-          Antes de entrar, confirmá estos datos. Podés volver a editarlos
-          después desde Configuración.
-        </p>
+    <div className="min-h-screen bg-surface-dark px-6 py-8">
+      <div className="max-w-sm mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <button type="button" onClick={() => navigate(-1)} className="icon-btn" aria-label="Volver">
+            <IconBack className="w-5 h-5" />
+          </button>
+          <h1 className="text-lg font-bold text-text-dark-primary">Mi perfil</h1>
+        </div>
+
+        <div className="flex items-center gap-4 mb-8">
+          <Avatar user={user} size="lg" />
+          <div className="min-w-0">
+            <p className="text-xl font-extrabold text-text-dark-primary truncate">
+              {displayName || "Tu perfil"}
+            </p>
+            {alias && <p className="text-sm text-text-dark-tertiary truncate">@{alias}</p>}
+          </div>
+        </div>
 
         {error && (
           <div className="alert-note alert-note--error mb-4">
@@ -66,65 +133,111 @@ export default function Config() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Input label="Nombre" value={name} onChange={(e) => setName(e.target.value)} required />
-            <Input label="Apellido" value={surname} onChange={(e) => setSurname(e.target.value)} required />
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
+            <p className="text-xs tracking-[0.2em] uppercase text-text-dark-tertiary font-semibold">
+              Datos personales
+            </p>
+
+            <Input label="Nombre" id="name" value={name} disabled hint="Por ahora no se puede editar desde acá." />
+            <Input label="Apellido" id="surname" value={surname} disabled />
+
+            <div>
+              <label className="input__label" htmlFor="email">Email</label>
+              <div className="relative">
+                <input id="email" className="input pr-11 opacity-60 cursor-not-allowed" value={user?.email ?? ""} disabled />
+                <IconCheck className="w-5 h-5 text-turquoise-500 absolute right-4 top-1/2 -translate-y-1/2" />
+              </div>
+            </div>
+
+            <Select
+              label="País de residencia"
+              id="country"
+              value={country}
+              onChange={setCountry}
+              options={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
+            />
           </div>
 
-          <Input
-            label="Email"
-            value={user?.email ?? ""}
-            disabled
-            className="opacity-50 cursor-not-allowed"
-            hint="No se puede modificar"
-          />
+          <div className="flex flex-col gap-1">
+            <p className="text-xs tracking-[0.2em] uppercase text-text-dark-tertiary font-semibold mb-3">Cuenta</p>
 
-          <Input
-            label="Alias"
-            value={alias}
-            onChange={(e) => setAlias(e.target.value)}
-            hint="Así te va a encontrar la gente para pagarte."
-            required
-          />
+            <div className="rounded-card border border-border-dark divide-y divide-border-dark overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3.5">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-text-dark-tertiary mb-1">Alias</p>
+                  <p className="font-semibold text-text-dark-primary truncate">{alias}</p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0 ml-3">
+                  <button type="button" onClick={() => setAliasModalOpen(true)} className="text-text-dark-tertiary hover:text-text-dark-primary" aria-label="Editar alias">
+                    <IconEdit className="w-5 h-5" />
+                  </button>
+                  <button type="button" onClick={() => copyToClipboard(alias, "alias")} className="text-text-dark-tertiary hover:text-text-dark-primary" aria-label="Copiar alias">
+                    {copiedField === "alias" ? <IconCheck className="w-5 h-5 text-turquoise-500" /> : <IconCopy className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
 
-          <Input
-            label="CBU"
-            value={user?.cbu ?? ""}
-            disabled
-            className="opacity-50 cursor-not-allowed"
-            hint="Asignado automáticamente, no se puede modificar"
-          />
+              <div className="flex items-center justify-between px-4 py-3.5">
+                <div>
+                  <p className="text-xs text-text-dark-tertiary mb-1">CBU</p>
+                  <p className="font-semibold text-text-dark-primary tabular">{user?.cbu ?? ""}</p>
+                </div>
+                <button type="button" onClick={() => copyToClipboard(user?.cbu ?? "", "cbu")} className="text-text-dark-tertiary hover:text-text-dark-primary shrink-0 ml-3" aria-label="Copiar CBU">
+                  {copiedField === "cbu" ? <IconCheck className="w-5 h-5 text-turquoise-500" /> : <IconCopy className="w-5 h-5" />}
+                </button>
+              </div>
+
+              <button type="button" onClick={() => setPasswordModalOpen(true)} className="w-full flex items-center justify-between px-4 py-3.5">
+                <span className="font-medium text-text-dark-primary">Cambiar contraseña</span>
+                <IconChevronRight className="w-4 h-4 text-text-dark-tertiary" />
+              </button>
+            </div>
+          </div>
 
           <div>
-            <label className="input__label" htmlFor="preferredCurrency">Moneda preferida</label>
-            <select
-              id="preferredCurrency"
-              value={preferredCurrency}
-              onChange={(e) => setPreferredCurrency(e.target.value as CurrencyCode)}
-              className="input"
-            >
+            <p className="text-xs tracking-[0.2em] uppercase text-text-dark-tertiary font-semibold mb-3">Moneda favorita</p>
+            <div className="flex gap-2 flex-wrap">
               {CURRENCIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setPreferredCurrency(c)}
+                  className={[
+                    "px-5 py-2.5 rounded-full text-sm font-semibold border transition-colors",
+                    preferredCurrency === c
+                      ? "border-violet-500 text-violet-500 bg-violet-500/10"
+                      : "border-border-dark text-text-dark-secondary bg-surface-dark-elevated",
+                  ].join(" ")}
+                >
+                  {c}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
-          <Input
-            label="Nueva contraseña"
-            type="password"
-            autoComplete="new-password"
-            placeholder="Dejalo vacío si no la querés cambiar"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            hint="Opcional"
-          />
-
-          <Button type="submit" variant="primary" fullWidth loading={loading} className="mt-2">
-            Guardar y continuar
+          <Button type="submit" variant="primary" fullWidth loading={loading}>
+            Guardar cambios
           </Button>
         </form>
+
+        <button type="button" onClick={() => logout()} className="text-magenta-500 text-sm font-medium text-center w-full mt-4 hover:opacity-80">
+          Cerrar sesión
+        </button>
       </div>
+
+      <EditAliasModal
+        open={aliasModalOpen}
+        currentAlias={alias}
+        onClose={() => setAliasModalOpen(false)}
+        onSaved={(updatedUser) => {
+          updateUser(updatedUser);
+          setAlias(updatedUser.alias);
+          setAliasModalOpen(false);
+        }}
+      />
+
+      <ChangePasswordModal open={passwordModalOpen} onClose={() => setPasswordModalOpen(false)} />
     </div>
   );
 }
