@@ -13,6 +13,7 @@ type AuthContextValue = {
   loading: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<void>;
+  registerWithGoogle: (idToken: string) => Promise<void>;
   updateUser: (user: AuthUser) => void;
   logout: () => void;
 };
@@ -53,10 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persistSession(response);
   }
   async function loginWithGoogle(idToken: string) {
-  const response = await authService.loginWithGoogle(idToken);
-  persistSession(response);
-}
+    const response = await authService.loginWithGoogle(idToken);
+    persistSession(response);
+  }
 
+  async function registerWithGoogle(idToken: string) {          // <-- nuevo
+    const response = await authService.registerWithGoogle(idToken);
+    persistSession(response);
+  }
   function logout() {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (refreshToken) {
@@ -72,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, loading, login, loginWithGoogle, updateUser, logout }}
+      value={{ user, isAuthenticated: !!user, loading, login, loginWithGoogle, registerWithGoogle, updateUser, logout }}
     >
       {children}
     </AuthContext.Provider>
