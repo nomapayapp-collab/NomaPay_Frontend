@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 
@@ -8,24 +8,62 @@ import { Logo } from "../components/ui/Logo";
 
 import { useAuth } from "../hooks/useAuth";
 
+type LoginErrors = {
+  email?: string;
+  password?: string;
+};
+
+function validateEmail(value: string) {
+  if (!value.trim()) return "El email es obligatorio";
+  if (!/\S+@\S+\.\S+/.test(value)) return "Ingresá un email válido";
+  return undefined;
+}
+
+function validatePassword(value: string) {
+  return value ? undefined : "La contraseña es obligatoria";
+}
+
 export default function Login() {
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<LoginErrors>({});
 
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
 
+  function handleEmailChange(e: ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setEmail(value);
+    setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+  }
+
+  function handlePasswordChange(e: ChangeEvent<HTMLInputElement>) {
+    const value = e.target.value;
+    setPassword(value);
+    setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
+  }
+
+  function validateForm() {
+    const newErrors: LoginErrors = {
+      email: validateEmail(email),
+      password: validatePassword(password),
+    };
+    setErrors(newErrors);
+    return Object.values(newErrors).every((e) => !e);
+  }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     setError(null);
-    setLoading(true);
 
+    if (!validateForm()) return;
+
+    setLoading(true);
     try {
       await login({ email, password });
       navigate("/");
@@ -77,15 +115,15 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
           <Input
             label="Email"
             type="email"
             autoComplete="email"
             placeholder="vos@nomapay.app"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            onChange={handleEmailChange}
+            error={errors.email}
           />
 
           <div>
@@ -104,8 +142,8 @@ export default function Login() {
               autoComplete="current-password"
               placeholder="••••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              onChange={handlePasswordChange}
+              error={errors.password}
             />
           </div>
 
