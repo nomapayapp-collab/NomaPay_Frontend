@@ -11,6 +11,8 @@ import { IconUser, IconMail, IconLock, IconBack } from "../../assets/icons/Icons
 
 import { COUNTRIES } from "../../constants/countries";
 import { register } from "../../services/authService";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
+import { useAuth } from "../../hooks/useAuth";
 
 type RegisterErrors = {
   name?: string;
@@ -60,7 +62,7 @@ const LIGHT_LINK = "lg:text-violet-500 lg:hover:text-violet-700";
 
 export default function Register() {
   const navigate = useNavigate();
-
+  const { registerWithGoogle } = useAuth();
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [country, setCountry] = useState("");
@@ -71,7 +73,25 @@ export default function Register() {
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [googleLoading, setGoogleLoading] = useState(false);
+    async function handleGoogleCredential(credentialResponse: CredentialResponse) {
+    if (!credentialResponse.credential) {
+      setServerError("No pudimos registrarte con Google.");
+      return;
+    }
 
+    try {
+      setServerError("");
+      setGoogleLoading(true);
+      await registerWithGoogle(credentialResponse.credential);
+      navigate("/");
+    } catch (error) {
+      console.error("Error Google register:", error);
+      setServerError(extractErrorMessage(error, "No pudimos registrarte con Google."));
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
   function handleNameChange(e: ChangeEvent<HTMLInputElement>) {
     const value = e.target.value;
     setName(value);
@@ -273,6 +293,40 @@ export default function Register() {
               Continuar
             </Button>
           </form>
+<div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-border-dark lg:bg-border-light" />
+            <span className="text-[11px] text-text-dark-tertiary lg:text-text-light-tertiary">O</span>
+            <div className="flex-1 h-px bg-border-dark lg:bg-border-light" />
+          </div>
+
+          <div className="flex justify-center lg:hidden">
+            <GoogleLogin
+              onSuccess={handleGoogleCredential}
+              onError={() => setServerError("No pudimos registrarte con Google.")}
+              theme="filled_black"
+              shape="pill"
+              size="large"
+              width="320"
+              text="signup_with"
+            />
+          </div>
+          <div className="hidden lg:flex lg:justify-start">
+            <GoogleLogin
+              onSuccess={handleGoogleCredential}
+              onError={() => setServerError("No pudimos registrarte con Google.")}
+              theme="outline"
+              shape="pill"
+              size="large"
+              width="320"
+              text="signup_with"
+            />
+          </div>
+
+          {googleLoading && (
+            <p className="text-center lg:text-left text-[12px] text-text-dark-tertiary lg:text-text-light-tertiary mt-2">
+              Verificando con Google…
+            </p>
+          )}
 
           <p className="text-center lg:text-left text-[13px] text-text-dark-tertiary lg:text-text-light-tertiary mt-6">
             ¿Ya tenés cuenta?{" "}
