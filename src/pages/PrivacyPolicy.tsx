@@ -71,8 +71,7 @@ export default function PrivacyPolicy() {
             <p>
               Podés pedirnos en cualquier momento que actualicemos o eliminemos tu cuenta y tus datos,
               escribiéndonos a{" "}
-              <a href="mailto:equipo@nomapay.app" className="text-violet-500 hover:text-violet-700">
-                nomapayapp@gmail.com
+              <a href="mailto:nomapay@gmail.com" className="text-violet-300 hover:text-violet-500">                nomapayapp@gmail.com
               </a>
               .
             </p>

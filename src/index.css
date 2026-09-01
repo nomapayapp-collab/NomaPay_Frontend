@@ -263,7 +263,7 @@
     @apply flex flex-col items-center gap-1 text-[10px] text-text-dark-tertiary;
   }
   .tabbar__item--active {
-    @apply text-violet-500;
+    @apply text-violet-300;
   }
 
   .title {

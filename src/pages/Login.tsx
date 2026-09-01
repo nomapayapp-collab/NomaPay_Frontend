@@ -93,7 +93,7 @@ export default function Login() {
               <span className="input__label mb-0">Contraseña</span>
               <Link
                 to="/recuperar-contrasena"
-                className="text-[12px] text-violet-500 hover:text-violet-700"
+                className="text-[12px] text-violet-300 hover:text-violet-500"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -139,7 +139,7 @@ export default function Login() {
 
         <p className="text-center text-[13px] text-text-dark-tertiary mt-8">
           ¿No tenés cuenta?{" "}
-          <Link to="/register" className="text-violet-500 hover:text-violet-700 font-medium">
+          <Link to="/register" className="text-violet-300 hover:text-violet-500 font-medium">
             Registrate
           </Link>
         </p>
