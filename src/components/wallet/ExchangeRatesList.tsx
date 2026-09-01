@@ -11,7 +11,7 @@ export function ExchangeRatesList() {
     <Card>
       <div className="flex items-center justify-between mb-3">
         <p className="card__title">Cotizaciones de hoy</p>
-        <button type="button" className="text-[12.5px] font-medium text-violet-500 hover:text-violet-700">
+        <button type="button" className="text-[12.5px] font-medium text-violet-300 hover:text-violet-500">          
           Ver todos
         </button>
       </div>
