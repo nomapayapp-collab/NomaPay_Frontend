@@ -26,3 +26,5 @@ dist-ssr
 
 
 consigna.md
+.vercel
+.env*
