@@ -16,7 +16,7 @@ export default function NotFound() {
         >
           404
         </p>
-        <h1 className="title mt-2">Esta página está en construcción</h1>
+        <h1 className="title mt-2">Esta página no se encontró</h1>
         <p className="subtitle mt-1">Revisá el link o volvé al inicio.</p>
       </div>
       <Button to="/" variant="primary" className="mt-4">

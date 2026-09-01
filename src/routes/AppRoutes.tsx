@@ -6,6 +6,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import Config from "../pages/config/Config";
 import NotFound from "../pages/NotFound";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
+import ComingSoon from "../pages/ComingSoon";
 
 export default function AppRoutes() {
   return (
@@ -18,6 +19,46 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Config />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wallet"
+        element={
+          <ProtectedRoute>
+            <ComingSoon title="Billetera" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/exchange"
+        element={
+          <ProtectedRoute>
+            <ComingSoon title="Convertir" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/transfer"
+        element={
+          <ProtectedRoute>
+            <ComingSoon title="Transferir" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <ComingSoon title="Historial" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/summary"
+        element={
+          <ProtectedRoute>
+            <ComingSoon title="Resumen" />
           </ProtectedRoute>
         }
       />
