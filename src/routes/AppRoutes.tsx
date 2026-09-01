@@ -4,6 +4,8 @@ import Login from "../pages/Login";
 import { Root } from "./Root";
 import { ProtectedRoute } from "./ProtectedRoute";
 import Config from "../pages/config/Config";
+import NotFound from "../pages/NotFound";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
 
 export default function AppRoutes() {
   return (
@@ -19,6 +21,8 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/politica-de-privacidad" element={<PrivacyPolicy />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

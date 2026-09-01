@@ -1,6 +1,6 @@
 import { useState, forwardRef, useId } from "react";
-import type { InputHTMLAttributes } from "react";
-import { IconEye, IconEyeOff } from "../../assets/icons/Icons";
+import type { InputHTMLAttributes, ReactNode } from "react";
+import { IconEye, IconEyeOff, IconCheck } from "../../assets/icons/Icons";
 
 /**
  * Input — el único campo de texto que debería existir en toda la app.
@@ -9,12 +9,14 @@ import { IconEye, IconEyeOff } from "../../assets/icons/Icons";
  *
  * - label: texto arriba del campo (opcional, pero recomendado siempre)
  * - error: si viene, pinta el borde en magenta y muestra el mensaje abajo
+ * - icon: ícono a la izquierda del campo (ej. IconUser, IconMail)
+ * - valid: muestra un check verde a la derecha (campos con validación en vivo, ej. email)
  * - type="password": agrega automáticamente el botón de mostrar/ocultar,
  *   no hace falta armar ese toggle de nuevo en cada pantalla
  *
  * Ejemplos:
- *   <Input label="Email" type="email" placeholder="vos@nomapay.app" />
- *   <Input label="Contraseña" type="password" />
+ *   <Input label="Email" type="email" icon={<IconMail />} valid={emailIsValid} />
+ *   <Input label="Contraseña" type="password" icon={<IconLock />} />
  *   <Input label="Alias" error="Ese alias ya está en uso" />
  */
 
@@ -22,10 +24,12 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;
   error?: string;
   hint?: string; // texto de ayuda gris, cuando no hay error (ej. "Mínimo 8 caracteres")
+  icon?: ReactNode;
+  valid?: boolean;
 };
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, error, hint, type = "text", id, className, ...rest },
+  { label, error, hint, icon, valid, type = "text", id, className, ...rest },
   ref
 ) {
   const [showPassword, setShowPassword] = useState(false);
@@ -33,6 +37,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const inputId = id ?? autoId;
   const isPassword = type === "password";
   const resolvedType = isPassword && showPassword ? "text" : type;
+  const showValidCheck = valid && !isPassword;
 
   return (
     <div>
@@ -43,13 +48,20 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       )}
 
       <div className="relative">
+        {icon && (
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dark-tertiary pointer-events-none">
+            {icon}
+          </span>
+        )}
+
         <input
           ref={ref}
           id={inputId}
           type={resolvedType}
           className={[
             "input",
-            isPassword && "pr-11",
+            icon && "pl-11",
+            (isPassword || showValidCheck) && "pr-11",
             error && "input--error",
             className,
           ]
@@ -70,6 +82,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           >
             {showPassword ? <IconEyeOff className="w-5 h-5" /> : <IconEye className="w-5 h-5" />}
           </button>
+        )}
+
+        {showValidCheck && (
+          <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-turquoise-500">
+            <IconCheck className="w-4 h-4" />
+          </span>
         )}
       </div>
 
