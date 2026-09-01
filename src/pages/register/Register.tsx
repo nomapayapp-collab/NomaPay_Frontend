@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Select } from "../../components/ui/Select";
 import { Logo } from "../../components/ui/Logo";
+import { AuthBrandPanel } from "../../components/auth/AuthBrandPanel";
 import { IconUser, IconMail, IconLock, IconBack } from "../../assets/icons/Icons";
 
 import { COUNTRIES } from "../../constants/countries";
@@ -52,6 +53,10 @@ function validateConfirm(value: string, password: string) {
   if (value !== password) return "Las contraseñas no coinciden";
   return undefined;
 }
+
+const LIGHT_INPUT =
+  "lg:bg-surface-light-input lg:border-border-light lg:text-text-light-primary lg:placeholder:text-text-light-tertiary";
+const LIGHT_LINK = "lg:text-violet-500 lg:hover:text-violet-700";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -146,124 +151,136 @@ export default function Register() {
   const strengthTextColor = strengthScore <= 1 ? "text-magenta-500" : "text-turquoise-500";
 
   return (
-    <div className="min-h-screen bg-surface-dark px-6 py-8">
-      <div className="max-w-sm mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <button type="button" onClick={() => navigate(-1)} className="icon-btn" aria-label="Volver">
-            <IconBack className="w-5 h-5" />
-          </button>
-          <Logo variant="icono" className="w-7 h-7" />
-        </div>
+    <div className="min-h-screen lg:flex bg-surface-dark lg:bg-surface-light">
+      <AuthBrandPanel />
 
-        <h1 className="title mb-1">Creá tu cuenta</h1>
-        <p className="subtitle mb-7">Dos minutos y ya podés recibir cobros del exterior.</p>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-          <div>
-            <span className="input__label">Nombre y apellido</span>
-            <div className="grid grid-cols-2 gap-3 mt-1.5">
-              <Input
-                icon={<IconUser className="w-4.5 h-4.5" />}
-                placeholder="Nombre"
-                autoComplete="given-name"
-                value={name}
-                onChange={handleNameChange}
-                error={errors.name}
-              />
-              <Input
-                icon={<IconUser className="w-4.5 h-4.5" />}
-                placeholder="Apellido"
-                autoComplete="family-name"
-                value={surname}
-                onChange={handleSurnameChange}
-                error={errors.surname}
-              />
-            </div>
+      <div className="flex-1 px-6 py-8 lg:flex lg:items-center lg:justify-center lg:px-16 lg:py-10">
+        <div className="max-w-sm mx-auto lg:mx-0 lg:w-full">
+          <div className="flex items-center gap-3 mb-6 lg:hidden">
+            <button type="button" onClick={() => navigate(-1)} className="icon-btn" aria-label="Volver">
+              <IconBack className="w-5 h-5" />
+            </button>
+            <Logo variant="icono" className="w-7 h-7" />
           </div>
 
-          <Input
-            label="Email"
-            type="email"
-            icon={<IconMail className="w-4.5 h-4.5" />}
-            placeholder="vos@nomapay.app"
-            autoComplete="email"
-            value={email}
-            onChange={handleEmailChange}
-            error={errors.email}
-            valid={!errors.email && email.trim().length > 0}
-          />
+          <h1 className="title mb-1 lg:text-3xl lg:text-text-light-primary">Creá tu cuenta</h1>
+          <p className="subtitle mb-7 lg:text-text-light-secondary">
+            Dos minutos y ya podés recibir cobros del exterior.
+          </p>
 
-          <Input
-            label="Contraseña"
-            type="password"
-            icon={<IconLock className="w-4.5 h-4.5" />}
-            placeholder="••••••••••"
-            autoComplete="new-password"
-            value={password}
-            onChange={handlePasswordChange}
-            error={errors.password}
-          />
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+            <div>
+              <span className="input__label lg:text-text-light-secondary">Nombre y apellido</span>
+              <div className="grid grid-cols-2 gap-3 mt-1.5">
+                <Input
+                  icon={<IconUser className="w-4.5 h-4.5" />}
+                  placeholder="Nombre"
+                  autoComplete="given-name"
+                  value={name}
+                  onChange={handleNameChange}
+                  error={errors.name}
+                  className={LIGHT_INPUT}
+                />
+                <Input
+                  icon={<IconUser className="w-4.5 h-4.5" />}
+                  placeholder="Apellido"
+                  autoComplete="family-name"
+                  value={surname}
+                  onChange={handleSurnameChange}
+                  error={errors.surname}
+                  className={LIGHT_INPUT}
+                />
+              </div>
+            </div>
 
-          <div>
             <Input
-              label="Confirmar contraseña"
+              label="Email"
+              type="email"
+              icon={<IconMail className="w-4.5 h-4.5" />}
+              placeholder="vos@nomapay.app"
+              autoComplete="email"
+              value={email}
+              onChange={handleEmailChange}
+              error={errors.email}
+              valid={!errors.email && email.trim().length > 0}
+              className={LIGHT_INPUT}
+            />
+
+            <Input
+              label="Contraseña"
               type="password"
               icon={<IconLock className="w-4.5 h-4.5" />}
               placeholder="••••••••••"
               autoComplete="new-password"
-              value={confirmPassword}
-              onChange={handleConfirmChange}
-              error={errors.confirmPassword}
+              value={password}
+              onChange={handlePasswordChange}
+              error={errors.password}
+              className={LIGHT_INPUT}
             />
 
-            {password.length > 0 && (
-              <div className="mt-3">
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  <div className="flex gap-1.5 flex-1">
-                    {[0, 1, 2].map((i) => (
-                      <div
-                        key={i}
-                        className={`h-1.5 flex-1 rounded-full ${i < strengthScore ? strengthColor : "bg-white/10"}`}
-                      />
-                    ))}
+            <div>
+              <Input
+                label="Confirmar contraseña"
+                type="password"
+                icon={<IconLock className="w-4.5 h-4.5" />}
+                placeholder="••••••••••"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={handleConfirmChange}
+                error={errors.confirmPassword}
+                className={LIGHT_INPUT}
+              />
+
+              {password.length > 0 && (
+                <div className="mt-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <div className="flex gap-1.5 flex-1">
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 flex-1 rounded-full ${i < strengthScore ? strengthColor : "bg-white/10"} lg:${i < strengthScore ? strengthColor : "bg-black/10"}`}
+                        />
+                      ))}
+                    </div>
+                    <span className={`text-[12px] font-semibold ${strengthTextColor}`}>{strengthLabel}</span>
                   </div>
-                  <span className={`text-[12px] font-semibold ${strengthTextColor}`}>{strengthLabel}</span>
+                  <p className="text-[12px] text-text-dark-tertiary lg:text-text-light-tertiary">
+                    Mínimo 8 caracteres, con un número. Sumá un símbolo para que sea muy segura.
+                  </p>
                 </div>
-                <p className="text-[12px] text-text-dark-tertiary">
-                  Mínimo 8 caracteres, con un número. Sumá un símbolo para que sea muy segura.
-                </p>
+              )}
+            </div>
+
+            <div>
+              <Select
+                label="País de residencia"
+                value={country}
+                onChange={handleCountryChange}
+                options={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
+                placeholder="Seleccioná tu país"
+                className={LIGHT_INPUT}
+              />
+              {errors.country && <p className="text-[12px] text-magenta-500 mt-1.5">{errors.country}</p>}
+            </div>
+
+            {serverError && (
+              <div className="alert-note alert-note--error">
+                <p className="alert-note__description lg:text-text-light-secondary">{serverError}</p>
               </div>
             )}
-          </div>
 
-          <div>
-            <Select
-              label="País de residencia"
-              value={country}
-              onChange={handleCountryChange}
-              options={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
-              placeholder="Seleccioná tu país"
-            />
-            {errors.country && <p className="text-[12px] text-magenta-500 mt-1.5">{errors.country}</p>}
-          </div>
+            <Button type="submit" variant="primary" fullWidth loading={loading} className="mt-2">
+              Continuar
+            </Button>
+          </form>
 
-          {serverError && (
-            <div className="alert-note alert-note--error">
-              <p className="alert-note__description">{serverError}</p>
-            </div>
-          )}
-
-          <Button type="submit" variant="primary" fullWidth loading={loading} className="mt-2">
-            Continuar
-          </Button>
-        </form>
-
-        <p className="text-center text-[13px] text-text-dark-tertiary mt-6">
-          ¿Ya tenés cuenta?{" "}
-          <Link to="/login" className="text-violet-300 hover:text-violet-500 font-medium">
-            Iniciá sesión
-          </Link>
-        </p>
+          <p className="text-center lg:text-left text-[13px] text-text-dark-tertiary lg:text-text-light-tertiary mt-6">
+            ¿Ya tenés cuenta?{" "}
+            <Link to="/login" className={`text-violet-300 hover:text-violet-500 font-medium ${LIGHT_LINK}`}>
+              Iniciá sesión
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
