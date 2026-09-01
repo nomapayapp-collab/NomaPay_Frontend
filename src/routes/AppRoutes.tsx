@@ -31,6 +31,14 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/comprar-vender"
+        element={
+          <ProtectedRoute>
+            <ComingSoon title="Comprar / Vender" />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/exchange"
         element={
           <ProtectedRoute>
