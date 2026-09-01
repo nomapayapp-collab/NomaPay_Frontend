@@ -21,9 +21,10 @@ type SelectProps = {
   onChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
+  className?: string;
 };
 
-export function Select({ label, id, value, onChange, options, placeholder }: SelectProps) {
+export function Select({ label, id, value, onChange, options, placeholder, className }: SelectProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -61,7 +62,7 @@ export function Select({ label, id, value, onChange, options, placeholder }: Sel
         type="button"
         id={id}
         onClick={() => setOpen((v) => !v)}
-        className="input flex items-center justify-between text-left"
+        className={["input flex items-center justify-between text-left", className].filter(Boolean).join(" ")}
         aria-haspopup="listbox"
         aria-expanded={open}
       >
