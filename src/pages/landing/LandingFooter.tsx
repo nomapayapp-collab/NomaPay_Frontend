@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Logo } from "../../components/ui/Logo";
 
 /* const FOOTER_LINKS = {
@@ -25,6 +26,9 @@ export function LandingFooter() {
       <p className="text-md">
         Contacto: nomapayapp@gmail.com
       </p>
+      <Link to="/politica-de-privacidad" className="text-md text-violet-300 hover:text-violet-500">
+        Política de Privacidad
+      </Link>
       {/*    <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
         {Object.entries(FOOTER_LINKS).map(([section, links]) => (
           <div key={section}>
@@ -34,7 +38,7 @@ export function LandingFooter() {
             <ul className="flex flex-col gap-2">
               {links.map((l) => (
                 <li key={l.label} >
-                <a
+                
                     href={l.href}
                     className="text-sm text-text-dark-secondary hover:text-text-dark-primary transition-colors">
                     {l.label}
