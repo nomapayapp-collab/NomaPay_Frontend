@@ -71,6 +71,13 @@
     </style>
   </head>
   <body>
+     <script>
+      try {
+        if (localStorage.getItem("nomapay_theme") === "light") {
+          document.body.classList.add("light");
+        }
+      } catch (e) {}
+    </script>
     <div id="root">
       <div id="initial-loader">
         <img src="/logo/nomapay-lockup-oscuro.svg" alt="NomaPay" />

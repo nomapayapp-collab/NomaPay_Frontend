@@ -260,7 +260,7 @@ export default function Register() {
 
         <p className="text-center text-[13px] text-text-dark-tertiary mt-6">
           ¿Ya tenés cuenta?{" "}
-          <Link to="/login" className="text-violet-500 hover:text-violet-700 font-medium">
+          <Link to="/login" className="text-violet-300 hover:text-violet-500 font-medium">
             Iniciá sesión
           </Link>
         </p>
