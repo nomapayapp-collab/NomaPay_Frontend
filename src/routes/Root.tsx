@@ -1,6 +1,7 @@
 import Landing from "../pages/landing/Landing";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Splash from "../pages/Splash";
+import { AppLayout } from "../components/layout/AppLayout";
 import { useAuth } from "../hooks/useAuth";
 import { useSplash } from "../hooks/useSplash";
 
@@ -10,5 +11,11 @@ export function Root() {
 
   if (loading) return null;
   if (!isAuthenticated) return <Landing />;
-  return showSplash ? <Splash /> : <Dashboard />;
+  if (showSplash) return <Splash />;
+
+  return (
+    <AppLayout>
+      <Dashboard />
+    </AppLayout>
+  );
 }
