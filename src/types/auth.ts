@@ -23,14 +23,12 @@ export type RegisterPayload = {
   password: string;
 };
 
-// Login/Google devuelven tokens + user. Register devuelve solo el user (sin sesión).
-export type AuthResponse = {
-  user: AuthUser;
-  accessToken: string;
-  refreshToken: string;
-};
-
+// Login, Google y Register devuelven el user pelado — los tokens ahora van
+// en cookies httpOnly, invisibles para el JS del front.
+export type AuthResponse = AuthUser;
 export type RegisterResponse = AuthUser;
+
+
 
 // Solo country y username se aplican de verdad en el backend hoy.
 export type UpdateProfilePayload = {
