@@ -1,5 +1,5 @@
 import axios from "axios";
-const TOKEN_KEY = "nomapay_token";
+
 
 /**
  
@@ -11,29 +11,17 @@ VITE_API_URL=http://localhost:3000/api
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:3000/api",
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Adjunta el token guardado a cada request, si existe
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
-// Si el backend responde 401 (token vencido/inválido), limpiamos la sesión local
+// Si el backend responde 401 (cookie vencida/inválida), el AuthContext lo detecta
+// en el próximo render (isAuthenticated pasa a false) y redirige a /login.
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("nomapay_token");
-      localStorage.removeItem("nomapay_user");
-      // el AuthContext detecta esto en el próximo render y redirige a /login
-    }
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
+
