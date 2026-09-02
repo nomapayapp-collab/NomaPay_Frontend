@@ -252,18 +252,23 @@
     background-image: var(--gradient-spectrum);
     @apply h-1 rounded-full;
   }
-
-  .tabbar {
-    @apply flex items-center justify-around border-t border-border-dark bg-surface-dark px-2 py-3;
+  .topbar {
+    @apply sticky top-0 z-20 flex items-center justify-around gap-1 overflow-x-auto border-b border-border-dark bg-surface-dark px-1 py-2;
   }
-  body.light .tabbar {
+  body.light .topbar {
     @apply border-border-light bg-surface-light;
   }
-  .tabbar__item {
-    @apply flex flex-col items-center gap-1 text-[10px] text-text-dark-tertiary;
+  .topbar__item {
+    @apply flex flex-col items-center gap-0.5 px-1.5 py-1 rounded-control text-text-dark-tertiary transition-colors shrink-0;
   }
-  .tabbar__item--active {
-    @apply text-violet-300;
+  body.light .topbar__item {
+    @apply text-text-light-tertiary;
+  }
+  .topbar__item--active {
+    @apply text-violet-300 bg-violet-500/10;
+  }
+  .topbar__label {
+    @apply text-[9.5px] font-medium leading-none whitespace-nowrap;
   }
 
   .title {

@@ -33,7 +33,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedUser = localStorage.getItem(USER_KEY);
     const storedToken = localStorage.getItem(TOKEN_KEY);
     if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        // localStorage tenía algo corrupto (ej: "undefined" de una sesión vieja
+        // que se cortó a la mitad) — lo limpiamos y arrancamos como si no
+        // hubiera sesión, en vez de romper toda la app.
+        localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
+      }
     }
     setLoading(false);
   }, []);
