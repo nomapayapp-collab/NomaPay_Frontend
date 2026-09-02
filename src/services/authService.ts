@@ -14,32 +14,29 @@ export async function register(payload: RegisterPayload): Promise<RegisterRespon
   const { data } = await api.post<RegisterResponse>("/auth/register", payload);
   return data;
 }
-
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
-  const { data } = await api.post<AuthResponse>("/auth/login", payload);
+   const { data } = await api.post<AuthResponse>("/auth/login", payload);
+   return data;
+ }
+
+ export async function loginWithGoogle(idToken: string): Promise<AuthResponse> {
+   const { data } = await api.post<AuthResponse>("/auth/google/login", { idToken });
+   return data;
+ }
+
+ export async function registerWithGoogle(idToken: string): Promise<AuthResponse> {
+   const { data } = await api.post<AuthResponse>("/auth/google/register", { idToken });
+   return data;
+ }
+
+
+export async function refreshSession() {
+  const { data } = await api.post<{ message: string }>("/auth/refresh");
   return data;
 }
 
-export async function loginWithGoogle(idToken: string): Promise<AuthResponse> {
-  const { data } = await api.post<AuthResponse>("/auth/google/login", { idToken });
-  return data;
-}
-
-export async function registerWithGoogle(idToken: string): Promise<AuthResponse> {
-  const { data } = await api.post<AuthResponse>("/auth/google/register", { idToken });
-  return data;
-}
-
-export async function refreshSession(refreshToken: string) {
-  const { data } = await api.post<{ accessToken: string; refreshToken: string }>(
-    "/auth/refresh",
-    { refreshToken }
-  );
-  return data;
-}
-
-export async function logoutRequest(refreshToken: string): Promise<void> {
-  await api.post("/auth/logout", { refreshToken });
+export async function logoutRequest(): Promise<void> {
+  await api.post("/auth/logout");
 }
 
 // export async function resendVerificationCode(email: string): Promise<void> {
