@@ -4,16 +4,6 @@ import * as authService from "../services/authService";
 import { MOCK_WALLET } from "../constants/mockWallet";
 import { useAuth } from "../hooks/useAuth";
 
-/**
- * saldo, monedas y movimientos del usuario.
- * No se usa directo: los componentes consumen esto a través del hook useWallet().
- *
- * El saldo (balances) ya sale del back real (GET /api/wallets/me), pero solo
- * lo pedimos si hay sesión iniciada — si no, mostramos datos de ejemplo sin
- * pegarle al backend (evita el 401 en la landing pública).
- * Las cotizaciones y los movimientos recientes todavía NO tienen endpoint en
- * el back, así que por ahora siguen mockeados.
- */
 type WalletContextValue = {
   wallet: Wallet;
   loading: boolean;
@@ -23,9 +13,18 @@ type WalletContextValue = {
 
 export const WalletContext = createContext<WalletContextValue | undefined>(undefined);
 
+// Estado inicial para un usuario logueado mientras carga su saldo real.
+// NO usa MOCK_WALLET para balances (esos ya son reales) — solo toma
+// prestadas las cotizaciones mockeadas, que siguen sin endpoint propio.
+const EMPTY_AUTH_WALLET: Wallet = {
+  balances: [],
+  exchangeRates: MOCK_WALLET.exchangeRates,
+  recentMovements: [],
+};
+
 export function WalletProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const [wallet, setWallet] = useState<Wallet>(MOCK_WALLET);
+  const [wallet, setWallet] = useState<Wallet>(EMPTY_AUTH_WALLET);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,23 +45,23 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }));
 
       setWallet({
-        balances: balances.length > 0 ? balances : MOCK_WALLET.balances,
+        balances,
         exchangeRates: MOCK_WALLET.exchangeRates,
-        recentMovements: MOCK_WALLET.recentMovements,
+        recentMovements: [], // antes: MOCK_WALLET.recentMovements — ya no hay endpoint, no mostramos mock
       });
     } catch {
-      setError("No pudimos cargar tu saldo. Mostrando datos de ejemplo.");
-      setWallet(MOCK_WALLET);
+      setError("No pudimos cargar tu saldo. Probá de nuevo en un rato.");
+      setWallet(EMPTY_AUTH_WALLET);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (authLoading) return; // todavía hidratando la sesión, esperamos
+    if (authLoading) return;
 
     if (!isAuthenticated) {
-      // no hay sesión (ej: estamos en la landing): no pedimos el wallet
+      // no hay sesión (ej: landing pública): ahí sí mostramos el ejemplo completo
       setWallet(MOCK_WALLET);
       setError(null);
       setLoading(false);

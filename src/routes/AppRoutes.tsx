@@ -3,6 +3,7 @@ import Register from "../pages/register/Register";
 import Login from "../pages/Login";
 import { Root } from "./Root";
 import { ProtectedRoute } from "./ProtectedRoute";
+import { AppLayout } from "../components/layout/AppLayout";
 import Config from "../pages/config/Config";
 import NotFound from "../pages/NotFound";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
@@ -26,7 +27,9 @@ export default function AppRoutes() {
         path="/wallet"
         element={
           <ProtectedRoute>
-            <ComingSoon title="Billetera" />
+            <AppLayout>
+              <ComingSoon title="Billetera" />
+            </AppLayout>
           </ProtectedRoute>
         }
       />
@@ -34,7 +37,9 @@ export default function AppRoutes() {
         path="/comprar-vender"
         element={
           <ProtectedRoute>
-            <ComingSoon title="Comprar / Vender" />
+            <AppLayout>
+              <ComingSoon title="Comprar / Vender" />
+            </AppLayout>
           </ProtectedRoute>
         }
       />
@@ -42,7 +47,9 @@ export default function AppRoutes() {
         path="/exchange"
         element={
           <ProtectedRoute>
-            <ComingSoon title="Convertir" />
+            <AppLayout>
+              <ComingSoon title="Convertir" />
+            </AppLayout>
           </ProtectedRoute>
         }
       />
@@ -50,7 +57,9 @@ export default function AppRoutes() {
         path="/transfer"
         element={
           <ProtectedRoute>
-            <ComingSoon title="Transferir" />
+            <AppLayout>
+              <ComingSoon title="Transferir" />
+            </AppLayout>
           </ProtectedRoute>
         }
       />
@@ -58,7 +67,9 @@ export default function AppRoutes() {
         path="/history"
         element={
           <ProtectedRoute>
-            <ComingSoon title="Historial" />
+            <AppLayout>
+              <ComingSoon title="Historial" />
+            </AppLayout>
           </ProtectedRoute>
         }
       />
@@ -66,7 +77,9 @@ export default function AppRoutes() {
         path="/summary"
         element={
           <ProtectedRoute>
-            <ComingSoon title="Resumen" />
+            <AppLayout>
+              <ComingSoon title="Resumen" />
+            </AppLayout>
           </ProtectedRoute>
         }
       />

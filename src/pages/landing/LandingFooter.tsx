@@ -1,54 +1,50 @@
 import { Link } from "react-router-dom";
 import { Logo } from "../../components/ui/Logo";
 
-/* const FOOTER_LINKS = {
-  Producto: [
-    { label: "¿Cómo funciona?", href: "#como-funciona" },
-    { label: "Para quién es", href: "#para-quien-es" },
-    { label: "Seguridad", href: "#seguridad" },
-    { label: "Comisiones", href: "#" },
-  ],
-  Compañía: [
-    { label: "Nosotros", href: "#" },
-    { label: "Contacto", href: "#" },
-  ],
-  Legal: [
-    { label: "Términos y condiciones", href: "#" },
-    { label: "Política de privacidad", href: "#" },
-  ],
-}; */
-
 export function LandingFooter() {
   return (
-    <footer id="contacto" className="bg-surface-dark px-6 md:px-12 py-12 flex row justify-between align-middle w-full">
-      <Logo variant="lockup-oscuro" className="h-12 w-auto mb-2" />
-      <p className="text-md text-text-dark-tertiary">Cobrá global. Viví local.</p>
-      <p className="text-md">
-        Contacto: nomapayapp@gmail.com
-      </p>
-      <Link to="/politica-de-privacidad" className="text-md text-violet-300 hover:text-violet-500">
-        Política de Privacidad
-      </Link>
-      {/*    <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-        {Object.entries(FOOTER_LINKS).map(([section, links]) => (
-          <div key={section}>
-            <p className="text-xs tracking-[0.14em] uppercase text-text-dark-tertiary font-semibold mb-3">
-              {section}
-            </p>
-            <ul className="flex flex-col gap-2">
-              {links.map((l) => (
-                <li key={l.label} >
-                
-                    href={l.href}
-                    className="text-sm text-text-dark-secondary hover:text-text-dark-primary transition-colors">
-                    {l.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div> */}
+    <footer id="contacto" className="bg-surface-dark px-6 md:px-12 py-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col items-center gap-5 sm:flex-row sm:justify-between">
+          <Link to="/" className="flex items-center">
+            <Logo variant="lockup-oscuro" className="h-8 w-auto" />
+          </Link>
+
+          <ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-text-dark-secondary">
+            <li>
+              <a href="#como-funciona" className="hover:text-text-dark-primary transition-colors">
+                ¿Cómo funciona?
+              </a>
+            </li>
+            <li>
+              <a href="#para-quien-es" className="hover:text-text-dark-primary transition-colors">
+                Para quién es
+              </a>
+            </li>
+            <li>
+              <a href="#preguntas" className="hover:text-text-dark-primary transition-colors">
+                Preguntas
+              </a>
+            </li>
+            <li>
+              <Link to="/politica-de-privacidad" className="hover:text-text-dark-primary transition-colors">
+                Política de privacidad
+              </Link>
+            </li>
+            <li>
+              <a href="mailto:nomapayapp@gmail.com" className="hover:text-text-dark-primary transition-colors">
+                Contacto: nomapayapp@gmail.com
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <hr className="my-6 border-border-dark" />
+
+        <p className="text-xs text-text-dark-tertiary text-center">
+          © {new Date().getFullYear()} NomaPay. Todos los derechos reservados.
+        </p>
+      </div>
     </footer>
   );
 }

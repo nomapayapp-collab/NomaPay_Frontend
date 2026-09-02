@@ -66,3 +66,4 @@ export async function updatePreferredCurrency(preferredCurrency: string) {
   const { data } = await api.patch("/wallets/me/preferred-currency", { preferredCurrency });
   return data;
 }
+
