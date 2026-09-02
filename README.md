@@ -8,7 +8,7 @@ Este repositorio contiene exclusivamente la aplicación **Frontend**, desarrolla
 
 El desarrollo del frontend fue realizado por:
 
-- **Candela Ferrari**
+- **Candelaria Ferrari**
 - **Agustin Spataro**
 
 ## Descripción del proyecto
@@ -291,7 +291,7 @@ El README diferencia estas estructuras de las funcionalidades que actualmente cu
 
 ## Autores
 
-**Candela Ferrari**  
+**Candelaria Ferrari**  
 Frontend Developer
 
 **Agustin Spataro**  
