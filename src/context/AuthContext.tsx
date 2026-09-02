@@ -1,10 +1,15 @@
 import { createContext, useState, useEffect, type ReactNode } from "react";
 import * as authService from "../services/authService";
-import type { AuthUser, LoginPayload, AuthResponse } from "../types/auth";
+import type { AuthUser, LoginPayload } from "../types/auth";
 import { SPLASH_SEEN_KEY } from "../hooks/useSplash";
 /**
  * context/AuthContext.tsx — estado global de sesión.
  * No se usa directo: los componentes consumen esto a través del hook useAuth().
+ *
+ * La sesión vive en una cookie httpOnly que pone el backend — el front nunca
+ * la toca ni la guarda en ningún lado. Para saber si hay sesión activa al
+ * montar la app (o al refrescar la página), le preguntamos al backend con
+ * /users/me: si la cookie es válida, contesta 200 con el user; si no, 401.
  */
 
 type AuthContextValue = {
@@ -20,58 +25,41 @@ type AuthContextValue = {
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const TOKEN_KEY = "nomapay_token";
-const USER_KEY = "nomapay_user";
-const REFRESH_TOKEN_KEY = "nomapay_refresh_token";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Al montar la app, si había una sesión guardada, la recuperamos
   useEffect(() => {
-    const storedUser = localStorage.getItem(USER_KEY);
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    if (storedUser && storedToken) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    authService
+      .getMyProfile()
+      .then(setUser)
+      .catch(() => setUser(null)) // sin cookie válida = sin sesión, no es un error real
+      .finally(() => setLoading(false));
   }, []);
 
-  function persistSession(response: AuthResponse) {
-    localStorage.setItem(TOKEN_KEY, response.accessToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+  function persistSession(loggedUser: AuthUser) {
     sessionStorage.removeItem(SPLASH_SEEN_KEY);
-    setUser(response.user);
+    setUser(loggedUser);
   }
   function updateUser(updatedUser: AuthUser) {
-    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
     setUser(updatedUser);
   }
   async function login(payload: LoginPayload) {
-    const response = await authService.login(payload);
-    persistSession(response);
+    const loggedUser = await authService.login(payload);
+    persistSession(loggedUser);
   }
   async function loginWithGoogle(idToken: string) {
-    const response = await authService.loginWithGoogle(idToken);
-    persistSession(response);
+    const loggedUser = await authService.loginWithGoogle(idToken);
+    persistSession(loggedUser);
   }
-
-  async function registerWithGoogle(idToken: string) {          // <-- nuevo
-    const response = await authService.registerWithGoogle(idToken);
-    persistSession(response);
+  async function registerWithGoogle(idToken: string) {
+    const loggedUser = await authService.registerWithGoogle(idToken);
+    persistSession(loggedUser);
   }
   function logout() {
-    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-    if (refreshToken) {
-      authService.logoutRequest(refreshToken).catch(() => {
-        // si falla la revocación del lado del server, igual cerramos sesión local
-      });
-    }
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    authService.logoutRequest().catch(() => {
+      // si falla la revocación del lado del server, igual cerramos sesión local
+    });
     setUser(null);
   }
 
