@@ -16,11 +16,11 @@ export function ExchangeRatesList() {
         </button>
       </div>
 
-      <ul className="divide-y divide-border-dark">
+      <ul className="divide-y divide-border-light dark:divide-border-dark">
         {wallet.exchangeRates.map(({ from, to, rate }) => (
           <li key={`${from}-${to}`} className="flex items-center justify-between py-3 text-[14px]">
-            <span className="text-text-dark-secondary">Cambio {from} → {to}</span>
-            <span className="tabular font-medium text-text-dark-primary">
+            <span className="text-text-light-secondary dark:text-text-dark-secondary">Cambio {from} → {to}</span>
+            <span className="tabular font-medium text-text-light-primary dark:text-text-dark-primary">
               1 {from} = {rate.toLocaleString("es-AR")} {to}
             </span>
           </li>

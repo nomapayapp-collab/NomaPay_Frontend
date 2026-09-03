@@ -4,7 +4,6 @@ import type { ComponentType, SVGProps } from "react";
 import {
   IconHome,
   IconWallet,
-  IconUpDown,
   IconSwap,
   IconSend,
   IconClock,
@@ -21,7 +20,6 @@ type Tab = {
 const TABS: Tab[] = [
   { to: "/", label: "Inicio", icon: IconHome, end: true },
   { to: "/wallet", label: "Billetera", icon: IconWallet },
-  { to: "/comprar-vender", label: "Comprar/Vender", icon: IconUpDown },
   { to: "/exchange", label: "Convertir", icon: IconSwap },
   { to: "/transfer", label: "Transferir", icon: IconSend },
   { to: "/history", label: "Historial", icon: IconClock },

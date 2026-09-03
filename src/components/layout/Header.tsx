@@ -15,7 +15,7 @@ export function Header({ greeting, title, subtitle, actions }: HeaderProps) {
   return (
     <header className="flex items-start justify-between mb-6">
       <div>
-        {greeting && <p className="text-[15px] text-text-dark-secondary mb-0.5">{greeting}</p>}
+        {greeting && <p className="text-[15px] text-text-light-secondary dark:text-text-dark-secondary mb-0.5">{greeting}</p>}
         <h1 className="title">{title}</h1>
         {subtitle && <p className="subtitle mt-0.5">{subtitle}</p>}
       </div>

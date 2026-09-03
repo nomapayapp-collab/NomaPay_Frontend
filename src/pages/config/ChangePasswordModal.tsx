@@ -98,18 +98,18 @@ export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps)
                 <div key={i} className={`h-1.5 flex-1 rounded-full ${i < strengthScore ? strengthColor : "bg-white/10"}`} />
               ))}
             </div>
-            <p className="text-[12px] text-text-dark-tertiary">{strengthLabel}</p>
+            <p className="text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary">{strengthLabel}</p>
           </div>
         )}
 
         <ul className="flex flex-col gap-1.5">
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.length ? "text-turquoise-500" : "text-text-dark-tertiary"}`}>
+          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.length ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
             <IconCheck className="w-3.5 h-3.5" /> Mínimo 8 caracteres
           </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.upperAndNumber ? "text-turquoise-500" : "text-text-dark-tertiary"}`}>
+          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.upperAndNumber ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
             <IconCheck className="w-3.5 h-3.5" /> Al menos una mayúscula y un número
           </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.matches ? "text-turquoise-500" : "text-text-dark-tertiary"}`}>
+          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.matches ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
             <IconCheck className="w-3.5 h-3.5" /> Coincide con la confirmación
           </li>
         </ul>

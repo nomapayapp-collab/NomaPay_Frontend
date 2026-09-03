@@ -29,7 +29,7 @@ export default function Dashboard() {
               aria-label="Mi perfil"
               onClick={() => navigate("/profile")}
             >
-              <IconUser className="w-5 h-5" />
+              <IconUser className="w-5 h-5 "  />
             </button>
           </div>
         }
