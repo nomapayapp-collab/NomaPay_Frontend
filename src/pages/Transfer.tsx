@@ -1,14 +1,15 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "../../components/layout/Header";
-import { Input } from "../../components/ui/Input";
-import { Select } from "../../components/ui/Select";
-import { Button } from "../../components/ui/Button";
-import { IconBack, IconSearch, IconCheck } from "../../assets/icons/Icons";
-import { useWallet } from "../../hooks/useWallet";
-import { formatCurrency } from "../../utils/formatCurrency";
-import { MOCK_CONTACTS } from "../../constants/mockContacts";
-import type { CurrencyCode } from "../../types/wallet";
+import { Header } from "../components/layout/Header";
+import { Input } from "../components/ui/Input";
+import { Select } from "../components/ui/Select";
+import { Button } from "../components/ui/Button";
+import { ConfirmActionModal } from "../components/ui/ConfirmActionModal";
+import { IconBack, IconSearch, IconCheck } from "../assets/icons/Icons";
+import { useWallet } from "../hooks/useWallet";
+import { formatCurrency } from "../utils/formatCurrency";
+import { MOCK_CONTACTS } from "../constants/mockContacts";
+import type { CurrencyCode } from "../types/wallet";
 
 type Recipient = { name: string; alias: string };
 
@@ -26,11 +27,14 @@ function initials(name: string) {
 }
 
 /**
- * Transferir dinero — 3 pasos (destinatario → monto → confirmar).
+ * Transferir dinero — 3 pasos (destinatario → monto → confirmar). Al
+ * enviar se abre un modal de "¿confirmás?" y recién ahí se navega al
+ * Comprobante (/comprobante), que es quien resuelve la operación
+ * (pendiente → completada/rechazada). Ver Receipt.tsx.
  */
 export default function Transfer() {
   const navigate = useNavigate();
-  const { wallet, mockTransfer } = useWallet();
+  const { wallet } = useWallet();
 
   const [step, setStep] = useState(1);
   const [query, setQuery] = useState("");
@@ -40,7 +44,7 @@ export default function Transfer() {
   );
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const balance = wallet.balances.find((b) => b.currency.code === currencyCode);
   const available = balance?.amount ?? 0;
@@ -59,15 +63,24 @@ export default function Transfer() {
     setQuery("");
   }
 
-  function handleConfirm(e: FormEvent) {
+  function handleSubmitStep3(e: FormEvent) {
     e.preventDefault();
     if (!recipient || !amountValid) return;
-    setSending(true);
-    setTimeout(() => {
-      mockTransfer({ currencyCode, amount: numericAmount, recipientLabel: recipient.name });
-      setSending(false);
-      navigate("/");
-    }, 600);
+    setConfirmOpen(true);
+  }
+
+  function handleConfirmSend() {
+    if (!recipient) return;
+    const known = MOCK_CONTACTS.some((c) => c.alias === recipient.alias);
+    navigate("/comprobante", {
+      state: {
+        amount: numericAmount,
+        currency: currencyCode,
+        recipientName: recipient.name,
+        recipientAlias: recipient.alias,
+        known,
+      },
+    });
   }
 
   return (
@@ -284,49 +297,65 @@ export default function Transfer() {
           )}
 
           {step === 3 && recipient && (
-            <form onSubmit={handleConfirm} className="flex flex-col gap-6">
-              <div className="rounded-card border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3.5">
-                  <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Destinatario</span>
-                  <span className="font-semibold text-text-light-primary dark:text-text-dark-primary text-right truncate max-w-50">
-                    {recipient.name}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between px-4 py-3.5">
-                  <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Monto</span>
-                  <span className="font-semibold tabular text-text-light-primary dark:text-text-dark-primary">
-                    {formatCurrency(numericAmount, currencyCode)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between px-4 py-3.5">
-                  <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Comisión</span>
-                  <span className="font-semibold text-text-light-primary dark:text-text-dark-primary">Sin cargo</span>
-                </div>
-                <div className="flex items-center justify-between px-4 py-3.5">
-                  <span className="text-[13.5px] font-semibold text-text-light-primary dark:text-text-dark-primary">
-                    Total a enviar
-                  </span>
-                  <span className="font-bold tabular text-text-light-primary dark:text-text-dark-primary">
-                    {formatCurrency(numericAmount, currencyCode)}
-                  </span>
-                </div>
-                {message && (
-                  <div className="px-4 py-3.5">
-                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary block mb-1">Mensaje</span>
-                    <p className="text-[14px] text-text-light-primary dark:text-text-dark-primary">{message}</p>
+            <>
+              <form onSubmit={handleSubmitStep3} className="flex flex-col gap-6">
+                <div className="rounded-card border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3.5">
+                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Destinatario</span>
+                    <span className="font-semibold text-text-light-primary dark:text-text-dark-primary text-right truncate max-w-50">
+                      {recipient.name}
+                    </span>
                   </div>
-                )}
-              </div>
+                  <div className="flex items-center justify-between px-4 py-3.5">
+                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Monto</span>
+                    <span className="font-semibold tabular text-text-light-primary dark:text-text-dark-primary">
+                      {formatCurrency(numericAmount, currencyCode)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3.5">
+                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Comisión</span>
+                    <span className="font-semibold text-text-light-primary dark:text-text-dark-primary">Sin cargo</span>
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-3.5">
+                    <span className="text-[13.5px] font-semibold text-text-light-primary dark:text-text-dark-primary">
+                      Total a enviar
+                    </span>
+                    <span className="font-bold tabular text-text-light-primary dark:text-text-dark-primary">
+                      {formatCurrency(numericAmount, currencyCode)}
+                    </span>
+                  </div>
+                  {message && (
+                    <div className="px-4 py-3.5">
+                      <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary block mb-1">Mensaje</span>
+                      <p className="text-[14px] text-text-light-primary dark:text-text-dark-primary">{message}</p>
+                    </div>
+                  )}
+                </div>
 
-              <div className="alert-note alert-note--info">
-                <p className="alert-note__title">Verificá el alias antes de enviar</p>
-                <p className="alert-note__description">Las transferencias no se pueden deshacer una vez confirmadas.</p>
-              </div>
+                <div className="alert-note alert-note--info">
+                  <p className="alert-note__title">Verificá el alias antes de enviar</p>
+                  <p className="alert-note__description">Las transferencias no se pueden deshacer una vez confirmadas.</p>
+                </div>
 
-              <Button type="submit" variant="primary" fullWidth loading={sending}>
-                Enviar dinero
-              </Button>
-            </form>
+                <Button type="submit" variant="primary" fullWidth>
+                  Enviar dinero
+                </Button>
+              </form>
+
+              <ConfirmActionModal
+                open={confirmOpen}
+                onCancel={() => setConfirmOpen(false)}
+                onConfirm={handleConfirmSend}
+                title="¿Confirmás el envío?"
+                description={`Vas a enviar ${formatCurrency(numericAmount, currencyCode)} a ${recipient.name}. Esta acción no se puede deshacer.`}
+                rows={[
+                  { label: "Alias", value: recipient.alias },
+                  { label: "Comisión", value: "Sin cargo", accent: true },
+                  { label: "Total a debitar", value: formatCurrency(numericAmount, currencyCode) },
+                ]}
+                confirmLabel="Confirmar envío"
+              />
+            </>
           )}
         </div>
 

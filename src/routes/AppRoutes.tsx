@@ -8,8 +8,9 @@ import Config from "../pages/config/Config";
 import NotFound from "../pages/NotFound";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import ComingSoon from "../pages/ComingSoon";
-import Wallet from "../pages/wallet/Wallet";
-import Transfer from "../pages/transfer/Transfer";
+import Wallet from "../pages/Wallet";
+import Transfer from "../pages/Transfer";
+import Receipt from "../pages/Receipt";
 
 export default function AppRoutes() {
   return (
@@ -18,15 +19,15 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/profile" element={
-        <ProtectedRoute> 
+        <ProtectedRoute>
           <Config />
-        </ProtectedRoute>}/>
+        </ProtectedRoute>} />
       <Route path="/wallet" element={
         <ProtectedRoute>
           <AppLayout>
             <Wallet />
           </AppLayout>
-        </ProtectedRoute> } />
+        </ProtectedRoute>} />
       <Route
         path="/comprar-vender"
         element={
@@ -77,6 +78,10 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/comprobante" element={
+        <ProtectedRoute>
+          <Receipt />
+        </ProtectedRoute>} />
       <Route path="/politica-de-privacidad" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

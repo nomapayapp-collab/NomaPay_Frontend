@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "../../components/layout/Header";
-import { Button } from "../../components/ui/Button";
-import { BalanceCard } from "../../components/wallet/BalanceCard";
-import { TopUpModal } from "../../components/wallet/TopUpModal";
-import { useWallet } from "../../hooks/useWallet";
-import { useAuth } from "../../hooks/useAuth";
-import { formatCurrency } from "../../utils/formatCurrency";
-import { IconSend, IconSwap, IconPlus, IconCopy, IconCheck, IconStar } from "../../assets/icons/Icons";
-import type { CurrencyBalance, CurrencyCode, ExchangeRate } from "../../types/wallet";
+import { Header } from "../components/layout/Header";
+import { Button } from "../components/ui/Button";
+import { BalanceCard } from "../components/wallet/BalanceCard";
+import { TopUpModal } from "../components/wallet/TopUpModal";
+import { useWallet } from "../hooks/useWallet";
+import { useAuth } from "../hooks/useAuth";
+import { formatCurrency } from "../utils/formatCurrency";
+import { IconSend, IconSwap, IconPlus, IconCopy, IconCheck, IconStar } from "../assets/icons/Icons";
+import type { CurrencyBalance, CurrencyCode, ExchangeRate } from "../types/wallet";
 
 const CURRENCY_NAMES: Record<CurrencyCode, string> = {
   ARS: "Peso argentino",
