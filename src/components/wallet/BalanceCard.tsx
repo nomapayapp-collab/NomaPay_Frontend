@@ -38,21 +38,31 @@ export function BalanceCard() {
 
   if (balances.length === 0) return null;
 
+  // con 1 o 2 monedas entran las dos enteras en pantalla, sin necesidad de
+  // scroll (se reparten el ancho disponible). Recién con 3+ pasamos al
+  // carrusel de ancho fijo con scroll horizontal.
+  const isCarousel = balances.length > 2;
+
   return (
-    <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1">
+    <div
+      className={
+        isCarousel
+          ? "flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1"
+          : "flex gap-4"
+      }
+    >
       {balances.map((balance) => {
         const others = balances.filter((b) => b !== balance);
         return (
           <Card
             key={balance.currency.code}
             variant="aura"
-            className="min-w-75 lg:min-w-85 shrink-0 snap-center"
+            className={isCarousel ? "min-w-75 lg:min-w-85 shrink-0 snap-center" : "flex-1 min-w-0"}
           >
             <div className="flex items-center justify-between mb-4">
               <p className="card__title">Saldo total</p>
               <span className="brand-mark bg-ink dark:bg-white w-9 h-9 opacity-90 shrink-0" aria-hidden="true" />
             </div>
-
             <div className="flex items-center justify-between mb-4">
               <p className="card__amount">
                 {showBalance ? formatCurrency(balance.amount, balance.currency.code) : HIDDEN}
@@ -66,7 +76,6 @@ export function BalanceCard() {
                 {showBalance ? <IconEye className="w-5 h-5" /> : <IconEyeOff className="w-5 h-5" />}
               </button>
             </div>
-
             {others.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-5">
                 {others.map(({ currency, amount }) => (
@@ -76,7 +85,6 @@ export function BalanceCard() {
                 ))}
               </div>
             )}
-
             <div className="brand-rule" />
           </Card>
         );
