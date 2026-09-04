@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Register from "../pages/register/Register";
 import Login from "../pages/Login";
+import Exchange from "../pages/exchange/Exchange";
 import { Root } from "./Root";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AppLayout } from "../components/layout/AppLayout";
@@ -15,6 +16,7 @@ export default function AppRoutes() {
       <Route path="/" element={<Root />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/exchange" element={<Exchange />} />
       <Route
         path="/profile"
         element={
