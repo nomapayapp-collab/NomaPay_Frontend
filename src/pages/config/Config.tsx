@@ -22,7 +22,6 @@ import type { CurrencyCode } from "../../types/wallet";
 import { COUNTRIES } from "../../constants/countries";
 import { Select } from "../../components/ui/Select";
 import { useWallet } from "../../hooks/useWallet";
-import { useTheme } from "../../hooks/useTheme";
 
 const CURRENCIES: CurrencyCode[] = ["ARS", "USD", "BRL"];
 const CURRENCY_NAMES: Record<CurrencyCode, string> = {
@@ -39,9 +38,8 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default function Config() {
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser } = useAuth();
   const { refetch: refetchWallet } = useWallet();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const [name, setNameState] = useState(user?.name ?? "");
@@ -256,41 +254,6 @@ export default function Config() {
                   Guardar cambios
                 </Button>
               </form>
-
-              <div>
-                <p className="text-xs tracking-[0.2em] uppercase text-text-light-tertiary dark:text-text-dark-tertiary font-semibold mb-3">
-                  Apariencia
-                </p>
-                <div className="flex items-center justify-between rounded-card border border-border-light dark:border-border-dark px-4 py-3.5">
-                  <div>
-                    <p className="font-medium text-text-light-primary dark:text-text-dark-primary">Tema oscuro</p>
-                    <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mt-0.5">Cambiá el aspecto de la app</p>
-                  </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={theme === "dark"}
-                    onClick={toggleTheme}
-                    className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
-                      theme === "dark" ? "bg-violet-500" : "bg-black/10 dark:bg-white/15"
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-                        theme === "dark" ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="text-magenta-500 text-sm font-medium text-center w-full lg:w-auto lg:self-start hover:opacity-80"
-              >
-                Cerrar sesión
-              </button>
 
               {/* TODO(desktop): "Cerrar mi cuenta" (eliminar cuenta) del mockup —
                   no hay endpoint de baja de cuenta en el back todavía, y es una

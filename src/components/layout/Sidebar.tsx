@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import type { ComponentType, SVGProps } from "react";
 import {
   IconHome,
@@ -10,11 +10,12 @@ import {
   IconGrid,
   IconCopy,
   IconCheck,
-  IconChevronRight,
+  IconContrast,
+  IconLogout,
 } from "../../assets/icons/Icons";
 import { Logo } from "../ui/Logo";
-import { Avatar } from "../ui/Avatar";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../hooks/useTheme";
 
 type NavItem = {
   to: string;
@@ -33,12 +34,15 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 /**
- * Navegación lateral fija de desktop (lg+) — equivalente al BottomTabBar de
- * mobile. Se monta en las mismas pantallas que ya montan el tabbar.
+ * Navegación lateral fija de desktop (lg+) — equivalente al riel de mobile.
+ * Se monta en las mismas pantallas que ya montan el riel.
+ *
+ * El botón de perfil vive en el Header (arriba a la derecha, en todas las
+ * pantallas) — acá al pie solo quedan modo claro/oscuro y logout.
  */
 export function Sidebar() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [copied, setCopied] = useState(false);
 
   async function handleCopyAlias() {
@@ -65,10 +69,10 @@ export function Sidebar() {
             end={end}
             className={({ isActive }) =>
               [
-                "flex items-center gap-3 px-3 py-2.5 rounded-control text-[14px] font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-control text-[14px] font-medium transition-colors border-l-[3px]",
                 isActive
-                  ? "bg-violet-500/15 text-violet-300"
-                  : "text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary hover:bg-black/5 dark:hover:bg-white/5",
+                  ? "bg-violet-500/15 text-violet-300 border-violet-500"
+                  : "border-transparent text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary hover:bg-black/5 dark:hover:bg-white/5 hover:border-violet-500/40",
               ].join(" ")
             }
           >
@@ -92,17 +96,25 @@ export function Sidebar() {
         </div>
       )}
 
-      <div className="mt-auto pt-6">
+      <div className="mt-auto pt-6 flex flex-col gap-1">
         <button
           type="button"
-          onClick={() => navigate("/profile")}
-          className="flex items-center gap-3 w-full px-2 py-2 rounded-control hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          role="switch"
+          aria-checked={theme === "dark"}
+          onClick={toggleTheme}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-control text-[14px] font-medium text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
         >
-          <Avatar user={user} size="sm" />
-          <span className="flex-1 text-left text-[13.5px] font-medium text-text-light-primary dark:text-text-dark-primary truncate">
-            {user ? `${user.name} ${user.surname}` : ""}
-          </span>
-          <IconChevronRight className="w-4 h-4 text-text-light-tertiary dark:text-text-dark-tertiary" />        </button>
+          <IconContrast className="w-5 h-5 shrink-0" />
+          {theme === "dark" ? "Modo claro" : "Modo oscuro"}
+        </button>
+        <button
+          type="button"
+          onClick={() => logout()}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-control text-[14px] font-medium text-magenta-500 hover:bg-magenta-500/10 transition-colors"
+        >
+          <IconLogout className="w-5 h-5 shrink-0" />
+          Logout
+        </button>
       </div>
     </aside>
   );
