@@ -1,7 +1,4 @@
-import { useNavigate } from "react-router-dom";
 import { Header } from "../../components/layout/Header";
-import { Button } from "../../components/ui/Button";
-import { IconUser } from "../../assets/icons/Icons";
 import { useAuth } from "../../hooks/useAuth";
 import { BalanceCard } from "../../components/wallet/BalanceCard";
 import { QuickActions } from "./QuickActions";
@@ -10,7 +7,6 @@ import { RecentMovements } from "../../components/wallet/RecentMovements";
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const firstName = user?.name.split(" ")[0] ?? "";
 
   return (
@@ -18,21 +14,6 @@ export default function Dashboard() {
       <Header
         greeting={`Hola, ${firstName} 👋`}
         title="Tu ruta financiera"
-        actions={
-          <div className="flex items-center gap-3">
-            <Button variant="primary" onClick={() => navigate("/transfer")} className="hidden lg:inline-flex">
-              Transferir
-            </Button>
-            <button
-              type="button"
-              className="icon-btn lg:hidden"
-              aria-label="Mi perfil"
-              onClick={() => navigate("/profile")}
-            >
-              <IconUser className="w-5 h-5" />
-            </button>
-          </div>
-        }
       />
 
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">

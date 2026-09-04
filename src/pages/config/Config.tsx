@@ -22,7 +22,6 @@ import type { CurrencyCode } from "../../types/wallet";
 import { COUNTRIES } from "../../constants/countries";
 import { Select } from "../../components/ui/Select";
 import { useWallet } from "../../hooks/useWallet";
-import { useTheme } from "../../hooks/useTheme";
 
 const CURRENCIES: CurrencyCode[] = ["ARS", "USD", "BRL"];
 const CURRENCY_NAMES: Record<CurrencyCode, string> = {
@@ -39,9 +38,8 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default function Config() {
-  const { user, updateUser, logout } = useAuth();
+  const { user, updateUser } = useAuth();
   const { refetch: refetchWallet } = useWallet();
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const [name, setNameState] = useState(user?.name ?? "");
@@ -117,7 +115,7 @@ export default function Config() {
   const displayName = [name, surname].filter(Boolean).join(" ");
 
   return (
-    <div className="min-h-screen flex bg-surface-dark">
+    <div className="min-h-screen flex bg-surface-light dark:bg-surface-dark">
       <Sidebar />
 
       <div className="flex-1 px-6 py-8 lg:px-10 lg:py-8">
@@ -127,16 +125,16 @@ export default function Config() {
             <button type="button" onClick={() => navigate(-1)} className="icon-btn" aria-label="Volver">
               <IconBack className="w-5 h-5" />
             </button>
-            <h1 className="text-lg font-bold text-text-dark-primary">Mi perfil</h1>
+            <h1 className="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">Mi perfil</h1>
           </div>
 
           {/* Header desktop */}
           <div className="hidden lg:flex lg:items-center lg:justify-between mb-8">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-text-dark-tertiary mb-1">
+              <p className="text-xs uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary mb-1">
                 Datos, cuenta y seguridad
               </p>
-              <h1 className="text-2xl font-bold text-text-dark-primary">Mi perfil</h1>
+              <h1 className="text-2xl font-bold text-text-light-primary dark:text-text-dark-primary">Mi perfil</h1>
             </div>
             <Button type="submit" form="config-form" variant="primary" loading={loading}>
               Guardar cambios
@@ -153,13 +151,13 @@ export default function Config() {
 
           <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
             <div className="lg:col-span-2 flex flex-col gap-6">
-              <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-dark lg:p-5">
+              <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-light dark:border-border-dark lg:p-5">
                 <Avatar user={user} size="lg" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-xl font-extrabold text-text-dark-primary truncate">
+                  <p className="text-xl font-extrabold text-text-light-primary dark:text-text-dark-primary truncate">
                     {displayName || "Tu perfil"}
                   </p>
-                  {alias && <p className="text-sm text-text-dark-tertiary truncate">@{alias}</p>}
+                  {alias && <p className="text-sm text-text-light-tertiary dark:text-text-dark-tertiary truncate">@{alias}</p>}
                 </div>
                 {/* TODO(desktop): "Cambiar foto" del mockup — no hay endpoint
                     para subir foto de perfil todavía. */}
@@ -167,7 +165,7 @@ export default function Config() {
 
               <form id="config-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
                 <div className="flex flex-col gap-4">
-                  <p className="text-xs tracking-[0.2em] uppercase text-text-dark-tertiary font-semibold">
+                  <p className="text-xs tracking-[0.2em] uppercase text-text-light-tertiary dark:text-text-dark-tertiary font-semibold">
                     Datos personales
                   </p>
 
@@ -196,19 +194,19 @@ export default function Config() {
                 </div>
 
                 <div className="flex flex-col gap-1">
-                  <p className="text-xs tracking-[0.2em] uppercase text-text-dark-tertiary font-semibold mb-3">Cuenta</p>
+                  <p className="text-xs tracking-[0.2em] uppercase text-text-light-tertiary dark:text-text-dark-tertiary font-semibold mb-3">Cuenta</p>
 
-                  <div className="rounded-card border border-border-dark divide-y divide-border-dark overflow-hidden">
+                  <div className="rounded-card border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark overflow-hidden">
                     <div className="flex items-center justify-between px-4 py-3.5">
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-text-dark-tertiary mb-1">Alias</p>
-                        <p className="font-semibold text-text-dark-primary truncate">{alias}</p>
+                        <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">Alias</p>
+                        <p className="font-semibold text-text-light-primary dark:text-text-dark-primary truncate">{alias}</p>
                       </div>
                       <div className="flex items-center gap-3 shrink-0 ml-3">
-                        <button type="button" onClick={() => setAliasModalOpen(true)} className="text-text-dark-tertiary hover:text-text-dark-primary" aria-label="Editar alias">
+                        <button type="button" onClick={() => setAliasModalOpen(true)} className="text-text-light-tertiary dark:text-text-dark-tertiary hover:text-text-light-primary dark:hover:text-text-dark-primary" aria-label="Editar alias">
                           <IconEdit className="w-5 h-5" />
                         </button>
-                        <button type="button" onClick={() => copyToClipboard(alias, "alias")} className="text-text-dark-tertiary hover:text-text-dark-primary" aria-label="Copiar alias">
+                        <button type="button" onClick={() => copyToClipboard(alias, "alias")} className="text-text-light-tertiary dark:text-text-dark-tertiary hover:text-text-light-primary dark:hover:text-text-dark-primary" aria-label="Copiar alias">
                           {copiedField === "alias" ? <IconCheck className="w-5 h-5 text-turquoise-500" /> : <IconCopy className="w-5 h-5" />}
                         </button>
                       </div>
@@ -216,23 +214,23 @@ export default function Config() {
 
                     <div className="flex items-center justify-between px-4 py-3.5">
                       <div>
-                        <p className="text-xs text-text-dark-tertiary mb-1">CBU</p>
-                        <p className="font-semibold text-text-dark-primary tabular">{user?.cbu ?? ""}</p>
+                        <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">CBU</p>
+                        <p className="font-semibold text-text-light-primary dark:text-text-dark-primary tabular">{user?.cbu ?? ""}</p>
                       </div>
-                      <button type="button" onClick={() => copyToClipboard(user?.cbu ?? "", "cbu")} className="text-text-dark-tertiary hover:text-text-dark-primary shrink-0 ml-3" aria-label="Copiar CBU">
+                      <button type="button" onClick={() => copyToClipboard(user?.cbu ?? "", "cbu")} className="text-text-light-tertiary dark:text-text-dark-tertiary hover:text-text-light-primary dark:hover:text-text-dark-primary shrink-0 ml-3" aria-label="Copiar CBU">
                         {copiedField === "cbu" ? <IconCheck className="w-5 h-5 text-turquoise-500" /> : <IconCopy className="w-5 h-5" />}
                       </button>
                     </div>
 
                     <button type="button" onClick={() => setPasswordModalOpen(true)} className="w-full flex items-center justify-between px-4 py-3.5">
-                      <span className="font-medium text-text-dark-primary">Cambiar contraseña</span>
-                      <IconChevronRight className="w-4 h-4 text-text-dark-tertiary" />
+                      <span className="font-medium text-text-light-primary dark:text-text-dark-primary">Cambiar contraseña</span>
+                      <IconChevronRight className="w-4 h-4 text-text-light-tertiary dark:text-text-dark-tertiary" />
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs tracking-[0.2em] uppercase text-text-dark-tertiary font-semibold mb-3">Moneda favorita</p>
+                  <p className="text-xs tracking-[0.2em] uppercase text-text-light-tertiary dark:text-text-dark-tertiary font-semibold mb-3">Moneda favorita</p>
                   <div className="flex gap-2 flex-wrap">
                     {CURRENCIES.map((c) => (
                       <button
@@ -243,7 +241,7 @@ export default function Config() {
                           "px-5 py-2.5 rounded-full text-sm font-semibold border transition-colors",
                           preferredCurrency === c
                             ? "border-violet-500 text-violet-500 bg-violet-500/10"
-                            : "border-border-dark text-text-dark-secondary bg-surface-dark-elevated",
+                            : "border-border-light dark:border-border-dark text-text-light-secondary dark:text-text-dark-secondary bg-surface-light-input dark:bg-surface-dark-elevated",
                         ].join(" ")}
                       >
                         {c}
@@ -257,41 +255,6 @@ export default function Config() {
                 </Button>
               </form>
 
-              <div>
-                <p className="text-xs tracking-[0.2em] uppercase text-text-dark-tertiary font-semibold mb-3">
-                  Apariencia
-                </p>
-                <div className="flex items-center justify-between rounded-card border border-border-dark px-4 py-3.5">
-                  <div>
-                    <p className="font-medium text-text-dark-primary">Tema oscuro</p>
-                    <p className="text-xs text-text-dark-tertiary mt-0.5">Cambiá el aspecto de la app</p>
-                  </div>
-                  <button
-                    type="button"
-                    role="switch"
-                    aria-checked={theme === "dark"}
-                    onClick={toggleTheme}
-                    className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${
-                      theme === "dark" ? "bg-violet-500" : "bg-white/15"
-                    }`}
-                  >
-                    <span
-                      className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
-                        theme === "dark" ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="text-magenta-500 text-sm font-medium text-center w-full lg:w-auto lg:self-start hover:opacity-80"
-              >
-                Cerrar sesión
-              </button>
-
               {/* TODO(desktop): "Cerrar mi cuenta" (eliminar cuenta) del mockup —
                   no hay endpoint de baja de cuenta en el back todavía, y es una
                   acción destructiva que necesita su propio diseño (¿bloquear si
@@ -300,20 +263,20 @@ export default function Config() {
             </div>
 
             <div className="hidden lg:flex lg:flex-col lg:gap-6">
-              <div className="rounded-card border border-border-dark p-5">
-                <p className="text-sm font-semibold text-text-dark-primary mb-4">Tu cuenta</p>
+              <div className="rounded-card border border-border-light dark:border-border-dark p-5">
+                <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary mb-4">Tu cuenta</p>
                 <div className="flex flex-col gap-4">
                   <div>
-                    <p className="text-xs text-text-dark-tertiary mb-1">Alias</p>
-                    <p className="text-sm font-semibold text-text-dark-primary truncate">{alias}</p>
+                    <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">Alias</p>
+                    <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary truncate">{alias}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-text-dark-tertiary mb-1">CBU</p>
-                    <p className="text-sm font-semibold text-text-dark-primary tabular truncate">{user?.cbu ?? ""}</p>
+                    <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">CBU</p>
+                    <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary tabular truncate">{user?.cbu ?? ""}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-text-dark-tertiary mb-1">Moneda favorita</p>
-                    <p className="text-sm font-semibold text-text-dark-primary">
+                    <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">Moneda favorita</p>
+                    <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
                       {preferredCurrency} · {CURRENCY_NAMES[preferredCurrency]}
                     </p>
                   </div>

@@ -48,26 +48,42 @@
   --color-surface-dark-base: #0B0F24;
   --color-surface-dark: #0F1330;
   --color-surface-dark-elevated: #171C3D;
-  --color-border-dark: rgba(255, 255, 255, 0.10);
+  --color-border-dark: #5C8490;
+  --color-border-dark-subtle: rgba(255, 255, 255, 0.10);
 
   --color-surface-light-base: #F5F6FA;
   --color-surface-light: #FFFFFF;
   --color-surface-light-input: #EDEFF7;
-  --color-border-light: #E7E9F2;
+  --color-border-light: #8F96B4;
 
   --color-text-dark-primary: #FFFFFF;
   --color-text-dark-secondary: #C3C7DE;
-  --color-text-dark-tertiary: #7E85A8;
+  --color-text-dark-tertiary: #9BA3C7;
 
   --color-text-light-primary: #0F1330;
   --color-text-light-secondary: #4A5070;
-  --color-text-light-tertiary: #7E85A8;
+  --color-text-light-tertiary: #616A8E;
 
   --radius-control: 12px;
   --radius-card: 16px;
 
   --shadow-elevation-sm: 0 2px 8px rgba(15, 19, 48, 0.10);
   --shadow-elevation-lg: 0 10px 32px rgba(15, 19, 48, 0.16);
+}
+
+:root {
+  --gradient-swoosh: linear-gradient(135deg, #6633F2 0%, #4A6BF5 45%, #1FA9EE 75%, #12E0D4 100%);
+  --gradient-action: linear-gradient(135deg, #6633F2 0%, #4A55D8 100%);
+  --gradient-pay: linear-gradient(90deg, #4D5FFF 0%, #B23FE0 50%, #FF2E88 100%);
+  --gradient-spectrum: linear-gradient(90deg, #0F1330 0%, #7B3BFF 28%, #FF2E88 52%, #12E0D4 78%, #FFD23F 100%);
+  --gradient-aura: radial-gradient(120% 90% at 15% 0%, rgba(123,59,255,0.55) 0%, rgba(18,224,212,0.18) 45%, rgba(15,19,48,0) 75%);
+}
+:root {
+  --gradient-swoosh: linear-gradient(135deg, #6633F2 0%, #4A6BF5 45%, #1FA9EE 75%, #12E0D4 100%);
+  --gradient-action: linear-gradient(135deg, #6633F2 0%, #4A55D8 100%);
+  --gradient-pay: linear-gradient(90deg, #4D5FFF 0%, #B23FE0 50%, #FF2E88 100%);
+  --gradient-spectrum: linear-gradient(90deg, #0F1330 0%, #7B3BFF 28%, #FF2E88 52%, #12E0D4 78%, #FFD23F 100%);
+  --gradient-aura: radial-gradient(120% 90% at 15% 0%, rgba(123,59,255,0.55) 0%, rgba(18,224,212,0.18) 45%, rgba(15,19,48,0) 75%);
 }
 
 /* Gradientes de marca como variables CSS planas (se usan con background-image directo) */
@@ -112,12 +128,12 @@
     @apply inline-flex items-center justify-center gap-2 rounded-control px-5 py-3
            font-medium text-[14px] leading-none transition-[opacity,transform] duration-150
            hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97]
-           disabled:opacity-40 disabled:pointer-events-none disabled:hover:translate-y-0;
+          disabled:opacity-62 disabled:pointer-events-none disabled:hover:translate-y-0
   }
-  .btn--primary {
-    background-image: var(--gradient-swoosh);
-    @apply text-white hover:opacity-90;
-  }
+ .btn--primary {
+  background-image: var(--gradient-action); /* antes: var(--gradient-swoosh) */
+  @apply text-white hover:opacity-90;
+}
   .btn--secondary {
     background-image: var(--gradient-pay);
     @apply text-white hover:opacity-90;
@@ -251,6 +267,21 @@
   .brand-rule {
     background-image: var(--gradient-spectrum);
     @apply h-1 rounded-full;
+  }
+
+  /* Símbolo de NomaPay (solo la figura, sin el texto) coloreado por CSS en
+     vez de necesitar un archivo por color: usa el isologo blanco como
+     máscara y el color lo pone bg-*, así sigue el tema con las mismas
+     clases dark: que el resto de la app. */
+  .brand-mark {
+    -webkit-mask-image: url("/logo/nomapay-isologo-blanco.svg");
+    mask-image: url("/logo/nomapay-isologo-blanco.svg");
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
   }
   .topbar {
     @apply sticky top-0 z-20 flex items-center justify-around gap-1 overflow-x-auto border-b border-border-dark bg-surface-dark px-1 py-2;
