@@ -396,3 +396,4 @@ export function IconChevronLeft(props: IconProps) {
     </svg>
   );
 }
+
