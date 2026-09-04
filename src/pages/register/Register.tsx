@@ -45,9 +45,30 @@ function validateEmail(value: string) {
   return undefined;
 }
 function validatePasswordValue(value: string) {
-  if (!value) return "La contraseña es obligatoria";
-  if (value.length < 8) return "Mínimo 8 caracteres";
-  if (!/[0-9]/.test(value)) return "Sumá al menos un número";
+  if (!value) {
+    return "La contraseña es obligatoria";
+  }
+
+  if (value.length < 8) {
+    return "Debe tener al menos 8 caracteres";
+  }
+
+  if (!/[A-Z]/.test(value)) {
+    return "Debe incluir al menos una mayúscula";
+  }
+
+  if (!/[a-z]/.test(value)) {
+    return "Debe incluir al menos una minúscula";
+  }
+
+  if (!/[0-9]/.test(value)) {
+    return "Debe incluir al menos un número";
+  }
+
+  if (!/[^A-Za-z0-9]/.test(value)) {
+    return "Debe incluir al menos un símbolo";
+  }
+
   return undefined;
 }
 function validateConfirm(value: string, password: string) {
@@ -162,14 +183,36 @@ export default function Register() {
     }
   }
 
-  const hasLength = password.length >= 8;
-  const hasNumber = /[0-9]/.test(password);
-  const hasSymbol = password.length >= 12 || /[^A-Za-z0-9]/.test(password);
-  const strengthScore = [hasLength, hasNumber, hasSymbol].filter(Boolean).length;
-  const strengthLabel = strengthScore <= 1 ? "Débil" : strengthScore === 2 ? "Segura" : "Muy segura";
-  const strengthColor = strengthScore <= 1 ? "bg-magenta-500" : "bg-turquoise-500";
-  const strengthTextColor = strengthScore <= 1 ? "text-magenta-500" : "text-turquoise-500";
+  const hasLength = password.length >= 8 ;
+const hasUppercase = /[A-Z]/.test(password);
+const hasLowercase = /[a-z]/.test(password);
+const hasNumber = /[0-9]/.test(password);
+const hasSymbol = /[^A-Za-z0-9]/.test(password);
 
+const strengthScore = [
+  hasLength,
+  hasUppercase,
+  hasLowercase,
+  hasNumber,
+  hasSymbol,
+].filter(Boolean).length;
+
+const strengthLabel =
+  strengthScore <= 2
+    ? "Débil"
+    : strengthScore <= 4
+      ? "Segura"
+      : "Muy segura";
+
+const strengthColor =
+  strengthScore <= 2
+    ? "bg-magenta-500"
+    : "bg-turquoise-500";
+
+const strengthTextColor =
+  strengthScore <= 2
+    ? "text-magenta-500"
+    : "text-turquoise-500";
   return (
     <div className="min-h-screen lg:flex bg-surface-dark lg:bg-surface-light">
       <AuthBrandPanel />
@@ -265,7 +308,7 @@ export default function Register() {
                     <span className={`text-[12px] font-semibold ${strengthTextColor}`}>{strengthLabel}</span>
                   </div>
                   <p className="text-[12px] text-text-dark-tertiary lg:text-text-light-tertiary">
-                    Mínimo 8 caracteres, con un número. Sumá un símbolo para que sea muy segura.
+                    Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo.
                   </p>
                 </div>
               )}
