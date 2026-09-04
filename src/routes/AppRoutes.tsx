@@ -16,7 +16,6 @@ export default function AppRoutes() {
       <Route path="/" element={<Root />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/exchange" element={<Exchange />} />
       <Route
         path="/profile"
         element={
@@ -45,16 +44,16 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/exchange"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ComingSoon title="Convertir" />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+<Route
+  path="/exchange"
+  element={
+    <ProtectedRoute>
+      <AppLayout>
+        <Exchange />
+      </AppLayout>
+    </ProtectedRoute>
+  }
+/>
       <Route
         path="/transfer"
         element={
