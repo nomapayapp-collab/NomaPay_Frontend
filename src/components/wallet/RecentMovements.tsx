@@ -73,7 +73,7 @@ export function RecentMovements() {
                   className={`px-3 py-1.5 rounded-control text-[12.5px] font-medium transition-colors ${
                     filter === f.key
                       ? "bg-violet-500/15 text-violet-300"
-                      : "text-text-dark-tertiary hover:text-text-dark-primary"
+                      : "text-text-light-tertiary dark:text-text-dark-tertiary hover:text-text-light-primary dark:hover:text-text-dark-primary"
                   }`}
                 >
                   {f.label}
@@ -93,20 +93,20 @@ export function RecentMovements() {
 
       {!hasMovements ? (
         <div className="flex flex-col items-center justify-center gap-2 py-8 text-center">
-          <IconClock className="w-7 h-7 text-text-dark-tertiary" />
-          <p className="text-[14px] text-text-dark-secondary">Todavía no tenés movimientos</p>
-          <p className="text-[12.5px] text-text-dark-tertiary">Cuando hagas tu primera operación, la vas a ver acá.</p>
+          <IconClock className="w-7 h-7 text-text-light-tertiary dark:text-text-dark-tertiary" />
+          <p className="text-[14px] text-text-light-secondary dark:text-text-dark-secondary">Todavía no tenés movimientos</p>
+          <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Cuando hagas tu primera operación, la vas a ver acá.</p>
         </div>
       ) : (
         <div>
-          <div className="hidden lg:grid grid-cols-[1fr_120px_120px_120px] gap-4 px-1 pb-2 mb-1 text-[11px] font-semibold tracking-widest uppercase text-text-dark-tertiary border-b border-border-dark">
+          <div className="hidden lg:grid grid-cols-[1fr_120px_120px_120px] gap-4 px-1 pb-2 mb-1 text-[11px] font-semibold tracking-widest uppercase text-text-light-tertiary dark:text-text-dark-tertiary border-b border-border-light dark:border-border-dark">
             <span>Detalle</span>
             <span>Fecha</span>
             <span>Estado</span>
             <span className="text-right">Monto</span>
           </div>
 
-          <ul className="divide-y divide-border-dark">
+          <ul className="divide-y divide-border-light dark:divide-border-dark">
             {movements.map(({ id, type, description, detail, status, amount, currency, date }) => {
               const Icon = TYPE_ICON[type];
               const rejected = status === "rechazada";
@@ -118,18 +118,18 @@ export function RecentMovements() {
                   <div className="flex items-center gap-3 min-w-0">
                     <span
                       className={`hidden lg:flex w-9 h-9 rounded-full items-center justify-center shrink-0 ${
-                        rejected ? "bg-magenta-500/15 text-magenta-500" : "bg-white/8 text-text-dark-secondary"
+                        rejected ? "bg-magenta-500/15 text-magenta-500" : "bg-black/5 dark:bg-white/8 text-text-light-secondary dark:text-text-dark-secondary"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
                     </span>
                     <div className="min-w-0">
-                      <p className="text-text-dark-primary truncate">{description}</p>
-                      {detail && <p className="hidden lg:block text-[12.5px] text-text-dark-tertiary truncate">{detail}</p>}
+                      <p className="text-text-light-primary dark:text-text-dark-primary truncate">{description}</p>
+                      {detail && <p className="hidden lg:block text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary truncate">{detail}</p>}
                     </div>
                   </div>
 
-                  <span className="hidden lg:block text-[13px] text-text-dark-secondary">{formatDate(date)}</span>
+                  <span className="hidden lg:block text-[13px] text-text-light-secondary dark:text-text-dark-secondary">{formatDate(date)}</span>
 
                   <span className="hidden lg:block">
                     <span className={`badge ${STATUS_BADGE[status]}`}>{STATUS_LABEL[status]}</span>
@@ -137,7 +137,7 @@ export function RecentMovements() {
 
                   <span
                     className={`tabular font-medium text-right ${
-                      rejected ? "text-text-dark-tertiary" : amount < 0 ? "text-text-dark-secondary" : "text-turquoise-500"
+                      rejected ? "text-text-light-tertiary dark:text-text-dark-tertiary" : amount < 0 ? "text-text-light-secondary dark:text-text-dark-secondary" : "text-turquoise-500"
                     }`}
                   >
                     {rejected ? "" : amount < 0 ? "-" : "+"}

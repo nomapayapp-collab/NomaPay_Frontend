@@ -28,8 +28,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface-dark px-6 text-center">
-          <Logo variant="lockup-oscuro" className="w-36 h-auto opacity-90" />
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface-light dark:bg-surface-dark px-6 text-center">
+          <Logo variant="lockup-oscuro" className="w-36 h-auto opacity-90 hidden dark:block" />
+          <Logo variant="lockup-claro" className="w-36 h-auto opacity-90 block dark:hidden" />
           <div>
             <h1 className="title">Algo salió mal</h1>
             <p className="subtitle mt-1">Probá recargar la página. Si el error sigue, avisanos.</p>
