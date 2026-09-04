@@ -8,6 +8,9 @@ import Config from "../pages/config/Config";
 import NotFound from "../pages/NotFound";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import ComingSoon from "../pages/ComingSoon";
+import Wallet from "../pages/Wallet";
+import Transfer from "../pages/Transfer";
+import Receipt from "../pages/Receipt";
 
 export default function AppRoutes() {
   return (
@@ -15,24 +18,16 @@ export default function AppRoutes() {
       <Route path="/" element={<Root />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Config />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/wallet"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ComingSoon title="Billetera" />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <Config />
+        </ProtectedRoute>} />
+      <Route path="/wallet" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Wallet />
+          </AppLayout>
+        </ProtectedRoute>} />
       <Route
         path="/comprar-vender"
         element={
@@ -58,7 +53,7 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <AppLayout>
-              <ComingSoon title="Transferir" />
+              <Transfer />
             </AppLayout>
           </ProtectedRoute>
         }
@@ -83,6 +78,10 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/comprobante" element={
+        <ProtectedRoute>
+          <Receipt />
+        </ProtectedRoute>} />
       <Route path="/politica-de-privacidad" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
