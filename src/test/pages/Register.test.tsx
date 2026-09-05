@@ -7,7 +7,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import Register from "../../pages/register/Register";
+import Register from "../../pages/Register";
 
 const mocks = vi.hoisted(() => ({
   register: vi.fn(),
