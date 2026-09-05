@@ -29,13 +29,13 @@ export default function Summary() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-6 text-slate-900 dark:text-white">
+    <main className="w-full px-4 pb-8 pt-6 text-slate-900 dark:text-white sm:px-6 lg:px-10">
       <Header
         title="Resumen"
         subtitle="Cómo se movió tu plata esta semana"
       />
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
         <div className="space-y-4">
           {/* Balance total */}
           <Card variant="aura" className="p-5">
