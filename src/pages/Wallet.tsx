@@ -9,12 +9,7 @@ import { useAuth } from "../hooks/useAuth";
 import { formatCurrency } from "../utils/formatCurrency";
 import { IconSend, IconSwap, IconPlus, IconCopy, IconCheck, IconStar } from "../assets/icons/Icons";
 import type { CurrencyBalance, CurrencyCode, ExchangeRate } from "../types/wallet";
-
-const CURRENCY_NAMES: Record<CurrencyCode, string> = {
-  ARS: "Peso argentino",
-  USD: "Dólar estadounidense",
-  BRL: "Real brasileño",
-};
+import { CURRENCY_NAMES } from "../constants/currencies";
 
 // Conversión aproximada a ARS con las cotizaciones mockeadas (mismo
 // criterio que ExchangeRatesList) — no hay endpoint de conversión real.
@@ -63,7 +58,7 @@ export default function Wallet() {
 
   return (
     <div className="px-5 pt-8 pb-8 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto">
-      <Header title="Billetera" />
+      <Header title="Billetera" subtitle="Tu saldo en cada moneda"/>
 
       {/* ---------- Mobile ---------- */}
       <div className="lg:hidden flex flex-col gap-5">
