@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Register from "../pages/register/Register";
 import Login from "../pages/Login";
+import Exchange from "../pages/exchange/Exchange";
 import { Root } from "./Root";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AppLayout } from "../components/layout/AppLayout";
@@ -38,16 +39,16 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/exchange"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ComingSoon title="Convertir" />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+<Route
+  path="/exchange"
+  element={
+    <ProtectedRoute>
+      <AppLayout>
+        <Exchange />
+      </AppLayout>
+    </ProtectedRoute>
+  }
+/>
       <Route
         path="/transfer"
         element={
