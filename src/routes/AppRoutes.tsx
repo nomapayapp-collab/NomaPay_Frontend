@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
-import Register from "../pages/register/Register";
+import Register from "../pages/Register";
 import Login from "../pages/Login";
-import Exchange from "../pages/exchange/Exchange";
+import Exchange from "../pages/Exchange";
 import { Root } from "./Root";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AppLayout } from "../components/layout/AppLayout";

@@ -85,7 +85,7 @@ export default function Transfer() {
 
   return (
     <div className="px-5 pt-8 pb-8 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto">
-      <Header title="Transferir dinero" />
+      <Header title="Transferir dinero" subtitle="A cualquier usuario al instante"/>
 
       {step > 1 && (
         <button

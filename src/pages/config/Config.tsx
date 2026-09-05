@@ -20,15 +20,9 @@ import { useAuth } from "../../hooks/useAuth";
 import * as authService from "../../services/authService";
 import type { CurrencyCode } from "../../types/wallet";
 import { COUNTRIES } from "../../constants/countries";
+import { CURRENCY_CODES, CURRENCY_NAMES } from "../../constants/currencies";
 import { Select } from "../../components/ui/Select";
 import { useWallet } from "../../hooks/useWallet";
-
-const CURRENCIES: CurrencyCode[] = ["ARS", "USD", "BRL"];
-const CURRENCY_NAMES: Record<CurrencyCode, string> = {
-  ARS: "Peso argentino",
-  USD: "Dólar estadounidense",
-  BRL: "Real brasileño",
-};
 
 function extractErrorMessage(err: unknown, fallback: string): string {
   if (axios.isAxiosError(err) && typeof err.response?.data?.error === "string") {
@@ -232,7 +226,7 @@ export default function Config() {
                 <div>
                   <p className="text-xs tracking-[0.2em] uppercase text-text-light-tertiary dark:text-text-dark-tertiary font-semibold mb-3">Moneda favorita</p>
                   <div className="flex gap-2 flex-wrap">
-                    {CURRENCIES.map((c) => (
+                    {CURRENCY_CODES.map((c) => (
                       <button
                         key={c}
                         type="button"

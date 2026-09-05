@@ -11,22 +11,23 @@ import {
   render,
   screen,
   waitFor,
-  within,
 } from "@testing-library/react";
 
 import userEvent from "@testing-library/user-event";
-import Exchange from "../../pages/exchange/Exchange";
+import Exchange from "../../pages/Exchange";
 
 const {
   mockUseAuth,
   mockUseWallet,
   mockExchangeCurrency,
   mockRefetch,
+  mockNavigate,
 } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
   mockUseWallet: vi.fn(),
   mockExchangeCurrency: vi.fn(),
   mockRefetch: vi.fn(),
+  mockNavigate: vi.fn(),
 }));
 
 vi.mock("../../hooks/useAuth", () => ({
@@ -40,6 +41,14 @@ vi.mock("../../hooks/useWallet", () => ({
 vi.mock("../../services/walletService", () => ({
   exchangeCurrency: mockExchangeCurrency,
 }));
+
+// Exchange usa <Header>, que llama a useNavigate() para el botón de
+// perfil — sin este mock, useNavigate() revienta porque el render no
+// está envuelto en un <Router> (mismo patrón que Wallet/Transfer).
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
+  return { ...actual, useNavigate: () => mockNavigate };
+});
 
 const walletMock = {
   balances: [
@@ -122,6 +131,18 @@ const exchangeResponseMock = {
     ],
   },
 };
+
+// Espera a que el efecto que autoselecciona la moneda primaria (USD, en
+// walletMock) haya corrido — el trigger del Select "DE" pasa a mostrar
+// "Dólar estadounidense". Reemplaza al viejo `toHaveValue("USD")` sobre
+// el <select> nativo, que ya no existe.
+async function waitForPrimaryCurrencySelected() {
+  await waitFor(() => {
+    expect(
+      screen.getByRole("button", { name: /dólar estadounidense/i }),
+    ).toBeInTheDocument();
+  });
+}
 
 describe("Exchange", () => {
   beforeEach(() => {
@@ -217,24 +238,23 @@ describe("Exchange", () => {
     ).toBeInTheDocument();
   });
 
-  it("no permite seleccionar la moneda de origen como destino", async () => {
+  it("no permite elegir la moneda de origen como destino", async () => {
+    const user = userEvent.setup();
+
     render(<Exchange />);
 
-    const selectors = screen.getAllByRole("combobox");
-    const originSelector = selectors[0];
-    const destinationSelector = selectors[1];
+    await waitForPrimaryCurrencySelected();
 
-    await waitFor(() => {
-      expect(originSelector).toHaveValue("USD");
-    });
+    // el selector "A" arranca en Peso argentino (USD ya está de "DE")
+    await user.click(
+      screen.getByRole("button", { name: /peso argentino/i }),
+    );
 
-    const usdOption = within(
-      destinationSelector,
-    ).getByRole("option", {
-      name: /dólar estadounidense/i,
-    });
-
-    expect(usdOption).toBeDisabled();
+    // USD no tiene que aparecer como opción elegible en "A" — se filtra
+    // en vez de mostrarse deshabilitada.
+    expect(
+      screen.queryByRole("option", { name: /dólar estadounidense/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("coloca el 10% del saldo al presionar 10%", async () => {
@@ -242,12 +262,7 @@ describe("Exchange", () => {
 
     render(<Exchange />);
 
-    const originSelector =
-      screen.getAllByRole("combobox")[0];
-
-    await waitFor(() => {
-      expect(originSelector).toHaveValue("USD");
-    });
+    await waitForPrimaryCurrencySelected();
 
     await user.click(
       screen.getByRole("button", {
@@ -265,12 +280,7 @@ describe("Exchange", () => {
 
     render(<Exchange />);
 
-    const originSelector =
-      screen.getAllByRole("combobox")[0];
-
-    await waitFor(() => {
-      expect(originSelector).toHaveValue("USD");
-    });
+    await waitForPrimaryCurrencySelected();
 
     await user.click(
       screen.getByRole("button", {
@@ -286,12 +296,7 @@ describe("Exchange", () => {
   it("muestra un error cuando el monto supera el saldo", async () => {
     render(<Exchange />);
 
-    const originSelector =
-      screen.getAllByRole("combobox")[0];
-
-    await waitFor(() => {
-      expect(originSelector).toHaveValue("USD");
-    });
+    await waitForPrimaryCurrencySelected();
 
     const input = screen.getByLabelText(
       /monto a convertir/i,
@@ -327,12 +332,7 @@ describe("Exchange", () => {
 
     render(<Exchange />);
 
-    const originSelector =
-      screen.getAllByRole("combobox")[0];
-
-    await waitFor(() => {
-      expect(originSelector).toHaveValue("USD");
-    });
+    await waitForPrimaryCurrencySelected();
 
     const input = screen.getByLabelText(
       /monto a convertir/i,
@@ -374,12 +374,7 @@ describe("Exchange", () => {
 
     render(<Exchange />);
 
-    const originSelector =
-      screen.getAllByRole("combobox")[0];
-
-    await waitFor(() => {
-      expect(originSelector).toHaveValue("USD");
-    });
+    await waitForPrimaryCurrencySelected();
 
     const input = screen.getByLabelText(
       /monto a convertir/i,

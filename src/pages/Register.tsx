@@ -2,17 +2,17 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-import { Button } from "../../components/ui/Button";
-import { Input } from "../../components/ui/Input";
-import { Select } from "../../components/ui/Select";
-import { Logo } from "../../components/ui/Logo";
-import { AuthBrandPanel } from "../../components/auth/AuthBrandPanel";
-import { IconUser, IconMail, IconLock, IconBack } from "../../assets/icons/Icons";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Select } from "../components/ui/Select";
+import { Logo } from "../components/ui/Logo";
+import { AuthBrandPanel } from "../components/auth/AuthBrandPanel";
+import { IconUser, IconMail, IconLock, IconBack } from "../assets/icons/Icons";
 
-import { COUNTRIES } from "../../constants/countries";
-import { register } from "../../services/authService";
+import { COUNTRIES } from "../constants/countries";
+import { register } from "../services/authService";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 
 type RegisterErrors = {
   name?: string;
