@@ -1,13 +1,13 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { TopUpModal } from "../../../components/wallet/TopUpModal";
+import { TopUpModal } from "../../components/wallet/TopUpModal";
 
 const mocks = vi.hoisted(() => ({
   useWallet: vi.fn(),
 }));
 
-vi.mock("../../../hooks/useWallet", () => ({
+vi.mock("../../hooks/useWallet", () => ({
   useWallet: mocks.useWallet,
 }));
 

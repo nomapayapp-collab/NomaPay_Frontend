@@ -12,6 +12,8 @@ import ComingSoon from "../pages/ComingSoon";
 import Wallet from "../pages/Wallet";
 import Transfer from "../pages/Transfer";
 import Receipt from "../pages/Receipt";
+ import Summary from "../pages/summary/Summary";
+
 
 export default function AppRoutes() {
   return (
@@ -69,16 +71,17 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
       <Route
-        path="/summary"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ComingSoon title="Resumen" />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+  path="/summary"
+  element={
+    <ProtectedRoute>
+      <AppLayout>
+        <Summary />
+      </AppLayout>
+    </ProtectedRoute>
+  }
+/>
       <Route path="/comprobante" element={
         <ProtectedRoute>
           <Receipt />

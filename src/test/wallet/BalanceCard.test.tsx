@@ -1,14 +1,14 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BalanceCard } from "../../../components/wallet/BalanceCard";
-import type { Wallet } from "../../../types/wallet";
+import { BalanceCard } from "../../components/wallet/BalanceCard";
+import type { Wallet } from "../../types/wallet";
 
 const mocks = vi.hoisted(() => ({
   useWallet: vi.fn(),
 }));
 
-vi.mock("../../../hooks/useWallet", () => ({
+vi.mock("../../hooks/useWallet", () => ({
   useWallet: mocks.useWallet,
 }));
 
