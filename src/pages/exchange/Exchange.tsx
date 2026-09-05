@@ -1,10 +1,15 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import { useAuth } from "../../hooks/useAuth";
+import { useWallet } from "../../hooks/useWallet";
 
 import {
   exchangeCurrency,
-  getMyWallet,
   type CurrencyCode,
-  type WalletResponse,
 } from "../../services/walletService";
 
 const currencies = {
@@ -25,7 +30,9 @@ const currencies = {
   },
 };
 
-const currencyCodes = Object.keys(currencies) as CurrencyCode[];
+const currencyCodes = Object.keys(
+  currencies,
+) as CurrencyCode[];
 
 const emptyBalances: Record<CurrencyCode, number> = {
   ARS: 0,
@@ -34,6 +41,17 @@ const emptyBalances: Record<CurrencyCode, number> = {
 };
 
 export default function Exchange() {
+  const { user } = useAuth();
+
+  const {
+    wallet,
+    loading: walletLoading,
+    error: walletError,
+    refetch,
+  } = useWallet();
+
+  const accountHolder = user?.name ?? "Usuario";
+
   const [fromCurrency, setFromCurrency] =
     useState<CurrencyCode>("ARS");
 
@@ -42,36 +60,67 @@ export default function Exchange() {
 
   const [amount, setAmount] = useState("0,00");
 
-  const [balances, setBalances] =
-    useState<Record<CurrencyCode, number>>(emptyBalances);
-
-  const [walletLoading, setWalletLoading] = useState(true);
-  const [walletError, setWalletError] = useState("");
-
-  const [exchangeRate, setExchangeRate] = useState(0);
-  const [rateLoading, setRateLoading] = useState(true);
-  const [rateError, setRateError] = useState("");
-
-  const [quotationRates, setQuotationRates] = useState({
-    USD: 0,
-    BRL: 0,
-  });
-
-  const [quotationsLoading, setQuotationsLoading] =
-    useState(true);
-
-  const [quotationsError, setQuotationsError] = useState("");
-
   const [exchangeLoading, setExchangeLoading] =
     useState(false);
 
   const [exchangeError, setExchangeError] = useState("");
-  const [exchangeSuccess, setExchangeSuccess] = useState("");
+  const [exchangeSuccess, setExchangeSuccess] =
+    useState("");
 
-  const numericAmount =
-    Number(amount.replace(/\./g, "").replace(",", ".")) || 0;
+  /*
+   * Convierte los balances del WalletContext en un objeto
+   * fácil de consultar: balances.USD, balances.ARS, etc.
+   */
+  const balances = useMemo(() => {
+    const updatedBalances = {
+      ...emptyBalances,
+    };
 
-  const convertedAmount = numericAmount * exchangeRate;
+    wallet.balances.forEach((balance) => {
+      const currencyCode =
+        balance.currency.code as CurrencyCode;
+
+      if (currencyCode in updatedBalances) {
+        updatedBalances[currencyCode] =
+          Number(balance.amount);
+      }
+    });
+
+    return updatedBalances;
+  }, [wallet.balances]);
+
+  /*
+   * Al cargar la billetera, selecciona como moneda de origen
+   * la moneda principal del usuario.
+   */
+  useEffect(() => {
+    const primaryBalance = wallet.balances.find(
+      (balance) => balance.isPrimary,
+    );
+
+    if (!primaryBalance) {
+      return;
+    }
+
+    const primaryCurrency =
+      primaryBalance.currency.code as CurrencyCode;
+
+    if (!currencyCodes.includes(primaryCurrency)) {
+      return;
+    }
+
+    setFromCurrency(primaryCurrency);
+
+    setToCurrency((currentCurrency) => {
+      if (currentCurrency !== primaryCurrency) {
+        return currentCurrency;
+      }
+
+      return primaryCurrency === "USD"
+        ? "ARS"
+        : "USD";
+    });
+  }, [wallet.balances]);
 
   const formatMoney = (value: number) =>
     new Intl.NumberFormat("es-AR", {
@@ -85,131 +134,76 @@ export default function Exchange() {
       maximumFractionDigits: 6,
     }).format(value);
 
-  const saveWalletBalances = (wallet: WalletResponse) => {
-    const updatedBalances: Record<CurrencyCode, number> = {
-      ARS: 0,
-      USD: 0,
-      BRL: 0,
-    };
+  /*
+   * Busca el valor de una moneda expresado en ARS.
+   * WalletContext guarda:
+   * 1 USD = X ARS
+   * 1 BRL = X ARS
+   */
+  const getValueInArs = (
+    currencyCode: CurrencyCode,
+  ) => {
+    if (currencyCode === "ARS") {
+      return 1;
+    }
 
-    wallet.balances.forEach((balance) => {
-      updatedBalances[balance.currencyCode] = Number(
-        balance.amount,
-      );
-    });
+    const directRate = wallet.exchangeRates.find(
+      (rate) =>
+        rate.from === currencyCode &&
+        rate.to === "ARS",
+    );
 
-    setBalances(updatedBalances);
+    if (directRate) {
+      return directRate.rate;
+    }
+
+    const inverseRate = wallet.exchangeRates.find(
+      (rate) =>
+        rate.from === "ARS" &&
+        rate.to === currencyCode,
+    );
+
+    if (inverseRate && inverseRate.rate > 0) {
+      return 1 / inverseRate.rate;
+    }
+
+    return 0;
   };
 
-  // Carga los saldos reales de la billetera.
-  useEffect(() => {
-    const loadWallet = async () => {
-      setWalletLoading(true);
-      setWalletError("");
+  /*
+   * Calcula cualquier combinación usando ARS
+   * como moneda de referencia.
+   */
+  const exchangeRate = useMemo(() => {
+    const fromValue = getValueInArs(fromCurrency);
+    const toValue = getValueInArs(toCurrency);
 
-      try {
-        const wallet = await getMyWallet();
+    if (fromValue <= 0 || toValue <= 0) {
+      return 0;
+    }
 
-        saveWalletBalances(wallet);
-        setFromCurrency(wallet.preferredCurrency);
+    return fromValue / toValue;
+  }, [
+    fromCurrency,
+    toCurrency,
+    wallet.exchangeRates,
+  ]);
 
-        setToCurrency((currentCurrency) => {
-          if (currentCurrency !== wallet.preferredCurrency) {
-            return currentCurrency;
-          }
+  const usdToArs = getValueInArs("USD");
+  const brlToArs = getValueInArs("BRL");
 
-          return wallet.preferredCurrency === "USD"
-            ? "ARS"
-            : "USD";
-        });
-      } catch {
-        setWalletError("No pudimos cargar los saldos");
-      } finally {
-        setWalletLoading(false);
-      }
-    };
+  const numericAmount =
+    Number(
+      amount.replace(/\./g, "").replace(",", "."),
+    ) || 0;
 
-    loadWallet();
-  }, []);
+  const convertedAmount =
+    numericAmount * exchangeRate;
 
-  // Consulta la tasa seleccionada en el conversor.
-  useEffect(() => {
-    const getExchangeRate = async () => {
-      setRateLoading(true);
-      setRateError("");
-
-      try {
-        const response = await fetch(
-          `https://open.er-api.com/v6/latest/${fromCurrency}`,
-        );
-
-        if (!response.ok) {
-          throw new Error("No se pudo obtener la tasa");
-        }
-
-        const data = await response.json();
-        const newRate = data.rates?.[toCurrency];
-
-        if (typeof newRate !== "number") {
-          throw new Error("La tasa no está disponible");
-        }
-
-        setExchangeRate(newRate);
-      } catch {
-        setExchangeRate(0);
-        setRateError(
-          "No pudimos actualizar la tasa de cambio",
-        );
-      } finally {
-        setRateLoading(false);
-      }
-    };
-
-    getExchangeRate();
-  }, [fromCurrency, toCurrency]);
-
-  // Consulta las cotizaciones de ARS a USD y BRL.
-  useEffect(() => {
-    const getQuotations = async () => {
-      setQuotationsLoading(true);
-      setQuotationsError("");
-
-      try {
-        const response = await fetch(
-          "https://open.er-api.com/v6/latest/ARS",
-        );
-
-        if (!response.ok) {
-          throw new Error("No se pudieron obtener las cotizaciones");
-        }
-
-        const data = await response.json();
-
-        const usdRate = data.rates?.USD;
-        const brlRate = data.rates?.BRL;
-
-        if (
-          typeof usdRate !== "number" ||
-          typeof brlRate !== "number"
-        ) {
-          throw new Error("Cotizaciones no disponibles");
-        }
-
-        setQuotationRates({
-          USD: usdRate,
-          BRL: brlRate,
-        });
-      } catch {
-        setQuotationsError(
-          "No pudimos cargar las cotizaciones",
-        );
-      } finally {
-        setQuotationsLoading(false);
-      }
-    };
-
-    getQuotations();
-  }, []);
+  const rateError =
+    !walletLoading && exchangeRate <= 0
+      ? "No pudimos obtener la tasa de cambio"
+      : "";
 
   const changeFromCurrency = (
     newCurrency: CurrencyCode,
@@ -219,9 +213,10 @@ export default function Exchange() {
     setExchangeSuccess("");
 
     if (newCurrency === toCurrency) {
-      const alternativeCurrency = currencyCodes.find(
-        (currency) => currency !== newCurrency,
-      );
+      const alternativeCurrency =
+        currencyCodes.find(
+          (currency) => currency !== newCurrency,
+        );
 
       if (alternativeCurrency) {
         setToCurrency(alternativeCurrency);
@@ -246,16 +241,24 @@ export default function Exchange() {
     setExchangeSuccess("");
   };
 
-  const selectPercentage = (percentage: number) => {
+  const selectPercentage = (
+    percentage: number,
+  ) => {
     const balance = balances[fromCurrency];
 
-    setAmount(formatMoney(balance * percentage));
+    setAmount(
+      formatMoney(balance * percentage),
+    );
+
     setExchangeError("");
     setExchangeSuccess("");
   };
 
   const selectMaximum = () => {
-    setAmount(formatMoney(balances[fromCurrency]));
+    setAmount(
+      formatMoney(balances[fromCurrency]),
+    );
+
     setExchangeError("");
     setExchangeSuccess("");
   };
@@ -265,12 +268,25 @@ export default function Exchange() {
     setExchangeSuccess("");
 
     if (numericAmount <= 0) {
-      setExchangeError("Ingresá un monto mayor que cero");
+      setExchangeError(
+        "Ingresá un monto mayor que cero",
+      );
       return;
     }
 
-    if (numericAmount > balances[fromCurrency]) {
-      setExchangeError("No tenés saldo suficiente");
+    if (
+      numericAmount > balances[fromCurrency]
+    ) {
+      setExchangeError(
+        "No tenés saldo suficiente",
+      );
+      return;
+    }
+
+    if (exchangeRate <= 0) {
+      setExchangeError(
+        "La tasa de cambio no está disponible",
+      );
       return;
     }
 
@@ -283,14 +299,21 @@ export default function Exchange() {
         amount: numericAmount,
       });
 
-      saveWalletBalances(result.wallet);
       setAmount("0,00");
 
       setExchangeSuccess(
         `Conversión aprobada: recibiste ${formatMoney(
-          Number(result.transaction.finalAmount),
+          Number(
+            result.transaction.finalAmount,
+          ),
         )} ${toCurrency}`,
       );
+
+      /*
+       * Vuelve a consultar la billetera para actualizar
+       * también Dashboard, Billetera y Exchange.
+       */
+      refetch();
     } catch {
       setExchangeError(
         "No pudimos realizar la conversión",
@@ -303,28 +326,24 @@ export default function Exchange() {
   return (
     <main className="w-full text-gray-900 dark:text-white">
       <section className="w-full px-4 pb-8 pt-6 sm:px-6 lg:px-10">
-        {/* Título */}
-        <div className="mb-6 flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Convertir</h1>
+        {/* Encabezado */}
+        <header className="mb-6">
+          <p className="text-sm text-gray-600 dark:text-[#d8dcf0]">
+            Hola, {accountHolder} 👋
+          </p>
 
-            <p className="mt-1 text-sm text-gray-500 dark:text-[#a9afca]">
-              Entre tus propias monedas
-            </p>
-          </div>
+          <h1 className="mt-1 text-2xl font-bold">
+            Convertir monedas
+          </h1>
 
-          <button
-            type="button"
-            aria-label="Información"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 text-gray-500 dark:border-[#4b5275] dark:text-[#b5bbd4]"
-          >
-            ⓘ
-          </button>
-        </div>
+          <p className="mt-1 text-sm text-gray-500 dark:text-[#a9afca]">
+            Entre tus propias monedas
+          </p>
+        </header>
 
         {walletLoading && (
           <p className="mb-4 text-sm text-gray-500 dark:text-[#a9afca]">
-            Cargando saldos...
+            Cargando saldos y cotizaciones...
           </p>
         )}
 
@@ -335,7 +354,7 @@ export default function Exchange() {
         )}
 
         <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-          {/* Columna del conversor */}
+          {/* Conversor */}
           <div>
             <section className="rounded-2xl border border-gray-300 bg-white p-4 dark:border-[#343956] dark:bg-[#0d112d] sm:p-5">
               {/* Moneda de origen */}
@@ -347,8 +366,13 @@ export default function Exchange() {
 
                   <p className="text-xs text-gray-500 dark:text-[#9da5c8]">
                     Disponible:{" "}
-                    {currencies[fromCurrency].symbol}{" "}
-                    {formatMoney(balances[fromCurrency])}
+                    {
+                      currencies[fromCurrency]
+                        .symbol
+                    }{" "}
+                    {formatMoney(
+                      balances[fromCurrency],
+                    )}
                   </p>
                 </div>
 
@@ -370,25 +394,33 @@ export default function Exchange() {
                       }
                       className="min-w-0 bg-transparent font-bold text-gray-900 outline-none dark:text-white"
                     >
-                      {currencyCodes.map((currencyCode) => (
-                        <option
-                          key={currencyCode}
-                          value={currencyCode}
-                          className="bg-white text-gray-900 dark:bg-[#101431] dark:text-white"
-                        >
-                          {currencies[currencyCode].name}
-                        </option>
-                      ))}
+                      {currencyCodes.map(
+                        (currencyCode) => (
+                          <option
+                            key={currencyCode}
+                            value={currencyCode}
+                            className="bg-white text-gray-900 dark:bg-[#101431] dark:text-white"
+                          >
+                            {
+                              currencies[
+                                currencyCode
+                              ].name
+                            }
+                          </option>
+                        ),
+                      )}
                     </select>
                   </div>
 
                   <strong className="shrink-0 text-xl">
-                    {formatMoney(balances[fromCurrency])}
+                    {formatMoney(
+                      balances[fromCurrency],
+                    )}
                   </strong>
                 </div>
               </article>
 
-              {/* Botón invertir */}
+              {/* Invertir */}
               <div className="relative z-10 -my-3 flex justify-end pr-5">
                 <button
                   type="button"
@@ -424,23 +456,32 @@ export default function Exchange() {
                       }
                       className="min-w-0 bg-transparent font-bold text-gray-900 outline-none dark:text-white"
                     >
-                      {currencyCodes.map((currencyCode) => (
-                        <option
-                          key={currencyCode}
-                          value={currencyCode}
-                          disabled={
-                            currencyCode === fromCurrency
-                          }
-                          className="bg-white text-gray-900 dark:bg-[#101431] dark:text-white"
-                        >
-                          {currencies[currencyCode].name}
-                        </option>
-                      ))}
+                      {currencyCodes.map(
+                        (currencyCode) => (
+                          <option
+                            key={currencyCode}
+                            value={currencyCode}
+                            disabled={
+                              currencyCode ===
+                              fromCurrency
+                            }
+                            className="bg-white text-gray-900 dark:bg-[#101431] dark:text-white"
+                          >
+                            {
+                              currencies[
+                                currencyCode
+                              ].name
+                            }
+                          </option>
+                        ),
+                      )}
                     </select>
                   </div>
 
                   <strong className="shrink-0 text-xl">
-                    {formatMoney(balances[toCurrency])}
+                    {formatMoney(
+                      balances[toCurrency],
+                    )}
                   </strong>
                 </div>
 
@@ -465,7 +506,10 @@ export default function Exchange() {
                     inputMode="decimal"
                     value={amount}
                     onChange={(event) => {
-                      setAmount(event.target.value);
+                      setAmount(
+                        event.target.value,
+                      );
+
                       setExchangeError("");
                       setExchangeSuccess("");
                     }}
@@ -478,18 +522,22 @@ export default function Exchange() {
                 </div>
 
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {[10, 25, 50, 80].map((percentage) => (
-                    <button
-                      key={percentage}
-                      type="button"
-                      onClick={() =>
-                        selectPercentage(percentage / 100)
-                      }
-                      className="rounded-full border border-gray-400 px-4 py-1.5 text-xs dark:border-[#596080]"
-                    >
-                      {percentage}%
-                    </button>
-                  ))}
+                  {[10, 25, 50, 80].map(
+                    (percentage) => (
+                      <button
+                        key={percentage}
+                        type="button"
+                        onClick={() =>
+                          selectPercentage(
+                            percentage / 100,
+                          )
+                        }
+                        className="rounded-full border border-gray-400 px-4 py-1.5 text-xs dark:border-[#596080]"
+                      >
+                        {percentage}%
+                      </button>
+                    ),
+                  )}
 
                   <button
                     type="button"
@@ -510,13 +558,15 @@ export default function Exchange() {
                 </p>
 
                 <p className="mt-1 text-2xl font-extrabold">
-                  {formatMoney(convertedAmount)}{" "}
+                  {formatMoney(
+                    convertedAmount,
+                  )}{" "}
                   {toCurrency}
                 </p>
 
-                {rateLoading ? (
+                {walletLoading ? (
                   <p className="mt-2 text-xs text-[#aeb5d1]">
-                    Actualizando tasa de cambio...
+                    Actualizando tasa...
                   </p>
                 ) : rateError ? (
                   <p className="mt-2 text-xs text-red-300">
@@ -536,7 +586,6 @@ export default function Exchange() {
                 onClick={handleExchange}
                 disabled={
                   walletLoading ||
-                  rateLoading ||
                   exchangeLoading ||
                   Boolean(walletError) ||
                   Boolean(rateError) ||
@@ -563,50 +612,49 @@ export default function Exchange() {
             )}
           </div>
 
-          {/* Cotizaciones */}
+          {/* Cotizaciones compartidas */}
           <aside className="rounded-2xl border border-gray-300 bg-white p-5 dark:border-[#343956] dark:bg-[#0d112d]">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-[#8b99d1]">
                 Cotizaciones de hoy
               </p>
 
-              <button
-                type="button"
-                className="text-xs font-medium text-violet-500 dark:text-violet-300"
-              >
-                Ver todos
-              </button>
+              <span className="text-xs font-medium text-violet-500 dark:text-violet-300">
+                Actualizadas
+              </span>
             </div>
 
-            {quotationsLoading ? (
+            {walletLoading ? (
               <p className="py-4 text-sm text-gray-500 dark:text-[#a9afca]">
                 Cargando cotizaciones...
               </p>
-            ) : quotationsError ? (
+            ) : usdToArs <= 0 ||
+              brlToArs <= 0 ? (
               <p className="py-4 text-sm text-red-500">
-                {quotationsError}
+                No pudimos cargar las cotizaciones
               </p>
             ) : (
               <ul className="divide-y divide-gray-300 dark:divide-[#343956]">
                 <li className="flex items-center justify-between gap-4 py-4 text-sm">
                   <span className="text-gray-600 dark:text-[#d8dcf0]">
-                    Peso argentino → Dólar estadounidense
+                    Dólar estadounidense → Peso
+                    argentino
                   </span>
 
                   <strong className="text-right">
-                    1 ARS ={" "}
-                    {formatRate(quotationRates.USD)} USD
+                    1 USD ={" "}
+                    {formatMoney(usdToArs)} ARS
                   </strong>
                 </li>
 
                 <li className="flex items-center justify-between gap-4 py-4 text-sm">
                   <span className="text-gray-600 dark:text-[#d8dcf0]">
-                    Peso argentino → Real brasileño
+                    Real brasileño → Peso argentino
                   </span>
 
                   <strong className="text-right">
-                    1 ARS ={" "}
-                    {formatRate(quotationRates.BRL)} BRL
+                    1 BRL ={" "}
+                    {formatMoney(brlToArs)} ARS
                   </strong>
                 </li>
               </ul>
