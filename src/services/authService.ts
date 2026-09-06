@@ -8,7 +8,7 @@ import type {
   UpdateProfilePayload,
   ChangePasswordPayload,
 } from "../types/auth";
-import type { WalletSummary } from "../types/wallet";
+import type { CurrencyCode, DepositResult, WalletSummary } from "../types/wallet";
 
 export async function register(payload: RegisterPayload): Promise<RegisterResponse> {
   const { data } = await api.post<RegisterResponse>("/auth/register", payload);
@@ -57,13 +57,49 @@ export async function changePassword(payload: ChangePasswordPayload): Promise<vo
   await api.patch("/users/me/password", payload);
 }
 
+export async function updateTheme(theme: "light" | "dark"): Promise<AuthUser> {
+  const { data } = await api.patch<AuthUser>("/users/me/theme", { theme });
+  return data;
+}
+
 export async function getMyWallet(): Promise<WalletSummary> {
   const { data } = await api.get<WalletSummary>("/wallets/me");
   return data;
 }
 
-export async function updatePreferredCurrency(preferredCurrency: string) {
-  const { data } = await api.patch("/wallets/me/preferred-currency", { preferredCurrency });
+export async function updatePreferredCurrency(preferredCurrency: CurrencyCode): Promise<WalletSummary> {
+  const { data } = await api.patch<WalletSummary>("/wallets/me/preferred-currency", { preferredCurrency });
   return data;
 }
 
+// POST /wallets/deposit real: el back valida el límite máximo por moneda
+// (ver DEPOSIT_LIMITS en deposit.service.ts) y devuelve la transacción
+// creada + el wallet actualizado, todo en una sola respuesta.
+export async function depositFunds(currencyCode: CurrencyCode, amount: number): Promise<DepositResult> {
+  const { data } = await api.post<DepositResult>("/wallets/deposit", { currencyCode, amount });
+  return data;
+}
+
+// ---- Recuperar / restablecer contraseña ----
+// MOCK: todavía no existen /auth/forgot-password ni /auth/reset-password en el
+// backend.
+
+export async function forgotPassword(email: string): Promise<void> {
+  // TODO: reemplazar por la llamada real cuando el backend la tenga:
+  // await api.post("/auth/forgot-password", { email });
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  console.log(`[MOCK] Se "enviaría" un email de recuperación a ${email}`);
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  // TODO: reemplazar por la llamada real cuando el backend la tenga:
+  // await api.post("/auth/reset-password", { token, newPassword });
+  await new Promise((resolve) => setTimeout(resolve, 700));
+
+  if (!token) {
+    throw new Error("Token inválido o vencido.");
+  }
+
+  console.log(`[MOCK] Se "cambiaría" la contraseña con el token ${token}`);
+  console.log(`[MOCK] Se "cambiaría" la contraseña (${newPassword.length} caracteres) con el token ${token}`);
+}

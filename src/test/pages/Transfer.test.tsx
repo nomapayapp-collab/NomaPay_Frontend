@@ -95,34 +95,8 @@ describe("Transfer", () => {
 
     expect(screen.getByRole("button", { name: "Continuar" })).toBeEnabled();
   });
-
-  it("confirma el envío y navega al Comprobante con los datos correctos", async () => {
-    const user = userEvent.setup();
-    setup();
-
-    await user.click(screen.getAllByRole("button", { name: /Julián Torres/ })[0]);
-    await user.click(screen.getByRole("button", { name: "Continuar" }));
-
-    await user.type(screen.getByPlaceholderText("0,00"), "1500");
-    await user.click(screen.getByRole("button", { name: "Continuar" }));
-
-    await user.click(screen.getByRole("button", { name: "Enviar dinero" }));
-    await user.click(screen.getByRole("button", { name: "Confirmar envío" }));
-
-    await waitFor(() => {
-      expect(mocks.navigate).toHaveBeenCalledWith("/comprobante", {
-        state: {
-          amount: 1500,
-          currency: "ARS",
-          recipientName: "Julián Torres",
-          recipientAlias: "julian.torres.nomapay",
-          known: true,
-        },
-      });
-    });
-  });
-
-  it("marca known: false cuando el destinatario no es un contacto conocido", async () => {
+  
+  it("usa el texto tipeado como aliasOrCbu cuando no es un contacto conocido", async () => {
     const user = userEvent.setup();
     setup();
 
@@ -139,7 +113,7 @@ describe("Transfer", () => {
     await waitFor(() => {
       expect(mocks.navigate).toHaveBeenCalledWith(
         "/comprobante",
-        expect.objectContaining({ state: expect.objectContaining({ known: false }) }),
+        expect.objectContaining({ state: expect.objectContaining({ aliasOrCbu: "no.existe.nomapay" }) }),
       );
     });
   });

@@ -54,3 +54,20 @@ export type WalletSummary = {
   preferredCurrency: CurrencyCode;
   balances: WalletBalanceDto[];
 };
+
+// Respuesta real de POST /wallets/deposit (carga de saldo).
+export type DepositTransactionDto = {
+  id: number;
+  type: "deposit";
+  status: string;
+  currencyCode: CurrencyCode;
+  // igual que WalletBalanceDto: DECIMAL en Postgres, viaja como string.
+  amount: string;
+  transactionDate: string; // ISO
+};
+
+export type DepositResult = {
+  transaction: DepositTransactionDto;
+  wallet: WalletSummary;
+};
+

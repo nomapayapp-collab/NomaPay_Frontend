@@ -1,25 +1,25 @@
 import { useEffect, useRef, useState, type ComponentType, type SVGProps } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 import { IconBack, IconCheck, IconX, IconClock, IconMail } from "../assets/icons/Icons";
 import { useWallet } from "../hooks/useWallet";
 import { formatCurrency } from "../utils/formatCurrency";
 import { ReceiptPanel } from "../components/ReceiptPanel";
+import { transferFunds, type TransferTransaction } from "../services/transferService";
 import type { CurrencyCode } from "../types/wallet";
 
 type ReceiptState = {
   amount: number;
   currency: CurrencyCode;
-  recipientName: string;
-  recipientAlias: string;
-  /** viene de Frecuentes (true) o fue un alias/CBU tipeado a mano (false) */
-  known: boolean;
+  aliasOrCbu: string;
 };
 
-type Phase = "pendiente" | "completada" | "rechazada" | "cancelada";
+type Phase = "en_proceso" | "aprobada" | "rechazada" | "cancelada";
 
-const PENDING_MS = 2200;
+/** tiempo mínimo que se muestra "en proceso", aunque el backend conteste antes */
+const MIN_PROCESSING_MS = 1400;
 
-const PHASE_META: Record <
+const PHASE_META: Record<
   Phase,
   {
     badgeLabel: string;
@@ -29,15 +29,15 @@ const PHASE_META: Record <
     message: string;
   }
 > = {
-  pendiente: {
-    badgeLabel: "Pendiente",
+  en_proceso: {
+    badgeLabel: "En proceso",
     badgeClassName: "badge--warning",
     iconClassName: "bg-amber-500/15 text-amber-500",
     icon: IconClock,
     message: "Estamos procesando tu envío",
   },
-  completada: {
-    badgeLabel: "Completada",
+  aprobada: {
+    badgeLabel: "Aprobada",
     badgeClassName: "badge--success",
     iconClassName: "bg-turquoise-500/15 text-turquoise-500",
     icon: IconCheck,
@@ -59,11 +59,8 @@ const PHASE_META: Record <
   },
 };
 
-function randomOpId() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let id = "";
-  for (let i = 0; i < 6; i++) id += chars[Math.floor(Math.random() * chars.length)];
-  return `NP-${id}`;
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function formatDateTime(date: Date) {
@@ -73,31 +70,27 @@ function formatDateTime(date: Date) {
 }
 
 /**
- * Comprobante — pantalla de resultado de una operación (por ahora,
- * transferencias). Arranca en "pendiente", simula el tiempo de validar
- * con el banco y resuelve en "completada"/"rechazada" — o "cancelada" si
- * el usuario corta antes. Todo mockeado: no hay backend de
- * transferencias, la regla de aceptar/rechazar es local (contacto de
- * Frecuentes = se acredita, alias tipeado a mano = se rechaza).
- *
- * El contenido de cada fase se arma acá abajo (renderPanel) y se lo
- * pasamos a ReceiptPanel, que es el único que sabe dibujar esa
- * estructura — evita repetir el mismo markup 4 veces.
+ * Comprobante — pantalla de resultado de una transferencia. Arranca en
+ * "en_proceso" y ahí mismo dispara el POST /transfers real; como el
+ * backend responde todo junto (no hay un estado intermedio del lado del
+ * server), sostenemos el "en proceso" un mínimo de tiempo aunque la
+ * respuesta llegue antes, y recién ahí resolvemos a aprobada/rechazada
+ * con los datos/errores reales — o a cancelada si el usuario corta antes
+ * (la request sigue en curso, pero su resultado se ignora).
  */
 export default function Receipt() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { mockTransfer } = useWallet();
+  const { refetch } = useWallet();
   const state = location.state as ReceiptState | null;
 
-  const [phase, setPhase] = useState<Phase>("pendiente");
-  const [operationId] = useState(randomOpId);
+  const [phase, setPhase] = useState<Phase>("en_proceso");
+  const [transaction, setTransaction] = useState<TransferTransaction | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [date] = useState(() => new Date());
-  const [attempt] = useState(() => 1 + Math.floor(Math.random() * 2));
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resolvedRef = useRef(false);
+  const settledRef = useRef(false);
 
   useEffect(() => {
     if (!state) {
@@ -105,36 +98,48 @@ export default function Receipt() {
       return;
     }
 
-    timerRef.current = setTimeout(() => {
-      resolvedRef.current = true;
-      if (state.known) {
-        mockTransfer({ currencyCode: state.currency, amount: state.amount, recipientLabel: state.recipientName });
-        setPhase("completada");
-      } else {
-        setPhase("rechazada");
-      }
-    }, PENDING_MS);
+    const startedAt = Date.now();
 
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
+    async function waitMinimum() {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < MIN_PROCESSING_MS) await sleep(MIN_PROCESSING_MS - elapsed);
+    }
+
+    transferFunds({ aliasOrCbu: state.aliasOrCbu, currencyCode: state.currency, amount: state.amount })
+      .then(async (result) => {
+        await waitMinimum();
+        if (settledRef.current) return;
+        settledRef.current = true;
+        setTransaction(result.transaction);
+        setPhase("aprobada");
+        refetch(); // el saldo cambió del lado del server, traemos el wallet actualizado
+      })
+      .catch(async (err) => {
+        await waitMinimum();
+        if (settledRef.current) return;
+        settledRef.current = true;
+        const message =
+          axios.isAxiosError(err) && typeof err.response?.data?.error === "string"
+            ? err.response.data.error
+            : "No pudimos procesar la transferencia. Probá de nuevo en un rato.";
+        setErrorMessage(message);
+        setPhase("rechazada");
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
   if (!state) return null;
 
   function handleCancel() {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (!resolvedRef.current) {
-      resolvedRef.current = true;
-      setPhase("cancelada");
-    }
+    if (settledRef.current) return;
+    settledRef.current = true;
+    setPhase("cancelada");
   }
 
   function handleSendEmail() {
     if (sendingEmail || emailSent) return;
     // no hay backend de envío de comprobantes por mail — es una
-    // simulación, mismo criterio que mockDeposit/mockTransfer.
+    // simulación, mismo criterio que antes.
     setSendingEmail(true);
     setTimeout(() => {
       setSendingEmail(false);
@@ -148,7 +153,7 @@ export default function Receipt() {
 
   function renderPanel(state: ReceiptState) {
     switch (phase) {
-      case "pendiente":
+      case "en_proceso":
         return (
           <ReceiptPanel
             checklist={[
@@ -168,15 +173,16 @@ export default function Receipt() {
           />
         );
 
-      case "completada":
+      case "aprobada":
+        if (!transaction) return null;
         return (
           <ReceiptPanel
             rows={[
-              { label: "Para", value: state.recipientName },
-              { label: "Alias", value: state.recipientAlias },
+              { label: "Para", value: transaction.receiverName },
+              { label: "Alias", value: transaction.receiverAlias },
               { label: "Comisión", value: "Sin cargo", accent: true },
-              { label: "Desde", value: `Saldo en ${state.currency}` },
-              { label: "Fecha", value: formatDateTime(date) },
+              { label: "Desde", value: `Saldo en ${transaction.currencyCode}` },
+              { label: "Fecha", value: formatDateTime(new Date(transaction.transactionDate)) },
             ]}
             actions={[
               {
@@ -197,11 +203,10 @@ export default function Receipt() {
             note={{
               variant: "error",
               title: "Motivo",
-              description: "La cuenta no es válida o el destinatario no existe. No se descontó nada de tu saldo.",
+              description: errorMessage ?? "No pudimos procesar la transferencia.",
             }}
             rows={[
-              { label: "Alias ingresado", value: state.recipientAlias },
-              { label: "N° de intento", value: String(attempt) },
+              { label: "Alias o CBU ingresado", value: state.aliasOrCbu },
               { label: "Fecha", value: formatDateTime(date) },
             ]}
             actions={[
@@ -215,8 +220,7 @@ export default function Receipt() {
         return (
           <ReceiptPanel
             rows={[
-              { label: "Para", value: state.recipientName },
-              { label: "Alias", value: state.recipientAlias },
+              { label: "Alias o CBU", value: state.aliasOrCbu },
               { label: "Fecha", value: formatDateTime(date) },
             ]}
             note={{
@@ -250,9 +254,11 @@ export default function Receipt() {
         </div>
         <p className="text-[14px] text-text-light-secondary dark:text-text-dark-secondary mb-2">{meta.message}</p>
         <p className="text-[32px] font-bold text-text-light-primary dark:text-text-dark-primary">{amountLabel}</p>
-        <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary mt-1">
-          N° de operación {operationId}
-        </p>
+        {transaction && (
+          <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary mt-1">
+            N° de operación NP-{transaction.id}
+          </p>
+        )}
       </div>
 
       {renderPanel(state)}

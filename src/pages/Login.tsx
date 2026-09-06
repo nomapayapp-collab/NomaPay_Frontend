@@ -140,7 +140,7 @@ export default function Login() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <span className="input__label mb-0 lg:text-text-light-secondary">Contraseña</span>
-                <Link to="/recuperar-contrasena" className={`text-[12px] text-violet-300 hover:text-violet-500 ${LIGHT_LINK}`}>
+                <Link to="/recover-password" className={`text-[12px] text-violet-300 hover:text-violet-500 ${LIGHT_LINK}`}>
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
@@ -170,7 +170,7 @@ export default function Login() {
           {/* Dos instancias del botón de Google: el theme lo fija Google al renderizar
               y no se puede cambiar con CSS (es un iframe), así que mostramos/ocultamos
               cada una según el breakpoint en vez de restylear una sola. */}
-          <div className="flex justify-center lg:hidden">
+          <div className="flex justify-center lg:hidden ">
             <GoogleLogin
               onSuccess={handleGoogleCredential}
               onError={() => setError("No pudimos iniciar sesión con Google.")}
@@ -181,14 +181,14 @@ export default function Login() {
               text="continue_with"
             />
           </div>
-          <div className="hidden lg:flex lg:justify-start">
+          <div className="hidden lg:flex lg:justify-center">
             <GoogleLogin
               onSuccess={handleGoogleCredential}
               onError={() => setError("No pudimos iniciar sesión con Google.")}
               theme="outline"
               shape="pill"
               size="large"
-              width="320"
+              width="400"
               text="continue_with"
             />
           </div>
