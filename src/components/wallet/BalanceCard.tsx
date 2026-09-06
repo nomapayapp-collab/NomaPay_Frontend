@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card } from "../ui/Card";
-import { IconEye, IconEyeOff } from "../../assets/icons/Icons";
+import { IconEye, IconEyeOff, IconStar } from "../../assets/icons/Icons";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { useWallet } from "../../hooks/useWallet";
 
@@ -38,17 +38,23 @@ export function BalanceCard() {
 
   if (balances.length === 0) return null;
 
-  // con 1 o 2 monedas entran las dos enteras en pantalla, sin necesidad de
-  // scroll (se reparten el ancho disponible). Recién con 3+ pasamos al
-  // carrusel de ancho fijo con scroll horizontal.
+  // con 1 o 2 monedas entran las dos enteras en pantalla (desde sm en
+  // adelante se reparten el ancho disponible, sin scroll). Recién con 3+
+  // pasamos al carrusel de ancho fijo con scroll horizontal. En mobile,
+  // en cambio, siempre mostramos casi una tarjeta por vez (87% del ancho,
+  // con snap-scroll para pasar a la siguiente) para que el monto nunca
+  // se corte, sin importar cuántas monedas haya — el 13% restante deja
+  // asomar el borde de la próxima tarjeta, así se nota que se puede
+  // deslizar para ver las demás (si no, no hay ninguna pista visual de
+  // que hay más contenido a la derecha).
   const isCarousel = balances.length > 2;
 
   return (
     <div
       className={
         isCarousel
-          ? "flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2 -mx-1 px-1"
-          : "flex gap-4"
+          ? "flex gap-4 overflow-x-auto scrollbar-app snap-x snap-mandatory pb-2 -mx-1 px-1"
+          : "flex gap-4 overflow-x-auto scrollbar-app snap-x snap-mandatory pb-2 -mx-1 px-1 sm:overflow-visible sm:snap-none sm:pb-0 sm:mx-0 sm:px-0"
       }
     >
       {balances.map((balance) => {
@@ -57,10 +63,17 @@ export function BalanceCard() {
           <Card
             key={balance.currency.code}
             variant="aura"
-            className={isCarousel ? "min-w-75 lg:min-w-85 shrink-0 snap-center" : "flex-1 min-w-0"}
+            className={
+              isCarousel
+                ? "w-[95%] sm:w-75 lg:w-90 shrink-0 snap-center"
+                : "w-[95%] shrink-0 snap-center sm:w-auto sm:min-w-0 sm:flex-1 sm:shrink"
+            }
           >
             <div className="flex items-center justify-between mb-4">
-              <p className="card__title">Saldo total</p>
+              <p className="flex items-center gap-1.5 card__title">
+                Saldo total
+                {balance.isPrimary && <IconStar className="w-3.5 h-3.5 text-amber-500" />}
+              </p>
               <span className="brand-mark bg-ink dark:bg-white w-9 h-9 opacity-90 shrink-0" aria-hidden="true" />
             </div>
             <div className="flex items-center justify-between mb-4">

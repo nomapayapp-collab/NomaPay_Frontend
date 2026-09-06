@@ -52,7 +52,7 @@ describe("BalanceCard", () => {
     expect(screen.queryByText(/BRL/)).not.toBeInTheDocument();
   });
 
-  it("con 2 monedas no arma el carrusel con scroll (se reparten el ancho)", () => {
+  it("con 2 monedas no arma el carrusel con scroll a partir de sm (se reparten el ancho)", () => {
     mockWallet(
       makeWallet([
         { currency: ARS, amount: 100, isPrimary: true },
@@ -63,7 +63,11 @@ describe("BalanceCard", () => {
     const { container } = render(<BalanceCard />);
     const wrapper = container.firstElementChild as HTMLElement;
 
-    expect(wrapper.className).not.toContain("overflow-x-auto");
+    // en mobile siempre se ve "casi una tarjeta por vez" con scroll, sin
+    // importar cuántas monedas haya (por eso overflow-x-auto sigue en la
+    // base) — lo que cambia con 2 o menos es que a partir de sm el scroll
+    // se cancela y las cards se reparten el ancho disponible.
+    expect(wrapper.className).toContain("sm:overflow-visible");
   });
 
   it("con 3 monedas activa el carrusel con scroll horizontal", () => {

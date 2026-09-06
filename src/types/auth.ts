@@ -8,6 +8,7 @@ export type AuthUser = {
   cbu: string | null;
   country?: string | null;
   profilePictureUrl?: string | null;
+  theme?: "light" | "dark";
 };
 
 export type LoginPayload = {

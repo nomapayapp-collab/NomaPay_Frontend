@@ -9,6 +9,7 @@ import {
 import type {
   CurrencyCode,
   Wallet,
+  WalletSummary,
 } from "../types/wallet";
 
 import * as authService from "../services/authService";
@@ -20,6 +21,18 @@ type WalletContextValue = {
   loading: boolean;
   error: string | null;
   refetch: () => void;
+
+  // pega al PATCH /wallets/me/preferred-currency real y actualiza el
+  // wallet en memoria con la respuesta del back (sin pisar exchangeRates
+  // ni recentMovements, que esa ruta no devuelve).
+  setPreferredCurrency: (currencyCode: CurrencyCode) => Promise<void>;
+
+  // pega al POST /wallets/deposit real: el back valida el límite máximo
+  // por moneda y devuelve la transacción creada + el wallet actualizado.
+  // A diferencia de mockDeposit (que queda como legacy, sin uso desde que
+  // existe este endpoint), acá el movimiento que se agrega a
+  // recentMovements sale de la respuesta real del server, no se inventa.
+  deposit: (currencyCode: CurrencyCode, amount: number) => Promise<void>;
 
   mockDeposit: (
     currencyCode: CurrencyCode,
@@ -68,6 +81,7 @@ const EMPTY_AUTH_WALLET: Wallet = {
  * Estas cotizaciones serán compartidas por Dashboard,
  * Exchange y cualquier componente que utilice useWallet().
  */
+
 async function getCurrentExchangeRates(): Promise<
   Wallet["exchangeRates"]
 > {
@@ -84,6 +98,9 @@ async function getCurrentExchangeRates(): Promise<
 
     const data = await response.json();
 
+    // La API tiene base fija en USD: data.rates[X] siempre significa
+    // "1 USD = X unidades de esa moneda". Con estos dos valores alcanza
+    // para derivar las 6 combinaciones ARS/USD/BRL.
     const usdToArs = data.rates?.ARS;
     const usdToBrl = data.rates?.BRL;
 
@@ -96,23 +113,37 @@ async function getCurrentExchangeRates(): Promise<
       throw new Error("Cotizaciones inválidas");
     }
 
+    const arsToUsd = 1 / usdToArs;
+    const brlToUsd = 1 / usdToBrl;
     const brlToArs = usdToArs / usdToBrl;
+    const arsToBrl = usdToBrl / usdToArs;
 
     return [
-      {
-        from: "USD",
-        to: "ARS",
-        rate: usdToArs,
-      },
-      {
-        from: "BRL",
-        to: "ARS",
-        rate: brlToArs,
-      },
+      { from: "USD", to: "ARS", rate: usdToArs },
+      { from: "USD", to: "BRL", rate: usdToBrl },
+      { from: "BRL", to: "ARS", rate: brlToArs },
+      { from: "BRL", to: "USD", rate: brlToUsd },
+      { from: "ARS", to: "BRL", rate: arsToBrl },
+      { from: "ARS", to: "USD", rate: arsToUsd },
     ];
   } catch {
     return FALLBACK_RATES;
   }
+}
+
+// misma conversión "balances del back -> balances del front" que usaba
+// fetchWallet, ahora reutilizable también por setPreferredCurrency (esa
+// ruta devuelve el mismo shape de WalletSummary).
+function mapBalances(summary: WalletSummary): Wallet["balances"] {
+  return summary.balances.map((balance) => ({
+    currency: {
+      code: balance.currencyCode,
+      name: balance.currencyName,
+      symbol: balance.symbol ?? "",
+    },
+    amount: Number(balance.amount),
+    isPrimary: balance.currencyCode === summary.preferredCurrency,
+  }));
 }
 
 export function WalletProvider({
@@ -141,19 +172,8 @@ export function WalletProvider({
         getCurrentExchangeRates(),
       ]);
 
-      const balances = summary.balances.map((balance) => ({
-        currency: {
-          code: balance.currencyCode,
-          name: balance.currencyName,
-          symbol: balance.symbol ?? "",
-        },
-        amount: Number(balance.amount),
-        isPrimary:
-          balance.currencyCode === summary.preferredCurrency,
-      }));
-
       setWallet((previousWallet) => ({
-        balances,
+        balances: mapBalances(summary),
         exchangeRates,
 
         /*
@@ -173,6 +193,43 @@ export function WalletProvider({
       setLoading(false);
     }
   }, []);
+
+  const setPreferredCurrency = useCallback(
+    async (currencyCode: CurrencyCode) => {
+      const summary = await authService.updatePreferredCurrency(currencyCode);
+
+      setWallet((previousWallet) => ({
+        ...previousWallet,
+        balances: mapBalances(summary),
+      }));
+    },
+    [],
+  );
+
+  const deposit = useCallback(
+    async (currencyCode: CurrencyCode, amount: number) => {
+      const result = await authService.depositFunds(currencyCode, amount);
+
+      setWallet((previousWallet) => ({
+        ...previousWallet,
+        balances: mapBalances(result.wallet),
+
+        recentMovements: [
+          {
+            id: `deposit-${result.transaction.id}`,
+            type: "carga",
+            description: "Carga de saldo",
+            status: "acreditado",
+            amount: Number(result.transaction.amount),
+            currency: result.transaction.currencyCode,
+            date: result.transaction.transactionDate,
+          },
+          ...previousWallet.recentMovements,
+        ],
+      }));
+    },
+    [],
+  );
 
   useEffect(() => {
     if (authLoading) {
@@ -275,6 +332,8 @@ export function WalletProvider({
         loading,
         error,
         refetch: fetchWallet,
+        setPreferredCurrency,
+        deposit,
         mockDeposit,
         mockTransfer,
       }}

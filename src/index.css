@@ -191,8 +191,9 @@
   body.light .card__title {
     @apply text-text-light-tertiary;
   }
- .card__amount {
-  @apply text-[38px] font-bold leading-none tracking-tight text-text-dark-primary;
+
+.card__amount {
+  @apply text-[28px] sm:text-[38px] font-bold leading-none tracking-tight text-text-dark-primary;
   font-variant-numeric: tabular-nums;
 }
   body.light .card__amount {
@@ -210,6 +211,9 @@
   }
   .input--error {
     @apply border-magenta-500;
+  }
+  .input:focus-visible {
+    @apply outline-none ring-0 ring-offset-0 border-violet-500;
   }
   .input__label {
     @apply block text-[12.5px] font-medium text-text-dark-secondary mb-1.5;
@@ -241,21 +245,44 @@
   .alert-note__description {
     @apply text-[13px] text-text-dark-secondary;
   }
+  .alert-note--success { @apply border-turquoise-500 bg-turquoise-100/10; }
+  .alert-note--success .alert-note__title { @apply text-turquoise-700; }
   body.light .alert-note__description {
     @apply text-text-light-secondary;
   }
   .alert-note--error   { @apply border-magenta-500 bg-magenta-100/10; }
   .alert-note--error .alert-note__title { @apply text-magenta-500; }
-  .alert-note--warning { @apply border-amber-500 bg-amber-100/10; }
+  .alert-note--warning { @apply border-amber-500/30 bg-amber-100/10; }
   .alert-note--warning .alert-note__title { @apply text-amber-700; }
   .alert-note--info    { @apply border-violet-500 bg-violet-100/10; }
   .alert-note--info .alert-note__title { @apply text-violet-500; }
 
   .toast {
-    @apply rounded-control px-4 py-3 flex items-center gap-2.5 shadow-elevation-lg text-[13.5px] font-medium;
+    @apply rounded-control px-4 py-3.5 flex items-center justify-between gap-3 shadow-elevation-lg text-[13.5px] font-medium text-text-dark-primary;
   }
-  .toast--success { @apply bg-turquoise-100 text-turquoise-700; }
-  .toast--error   { @apply bg-magenta-100 text-magenta-700; }
+  body.light .toast {
+    @apply text-text-light-primary;
+  }
+  .toast__content {
+    @apply flex items-center gap-2.5 min-w-0;
+  }
+  .toast__icon {
+    @apply shrink-0;
+  }
+  .toast__close {
+    @apply text-text-dark-tertiary hover:text-text-dark-primary shrink-0 transition-colors;
+  }
+  body.light .toast__close {
+    @apply text-text-light-tertiary hover:text-text-light-primary;
+  }
+  .toast--success { @apply bg-turquoise-500/15; }
+  .toast--success .toast__icon { @apply text-turquoise-500; }
+  .toast--error   { @apply bg-magenta-500/15; }
+  .toast--error .toast__icon { @apply text-magenta-500; }
+  .toast--warning { @apply bg-amber-500/15; }
+  .toast--warning .toast__icon { @apply text-amber-500; }
+  .toast--info    { @apply bg-violet-500/15; }
+  .toast--info .toast__icon { @apply text-violet-500; }
 
   .skeleton {
     @apply animate-pulse rounded-control bg-white/8;
@@ -330,5 +357,31 @@
   }
   .animate-dash {
     animation: dash 3s linear infinite;
+  }
+  .scrollbar-app {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-violet-300) transparent;
+  }
+  .scrollbar-app::-webkit-scrollbar {
+    height: 6px;
+  }
+  .scrollbar-app::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-app::-webkit-scrollbar-thumb {
+    background-color: var(--color-violet-300);
+    border-radius: 9999px;
+  }
+  .scrollbar-app::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-violet-500);
+  }
+  body.light .scrollbar-app {
+    scrollbar-color: var(--color-border-light) transparent;
+  }
+  body.light .scrollbar-app::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-light);
+  }
+  body.light .scrollbar-app::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-violet-500);
   }
 }
