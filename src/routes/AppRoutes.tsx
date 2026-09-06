@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
-import Register from "../pages/register/Register";
+import Register from "../pages/Register";
 import Login from "../pages/Login";
+import Exchange from "../pages/Exchange";
 import { Root } from "./Root";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AppLayout } from "../components/layout/AppLayout";
@@ -8,6 +9,11 @@ import Config from "../pages/config/Config";
 import NotFound from "../pages/NotFound";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import ComingSoon from "../pages/ComingSoon";
+import Wallet from "../pages/Wallet";
+import Transfer from "../pages/Transfer";
+import Receipt from "../pages/Receipt";
+import RecoverPassword from "../pages/password/RecoverPassword";
+import ResetPassword from "../pages/password/ResetPassword";
 
 export default function AppRoutes() {
   return (
@@ -15,24 +21,18 @@ export default function AppRoutes() {
       <Route path="/" element={<Root />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Config />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/wallet"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ComingSoon title="Billetera" />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/recover-password" element={<RecoverPassword />} />
++      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <Config />
+        </ProtectedRoute>} />
+      <Route path="/wallet" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Wallet />
+          </AppLayout>
+        </ProtectedRoute>} />
       <Route
         path="/comprar-vender"
         element={
@@ -43,22 +43,22 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/exchange"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ComingSoon title="Convertir" />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+<Route
+  path="/exchange"
+  element={
+    <ProtectedRoute>
+      <AppLayout>
+        <Exchange />
+      </AppLayout>
+    </ProtectedRoute>
+  }
+/>
       <Route
         path="/transfer"
         element={
           <ProtectedRoute>
             <AppLayout>
-              <ComingSoon title="Transferir" />
+              <Transfer />
             </AppLayout>
           </ProtectedRoute>
         }
@@ -83,6 +83,10 @@ export default function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route path="/comprobante" element={
+        <ProtectedRoute>
+          <Receipt />
+        </ProtectedRoute>} />
       <Route path="/politica-de-privacidad" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>

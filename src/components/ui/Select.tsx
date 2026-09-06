@@ -66,11 +66,11 @@ export function Select({ label, id, value, onChange, options, placeholder, class
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className={selected ? "" : "text-text-dark-tertiary"}>
+        <span className={selected ? "" : "text-text-light-tertiary dark:text-text-dark-tertiary"}>
           {selected?.label ?? placeholder ?? "Seleccioná una opción"}
         </span>
         <IconChevronRight
-          className={`w-4 h-4 rotate-90 text-text-dark-tertiary transition-transform shrink-0 ${
+          className={`w-4 h-4 rotate-90 text-text-light-tertiary dark:text-text-dark-tertiary transition-transform shrink-0 ${
             open ? "-scale-y-100" : ""
           }`}
         />
@@ -79,7 +79,7 @@ export function Select({ label, id, value, onChange, options, placeholder, class
       {open && (
         <ul
           role="listbox"
-          className="absolute left-0 right-0 top-full mt-2 z-20 max-h-56 overflow-y-auto rounded-control border border-border-dark bg-surface-dark-elevated shadow-elevation-lg py-1.5"
+          className="absolute left-0 right-0 top-full mt-2 z-20 max-h-56 overflow-y-auto rounded-control border border-border-light dark:border-border-dark bg-surface-light-input dark:bg-surface-dark-elevated shadow-elevation-lg py-1.5"
         >
           {options.map((option) => {
             const isSelected = option.value === value;
@@ -97,7 +97,7 @@ export function Select({ label, id, value, onChange, options, placeholder, class
                     "w-full flex items-center justify-between px-4 py-2.5 text-[14px] text-left transition-colors",
                     isSelected
                       ? "text-violet-500 bg-violet-500/10 font-semibold"
-                      : "text-text-dark-primary hover:bg-white/8",
+                      : "text-text-light-primary dark:text-text-dark-primary hover:bg-black/5 dark:hover:bg-white/8",
                   ].join(" ")}
                 >
                   {option.label}

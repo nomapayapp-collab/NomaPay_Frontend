@@ -78,13 +78,13 @@ export function EditAliasModal({ open, currentAlias, onClose, onSaved }: EditAli
         )}
 
         <ul className="flex flex-col gap-1.5">
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${rules.length ? "text-turquoise-500" : "text-text-dark-tertiary"}`}>
+          <li className={`text-[12.5px] flex items-center gap-1.5 ${rules.length ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
             <IconCheck className="w-3.5 h-3.5" /> Entre 6 y 20 caracteres
           </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${rules.charset ? "text-turquoise-500" : "text-text-dark-tertiary"}`}>
+          <li className={`text-[12.5px] flex items-center gap-1.5 ${rules.charset ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
             <IconCheck className="w-3.5 h-3.5" /> Solo letras, números y puntos
           </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${rules.noSpaces ? "text-turquoise-500" : "text-text-dark-tertiary"}`}>
+          <li className={`text-[12.5px] flex items-center gap-1.5 ${rules.noSpaces ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
             <IconCheck className="w-3.5 h-3.5" /> Sin espacios ni caracteres especiales
           </li>
         </ul>

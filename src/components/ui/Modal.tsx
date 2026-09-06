@@ -45,10 +45,10 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-sm bg-surface-dark border border-border-dark rounded-card shadow-elevation-lg p-6 max-h-[85vh] overflow-y-auto"
+        className="w-full max-w-sm bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-card shadow-elevation-lg p-6 max-h-[85vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-text-dark-primary">{title}</h2>
+          <h2 className="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">{title}</h2>
           <button type="button" onClick={onClose} className="icon-btn" aria-label="Cerrar">
             <IconX className="w-4 h-4" />
           </button>

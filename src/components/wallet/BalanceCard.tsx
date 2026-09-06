@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card } from "../ui/Card";
-import { Logo } from "../ui/Logo";
-import { IconEye, IconEyeOff } from "../../assets/icons/Icons";
+import { IconEye, IconEyeOff, IconStar } from "../../assets/icons/Icons";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { useWallet } from "../../hooks/useWallet";
 
@@ -10,15 +9,22 @@ const HIDDEN = "••••••";
 export function BalanceCard() {
   const { wallet, loading } = useWallet();
   const [showBalance, setShowBalance] = useState(true);
+
   const primary = wallet.balances.find((b) => b.isPrimary) ?? wallet.balances[0];
-  const others = wallet.balances.filter((b) => b !== primary);
+
+  // se muestran las monedas con saldo > 0, más la moneda por defecto aunque
+  // esté en 0 (es la que ve el usuario recién registrado). El resto en 0 no
+  // suma nada, así que no le ocupamos lugar en el scroll.
+  const balances = wallet.balances
+    .filter((b) => b.amount > 0 || b === primary)
+    .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
 
   if (loading) {
     return (
       <Card variant="aura">
         <div className="flex items-center justify-between mb-4">
           <div className="h-4 w-24 rounded-full bg-white/15 animate-pulse" />
-          <Logo variant="isologo-blanco" className="w-9 h-auto opacity-90" />
+          <span className="brand-mark bg-ink dark:bg-white w-9 h-9 opacity-90 shrink-0" aria-hidden="true" />
         </div>
         <div className="h-9 w-40 rounded-lg bg-white/15 animate-pulse mb-4" />
         <div className="flex gap-2 mb-5">
@@ -30,38 +36,72 @@ export function BalanceCard() {
     );
   }
 
+  if (balances.length === 0) return null;
+
+  // con 1 o 2 monedas entran las dos enteras en pantalla (desde sm en
+  // adelante se reparten el ancho disponible, sin scroll). Recién con 3+
+  // pasamos al carrusel de ancho fijo con scroll horizontal. En mobile,
+  // en cambio, siempre mostramos casi una tarjeta por vez (87% del ancho,
+  // con snap-scroll para pasar a la siguiente) para que el monto nunca
+  // se corte, sin importar cuántas monedas haya — el 13% restante deja
+  // asomar el borde de la próxima tarjeta, así se nota que se puede
+  // deslizar para ver las demás (si no, no hay ninguna pista visual de
+  // que hay más contenido a la derecha).
+  const isCarousel = balances.length > 2;
+
   return (
-    <Card variant="aura">
-      <div className="flex items-center justify-between mb-4">
-        <p className="card__title">Saldo total</p>
-        <Logo variant="isologo-blanco" className="w-9 h-auto opacity-90" />
-      </div>
-
-      <div className="flex items-center justify-between mb-4">
-        <p className="card__amount">
-          {showBalance && primary ? formatCurrency(primary.amount, primary.currency.code) : HIDDEN}
-        </p>
-        <button
-          type="button"
-          onClick={() => setShowBalance((v) => !v)}
-          className="text-text-dark-primary/80 hover:text-text-dark-primary shrink-0 ml-3"
-          aria-label={showBalance ? "Ocultar saldo" : "Mostrar saldo"}
-        >
-          {showBalance ? <IconEye className="w-5 h-5" /> : <IconEyeOff className="w-5 h-5" />}
-        </button>
-      </div>
-
-      {others.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-5">
-          {others.map(({ currency, amount }) => (
-            <span key={currency.code} className="chip">
-              {showBalance ? formatCurrency(amount, currency.code) : HIDDEN}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="brand-rule" />
-    </Card>
+    <div
+      className={
+        isCarousel
+          ? "flex gap-4 overflow-x-auto scrollbar-app snap-x snap-mandatory pb-2 -mx-1 px-1"
+          : "flex gap-4 overflow-x-auto scrollbar-app snap-x snap-mandatory pb-2 -mx-1 px-1 sm:overflow-visible sm:snap-none sm:pb-0 sm:mx-0 sm:px-0"
+      }
+    >
+      {balances.map((balance) => {
+        const others = balances.filter((b) => b !== balance);
+        return (
+          <Card
+            key={balance.currency.code}
+            variant="aura"
+            className={
+              isCarousel
+                ? "w-[95%] sm:w-75 lg:w-90 shrink-0 snap-center"
+                : "w-[95%] shrink-0 snap-center sm:w-auto sm:min-w-0 sm:flex-1 sm:shrink"
+            }
+          >
+            <div className="flex items-center justify-between mb-4">
+              <p className="flex items-center gap-1.5 card__title">
+                Saldo total
+                {balance.isPrimary && <IconStar className="w-3.5 h-3.5 text-amber-500" />}
+              </p>
+              <span className="brand-mark bg-ink dark:bg-white w-9 h-9 opacity-90 shrink-0" aria-hidden="true" />
+            </div>
+            <div className="flex items-center justify-between mb-4">
+              <p className="card__amount">
+                {showBalance ? formatCurrency(balance.amount, balance.currency.code) : HIDDEN}
+              </p>
+              <button
+                type="button"
+                onClick={() => setShowBalance((v) => !v)}
+                className="text-text-light-primary/80 dark:text-text-dark-primary/80 hover:text-text-light-primary dark:hover:text-text-dark-primary shrink-0 ml-3"
+                aria-label={showBalance ? "Ocultar saldo" : "Mostrar saldo"}
+              >
+                {showBalance ? <IconEye className="w-5 h-5" /> : <IconEyeOff className="w-5 h-5" />}
+              </button>
+            </div>
+            {others.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-5">
+                {others.map(({ currency, amount }) => (
+                  <span key={currency.code} className="chip">
+                    {showBalance ? formatCurrency(amount, currency.code) : HIDDEN}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="brand-rule" />
+          </Card>
+        );
+      })}
+    </div>
   );
 }

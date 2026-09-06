@@ -49,7 +49,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
       <div className="relative">
         {icon && (
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-dark-tertiary pointer-events-none">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-light-tertiary dark:text-text-dark-tertiary pointer-events-none">
             {icon}
           </span>
         )}
@@ -76,7 +76,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-dark-tertiary hover:text-text-dark-primary"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-light-tertiary dark:text-text-dark-tertiary hover:text-text-light-primary dark:hover:text-text-dark-primary"
             aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
             tabIndex={-1}
           >
@@ -97,7 +97,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         </p>
       )}
       {!error && hint && (
-        <p id={`${inputId}-hint`} className="text-[12px] text-text-dark-tertiary mt-1.5">
+        <p id={`${inputId}-hint`} className="text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary mt-1.5">
           {hint}
         </p>
       )}

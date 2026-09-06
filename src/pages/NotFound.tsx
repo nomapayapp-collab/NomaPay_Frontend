@@ -7,8 +7,9 @@ import { Button } from "../components/ui/Button";
  */
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface-dark px-6 text-center">
-      <Logo variant="lockup-oscuro" className="w-36 h-auto opacity-90" />
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface-light dark:bg-surface-dark px-6 text-center">
+      <Logo variant="lockup-oscuro" className="w-36 h-auto opacity-90 hidden dark:block" />
+      <Logo variant="lockup-claro" className="w-36 h-auto opacity-90 block dark:hidden" />
       <div>
         <p
           className="text-[80px] font-extrabold leading-none bg-clip-text text-transparent"

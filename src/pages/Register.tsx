@@ -2,17 +2,17 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-import { Button } from "../../components/ui/Button";
-import { Input } from "../../components/ui/Input";
-import { Select } from "../../components/ui/Select";
-import { Logo } from "../../components/ui/Logo";
-import { AuthBrandPanel } from "../../components/auth/AuthBrandPanel";
-import { IconUser, IconMail, IconLock, IconBack } from "../../assets/icons/Icons";
+import { Button } from "../components/ui/Button";
+import { Input } from "../components/ui/Input";
+import { Select } from "../components/ui/Select";
+import { Logo } from "../components/ui/Logo";
+import { AuthBrandPanel } from "../components/auth/AuthBrandPanel";
+import { IconUser, IconMail, IconLock, IconBack } from "../assets/icons/Icons";
 
-import { COUNTRIES } from "../../constants/countries";
-import { register } from "../../services/authService";
+import { COUNTRIES } from "../constants/countries";
+import { register } from "../services/authService";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "../hooks/useAuth";
 
 type RegisterErrors = {
   name?: string;
@@ -45,9 +45,30 @@ function validateEmail(value: string) {
   return undefined;
 }
 function validatePasswordValue(value: string) {
-  if (!value) return "La contraseña es obligatoria";
-  if (value.length < 8) return "Mínimo 8 caracteres";
-  if (!/[0-9]/.test(value)) return "Sumá al menos un número";
+  if (!value) {
+    return "La contraseña es obligatoria";
+  }
+
+  if (value.length < 8) {
+    return "Debe tener al menos 8 caracteres";
+  }
+
+  if (!/[A-Z]/.test(value)) {
+    return "Debe incluir al menos una mayúscula";
+  }
+
+  if (!/[a-z]/.test(value)) {
+    return "Debe incluir al menos una minúscula";
+  }
+
+  if (!/[0-9]/.test(value)) {
+    return "Debe incluir al menos un número";
+  }
+
+  if (!/[^A-Za-z0-9]/.test(value)) {
+    return "Debe incluir al menos un símbolo";
+  }
+
   return undefined;
 }
 function validateConfirm(value: string, password: string) {
@@ -74,7 +95,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
-    async function handleGoogleCredential(credentialResponse: CredentialResponse) {
+  async function handleGoogleCredential(credentialResponse: CredentialResponse) {
     if (!credentialResponse.credential) {
       setServerError("No pudimos registrarte con Google.");
       return;
@@ -163,13 +184,35 @@ export default function Register() {
   }
 
   const hasLength = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
-  const hasSymbol = password.length >= 12 || /[^A-Za-z0-9]/.test(password);
-  const strengthScore = [hasLength, hasNumber, hasSymbol].filter(Boolean).length;
-  const strengthLabel = strengthScore <= 1 ? "Débil" : strengthScore === 2 ? "Segura" : "Muy segura";
-  const strengthColor = strengthScore <= 1 ? "bg-magenta-500" : "bg-turquoise-500";
-  const strengthTextColor = strengthScore <= 1 ? "text-magenta-500" : "text-turquoise-500";
+  const hasSymbol = /[^A-Za-z0-9]/.test(password);
 
+  const strengthScore = [
+    hasLength,
+    hasUppercase,
+    hasLowercase,
+    hasNumber,
+    hasSymbol,
+  ].filter(Boolean).length;
+
+  const strengthLabel =
+    strengthScore <= 2
+      ? "Débil"
+      : strengthScore <= 4
+        ? "Segura"
+        : "Muy segura";
+
+  const strengthColor =
+    strengthScore <= 2
+      ? "bg-magenta-500"
+      : "bg-turquoise-500";
+
+  const strengthTextColor =
+    strengthScore <= 2
+      ? "text-magenta-500"
+      : "text-turquoise-500";
   return (
     <div className="min-h-screen lg:flex bg-surface-dark lg:bg-surface-light">
       <AuthBrandPanel />
@@ -265,7 +308,7 @@ export default function Register() {
                     <span className={`text-[12px] font-semibold ${strengthTextColor}`}>{strengthLabel}</span>
                   </div>
                   <p className="text-[12px] text-text-dark-tertiary lg:text-text-light-tertiary">
-                    Mínimo 8 caracteres, con un número. Sumá un símbolo para que sea muy segura.
+                    Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo.
                   </p>
                 </div>
               )}
@@ -293,7 +336,7 @@ export default function Register() {
               Continuar
             </Button>
           </form>
-<div className="flex items-center gap-3 my-6">
+          <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-border-dark lg:bg-border-light" />
             <span className="text-[11px] text-text-dark-tertiary lg:text-text-light-tertiary">O</span>
             <div className="flex-1 h-px bg-border-dark lg:bg-border-light" />
@@ -310,14 +353,14 @@ export default function Register() {
               text="signup_with"
             />
           </div>
-          <div className="hidden lg:flex lg:justify-start">
+          <div className="hidden lg:flex lg:justify-center">
             <GoogleLogin
               onSuccess={handleGoogleCredential}
               onError={() => setServerError("No pudimos registrarte con Google.")}
               theme="outline"
               shape="pill"
               size="large"
-              width="320"
+              width="400"
               text="signup_with"
             />
           </div>

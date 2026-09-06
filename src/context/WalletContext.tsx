@@ -1,5 +1,17 @@
-import { createContext, useCallback, useEffect, useState, type ReactNode } from "react";
-import type { Wallet } from "../types/wallet";
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+
+import type {
+  CurrencyCode,
+  Wallet,
+  WalletSummary,
+} from "../types/wallet";
+
 import * as authService from "../services/authService";
 import { MOCK_WALLET } from "../constants/mockWallet";
 import { useAuth } from "../hooks/useAuth";
@@ -9,60 +21,227 @@ type WalletContextValue = {
   loading: boolean;
   error: string | null;
   refetch: () => void;
+
+  // pega al PATCH /wallets/me/preferred-currency real y actualiza el
+  // wallet en memoria con la respuesta del back (sin pisar exchangeRates
+  // ni recentMovements, que esa ruta no devuelve).
+  setPreferredCurrency: (currencyCode: CurrencyCode) => Promise<void>;
+
+  // pega al POST /wallets/deposit real: el back valida el límite máximo
+  // por moneda y devuelve la transacción creada + el wallet actualizado.
+  // A diferencia de mockDeposit (que queda como legacy, sin uso desde que
+  // existe este endpoint), acá el movimiento que se agrega a
+  // recentMovements sale de la respuesta real del server, no se inventa.
+  deposit: (currencyCode: CurrencyCode, amount: number) => Promise<void>;
+
+  mockDeposit: (
+    currencyCode: CurrencyCode,
+    amount: number,
+  ) => void;
+
+  mockTransfer: (params: {
+    currencyCode: CurrencyCode;
+    amount: number;
+    recipientLabel: string;
+  }) => void;
 };
 
-export const WalletContext = createContext<WalletContextValue | undefined>(undefined);
+export const WalletContext = createContext<
+  WalletContextValue | undefined
+>(undefined);
 
-// Estado inicial para un usuario logueado mientras carga su saldo real.
-// NO usa MOCK_WALLET para balances (esos ya son reales) — solo toma
-// prestadas las cotizaciones mockeadas, que siguen sin endpoint propio.
+/*
+ * Se utilizan solamente si la API externa de cotizaciones falla.
+ * Las direcciones están expresadas correctamente:
+ *
+ * 1 USD = cierta cantidad de ARS.
+ * 1 BRL = cierta cantidad de ARS.
+ */
+const FALLBACK_RATES: Wallet["exchangeRates"] = [
+  {
+    from: "USD",
+    to: "ARS",
+    rate: 1700,
+  },
+  {
+    from: "BRL",
+    to: "ARS",
+    rate: 300,
+  },
+];
+
 const EMPTY_AUTH_WALLET: Wallet = {
   balances: [],
-  exchangeRates: MOCK_WALLET.exchangeRates,
+  exchangeRates: FALLBACK_RATES,
   recentMovements: [],
 };
 
-export function WalletProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading: authLoading } = useAuth();
-  const [wallet, setWallet] = useState<Wallet>(EMPTY_AUTH_WALLET);
+/*
+ * Obtiene las cotizaciones una sola vez.
+ * Estas cotizaciones serán compartidas por Dashboard,
+ * Exchange y cualquier componente que utilice useWallet().
+ */
+
+async function getCurrentExchangeRates(): Promise<
+  Wallet["exchangeRates"]
+> {
+  try {
+    const response = await fetch(
+      "https://open.er-api.com/v6/latest/USD",
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "No se pudieron obtener las cotizaciones",
+      );
+    }
+
+    const data = await response.json();
+
+    // La API tiene base fija en USD: data.rates[X] siempre significa
+    // "1 USD = X unidades de esa moneda". Con estos dos valores alcanza
+    // para derivar las 6 combinaciones ARS/USD/BRL.
+    const usdToArs = data.rates?.ARS;
+    const usdToBrl = data.rates?.BRL;
+
+    if (
+      typeof usdToArs !== "number" ||
+      typeof usdToBrl !== "number" ||
+      usdToArs <= 0 ||
+      usdToBrl <= 0
+    ) {
+      throw new Error("Cotizaciones inválidas");
+    }
+
+    const arsToUsd = 1 / usdToArs;
+    const brlToUsd = 1 / usdToBrl;
+    const brlToArs = usdToArs / usdToBrl;
+    const arsToBrl = usdToBrl / usdToArs;
+
+    return [
+      { from: "USD", to: "ARS", rate: usdToArs },
+      { from: "USD", to: "BRL", rate: usdToBrl },
+      { from: "BRL", to: "ARS", rate: brlToArs },
+      { from: "BRL", to: "USD", rate: brlToUsd },
+      { from: "ARS", to: "BRL", rate: arsToBrl },
+      { from: "ARS", to: "USD", rate: arsToUsd },
+    ];
+  } catch {
+    return FALLBACK_RATES;
+  }
+}
+
+// misma conversión "balances del back -> balances del front" que usaba
+// fetchWallet, ahora reutilizable también por setPreferredCurrency (esa
+// ruta devuelve el mismo shape de WalletSummary).
+function mapBalances(summary: WalletSummary): Wallet["balances"] {
+  return summary.balances.map((balance) => ({
+    currency: {
+      code: balance.currencyCode,
+      name: balance.currencyName,
+      symbol: balance.symbol ?? "",
+    },
+    amount: Number(balance.amount),
+    isPrimary: balance.currencyCode === summary.preferredCurrency,
+  }));
+}
+
+export function WalletProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const {
+    isAuthenticated,
+    loading: authLoading,
+  } = useAuth();
+
+  const [wallet, setWallet] =
+    useState<Wallet>(EMPTY_AUTH_WALLET);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchWallet = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const summary = await authService.getMyWallet();
+      const [summary, exchangeRates] = await Promise.all([
+        authService.getMyWallet(),
+        getCurrentExchangeRates(),
+      ]);
 
-      const balances = summary.balances.map((b) => ({
-        currency: {
-          code: b.currencyCode,
-          name: b.currencyName,
-          symbol: b.symbol ?? "",
-        },
-        amount: Number(b.amount),
-        isPrimary: b.currencyCode === summary.preferredCurrency,
+      setWallet((previousWallet) => ({
+        balances: mapBalances(summary),
+        exchangeRates,
+
+        /*
+         * Conservamos los movimientos ficticios para que
+         * no desaparezcan después de un refetch.
+         */
+        recentMovements:
+          previousWallet.recentMovements,
       }));
-
-      setWallet({
-        balances,
-        exchangeRates: MOCK_WALLET.exchangeRates,
-        recentMovements: [], // antes: MOCK_WALLET.recentMovements — ya no hay endpoint, no mostramos mock
-      });
     } catch {
-      setError("No pudimos cargar tu saldo. Probá de nuevo en un rato.");
+      setError(
+        "No pudimos cargar tu saldo. Probá de nuevo en un rato.",
+      );
+
       setWallet(EMPTY_AUTH_WALLET);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  const setPreferredCurrency = useCallback(
+    async (currencyCode: CurrencyCode) => {
+      const summary = await authService.updatePreferredCurrency(currencyCode);
+
+      setWallet((previousWallet) => ({
+        ...previousWallet,
+        balances: mapBalances(summary),
+      }));
+    },
+    [],
+  );
+
+  const deposit = useCallback(
+    async (currencyCode: CurrencyCode, amount: number) => {
+      const result = await authService.depositFunds(currencyCode, amount);
+
+      setWallet((previousWallet) => ({
+        ...previousWallet,
+        balances: mapBalances(result.wallet),
+
+        recentMovements: [
+          {
+            id: `deposit-${result.transaction.id}`,
+            type: "carga",
+            description: "Carga de saldo",
+            status: "acreditado",
+            amount: Number(result.transaction.amount),
+            currency: result.transaction.currencyCode,
+            date: result.transaction.transactionDate,
+          },
+          ...previousWallet.recentMovements,
+        ],
+      }));
+    },
+    [],
+  );
+
   useEffect(() => {
-    if (authLoading) return;
+    if (authLoading) {
+      return;
+    }
 
     if (!isAuthenticated) {
-      // no hay sesión (ej: landing pública): ahí sí mostramos el ejemplo completo
-      setWallet(MOCK_WALLET);
+      setWallet({
+        ...MOCK_WALLET,
+        exchangeRates: FALLBACK_RATES,
+      });
+
       setError(null);
       setLoading(false);
       return;
@@ -71,8 +250,94 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     fetchWallet();
   }, [authLoading, isAuthenticated, fetchWallet]);
 
+  const mockDeposit = useCallback(
+    (
+      currencyCode: CurrencyCode,
+      amount: number,
+    ) => {
+      setWallet((previousWallet) => ({
+        ...previousWallet,
+
+        balances: previousWallet.balances.map(
+          (balance) =>
+            balance.currency.code === currencyCode
+              ? {
+                  ...balance,
+                  amount: balance.amount + amount,
+                }
+              : balance,
+        ),
+
+        recentMovements: [
+          {
+            id: `local-carga-${Date.now()}`,
+            type: "carga",
+            description: "Carga de saldo",
+            status: "acreditado",
+            amount,
+            currency: currencyCode,
+            date: new Date().toISOString(),
+          },
+          ...previousWallet.recentMovements,
+        ],
+      }));
+    },
+    [],
+  );
+
+  const mockTransfer = useCallback(
+    ({
+      currencyCode,
+      amount,
+      recipientLabel,
+    }: {
+      currencyCode: CurrencyCode;
+      amount: number;
+      recipientLabel: string;
+    }) => {
+      setWallet((previousWallet) => ({
+        ...previousWallet,
+
+        balances: previousWallet.balances.map(
+          (balance) =>
+            balance.currency.code === currencyCode
+              ? {
+                  ...balance,
+                  amount: balance.amount - amount,
+                }
+              : balance,
+        ),
+
+        recentMovements: [
+          {
+            id: `local-envio-${Date.now()}`,
+            type: "envio",
+            description: `Envío a ${recipientLabel}`,
+            status: "completado",
+            amount: -amount,
+            currency: currencyCode,
+            date: new Date().toISOString(),
+          },
+          ...previousWallet.recentMovements,
+        ],
+      }));
+    },
+    [],
+  );
+
   return (
-    <WalletContext.Provider value={{ wallet, loading, error, refetch: fetchWallet }}>
+    <WalletContext.Provider
+      value={{
+        wallet,
+        loading,
+        error,
+        refetch: fetchWallet,
+        setPreferredCurrency,
+        deposit,
+        mockDeposit,
+        mockTransfer,
+      }}
+    >
       {children}
     </WalletContext.Provider>
   );

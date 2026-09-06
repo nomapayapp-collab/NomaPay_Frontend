@@ -222,6 +222,16 @@ export function IconBell(props: IconProps) {
   );
 }
 
+export function IconAlertTriangle(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  );
+}
+
 /* -------------------- Favorito (relleno, no stroke) -------------------- */
 
 export function IconStar(props: IconProps) {
@@ -368,3 +378,32 @@ export function IconMenu(props: IconProps) {
     </svg>
   );
 }
+/* -------------------- Tema / sesión -------------------- */
+
+export function IconContrast(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconLogout(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M9 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3" />
+      <path d="m16 17 5-5-5-5" />
+      <path d="M21 12H9" />
+    </svg>
+  );
+}
+
+export function IconChevronLeft(props: IconProps) {
+  return (
+    <svg {...base} strokeWidth={2} {...props}>
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
