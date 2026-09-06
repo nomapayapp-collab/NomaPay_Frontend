@@ -68,6 +68,7 @@ const EMPTY_AUTH_WALLET: Wallet = {
  * Estas cotizaciones serán compartidas por Dashboard,
  * Exchange y cualquier componente que utilice useWallet().
  */
+
 async function getCurrentExchangeRates(): Promise<
   Wallet["exchangeRates"]
 > {
@@ -84,6 +85,9 @@ async function getCurrentExchangeRates(): Promise<
 
     const data = await response.json();
 
+    // La API tiene base fija en USD: data.rates[X] siempre significa
+    // "1 USD = X unidades de esa moneda". Con estos dos valores alcanza
+    // para derivar las 6 combinaciones ARS/USD/BRL.
     const usdToArs = data.rates?.ARS;
     const usdToBrl = data.rates?.BRL;
 
@@ -96,25 +100,23 @@ async function getCurrentExchangeRates(): Promise<
       throw new Error("Cotizaciones inválidas");
     }
 
+    const arsToUsd = 1 / usdToArs;
+    const brlToUsd = 1 / usdToBrl;
     const brlToArs = usdToArs / usdToBrl;
+    const arsToBrl = usdToBrl / usdToArs;
 
     return [
-      {
-        from: "USD",
-        to: "ARS",
-        rate: usdToArs,
-      },
-      {
-        from: "BRL",
-        to: "ARS",
-        rate: brlToArs,
-      },
+      { from: "USD", to: "ARS", rate: usdToArs },
+      { from: "USD", to: "BRL", rate: usdToBrl },
+      { from: "BRL", to: "ARS", rate: brlToArs },
+      { from: "BRL", to: "USD", rate: brlToUsd },
+      { from: "ARS", to: "BRL", rate: arsToBrl },
+      { from: "ARS", to: "USD", rate: arsToUsd },
     ];
   } catch {
     return FALLBACK_RATES;
   }
 }
-
 export function WalletProvider({
   children,
 }: {

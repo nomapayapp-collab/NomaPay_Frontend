@@ -10,8 +10,9 @@ import { useWallet } from "../hooks/useWallet";
 import { formatCurrency } from "../utils/formatCurrency";
 import { MOCK_CONTACTS } from "../constants/mockContacts";
 import type { CurrencyCode } from "../types/wallet";
+import { CURRENCY_NAMES } from "../constants/currencies";
 
-type Recipient = { name: string; alias: string };
+type Recipient = { alias: string; name?: string };
 
 const STEP_LABELS = ["Destinatario", "Monto", "Confirmar"];
 const MESSAGE_MAX = 140;
@@ -39,8 +40,11 @@ export default function Transfer() {
   const [step, setStep] = useState(1);
   const [query, setQuery] = useState("");
   const [recipient, setRecipient] = useState<Recipient | null>(null);
+  const transferableBalances = wallet.balances.filter((b) => b.amount > 0);
   const [currencyCode, setCurrencyCode] = useState<CurrencyCode>(
-    wallet.balances.find((b) => b.isPrimary)?.currency.code ?? "ARS"
+    wallet.balances.find((b) => b.isPrimary && b.amount > 0)?.currency.code ??
+      transferableBalances[0]?.currency.code ??
+      "ARS"
   );
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
@@ -71,21 +75,18 @@ export default function Transfer() {
 
   function handleConfirmSend() {
     if (!recipient) return;
-    const known = MOCK_CONTACTS.some((c) => c.alias === recipient.alias);
     navigate("/comprobante", {
       state: {
         amount: numericAmount,
         currency: currencyCode,
-        recipientName: recipient.name,
-        recipientAlias: recipient.alias,
-        known,
+        aliasOrCbu: recipient.alias,
       },
     });
   }
 
   return (
     <div className="px-5 pt-8 pb-8 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto">
-      <Header title="Transferir dinero" subtitle="A cualquier usuario al instante"/>
+      <Header title="Transferir dinero" subtitle="A cualquier usuario al instante" />
 
       {step > 1 && (
         <button
@@ -124,18 +125,17 @@ export default function Transfer() {
                     done
                       ? "bg-violet-500 text-white"
                       : active
-                      ? "bg-violet-500/15 text-violet-300 border border-violet-500"
-                      : "bg-black/5 dark:bg-white/8 text-text-light-tertiary dark:text-text-dark-tertiary",
+                        ? "bg-violet-500/15 text-violet-300 border border-violet-500"
+                        : "bg-black/5 dark:bg-white/8 text-text-light-tertiary dark:text-text-dark-tertiary",
                   ].join(" ")}
                 >
                   {done ? <IconCheck className="w-3.5 h-3.5" /> : n}
                 </span>
                 <span
-                  className={`text-[13.5px] font-medium ${
-                    active || done
-                      ? "text-text-light-primary dark:text-text-dark-primary"
-                      : "text-text-light-tertiary dark:text-text-dark-tertiary"
-                  }`}
+                  className={`text-[13.5px] font-medium ${active || done
+                    ? "text-text-light-primary dark:text-text-dark-primary"
+                    : "text-text-light-tertiary dark:text-text-dark-tertiary"
+                    }`}
                 >
                   {label}
                 </span>
@@ -167,11 +167,15 @@ export default function Transfer() {
                     className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-bold text-white text-[13px]"
                     style={{ backgroundImage: "var(--gradient-swoosh)" }}
                   >
-                    {initials(recipient.name)}
+                    {recipient.name ? initials(recipient.name) : "?"}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-text-light-primary dark:text-text-dark-primary truncate">{recipient.name}</p>
-                    <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary truncate">{recipient.alias}</p>
+                    <p className="font-semibold text-text-light-primary dark:text-text-dark-primary truncate">
+                      {recipient.name ?? recipient.alias}
+                    </p>
+                    <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary truncate">
+                      {recipient.name ? recipient.alias : "Verificamos este alias o CBU al confirmar"}
+                    </p>
                   </div>
                   <Button type="button" variant="ghost" size="sm" onClick={() => setRecipient(null)}>
                     Cambiar
@@ -182,7 +186,7 @@ export default function Transfer() {
               {!recipient && query.trim().length > 0 && !exactMatch && (
                 <button
                   type="button"
-                  onClick={() => selectRecipient({ name: query.trim(), alias: query.trim() })}
+                  onClick={() => selectRecipient({ alias: query.trim() })}
                   className="rounded-card border border-dashed border-border-light dark:border-border-dark p-4 text-left hover:border-violet-500/40"
                 >
                   <p className="text-[13px] text-text-light-tertiary dark:text-text-dark-tertiary mb-1">Usar como destinatario</p>
@@ -194,7 +198,7 @@ export default function Transfer() {
                 <div>
                   <p className="card__title mb-3">Frecuentes</p>
                   {filteredContacts.length === 0 ? (
-                    <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                    <p className="text-[13.5px] text-magenta-500">
                       No encontramos contactos con ese nombre o alias.
                     </p>
                   ) : (
@@ -238,19 +242,26 @@ export default function Transfer() {
                 if (amountValid) setStep(3);
               }}
             >
-              <Select
-                label="Moneda"
-                value={currencyCode}
-                onChange={(v) => setCurrencyCode(v as CurrencyCode)}
-                options={wallet.balances.map((b) => ({
-                  value: b.currency.code,
-                  label: `${b.currency.code} · ${b.currency.name}`,
-                }))}
-              />
+              {transferableBalances.length === 0 ? (
+                <div className="alert-note alert-note--warning">
+                  <p className="alert-note__title">No tenés saldo disponible</p>
+                  <p className="alert-note__description">Todavía no tenés saldo en ninguna moneda para transferir.</p>
+                </div>
+              ) : (
+                <Select
+                  label="Moneda"
+                  value={currencyCode}
+                  onChange={(v) => setCurrencyCode(v as CurrencyCode)}
+                  options={transferableBalances.map((b) => ({
+                    value: b.currency.code,
+                    label: `${b.currency.code} · ${CURRENCY_NAMES[b.currency.code]}`,
+                  }))}
+                />
+              )}
 
               <div>
                 <p className="input__label">Monto</p>
-                <div className="rounded-card border border-dashed border-border-light dark:border-border-dark bg-surface-light-input dark:bg-surface-dark-elevated px-5 py-6 flex items-center gap-2">
+                <div className="rounded-card border border-dashed border-border-light dark:border-border-dark focus-within:border-violet-500 bg-surface-light-input dark:bg-surface-dark-elevated px-5 py-6 flex items-center gap-2">
                   <span className="text-[28px] font-bold text-text-light-tertiary dark:text-text-dark-tertiary">
                     {balance?.currency.symbol ?? ""}
                   </span>
@@ -261,13 +272,12 @@ export default function Transfer() {
                     onChange={(e) => setAmount(e.target.value.replace(/[^0-9,]/g, ""))}
                     placeholder="0,00"
                     autoFocus
-                    className="flex-1 min-w-0 bg-transparent text-[28px] font-bold text-text-light-primary dark:text-text-dark-primary placeholder:text-text-light-tertiary dark:placeholder:text-text-dark-tertiary outline-none"
+                    className="flex-1 min-w-0 border-0 bg-transparent text-[28px] font-bold text-text-light-primary dark:text-text-dark-primary placeholder:text-text-light-tertiary dark:placeholder:text-text-dark-tertiary outline-none ring-0 ring-offset-0 focus:ring-0 focus:ring-offset-0"
                   />
                 </div>
                 <p
-                  className={`text-[12.5px] mt-2 ${
-                    numericAmount > available ? "text-magenta-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"
-                  }`}
+                  className={`text-[12.5px] mt-2 ${numericAmount > available ? "text-magenta-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"
+                    }`}
                 >
                   Disponible: {formatCurrency(available, currencyCode)} en tu billetera
                 </p>
@@ -303,7 +313,7 @@ export default function Transfer() {
                   <div className="flex items-center justify-between px-4 py-3.5">
                     <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Destinatario</span>
                     <span className="font-semibold text-text-light-primary dark:text-text-dark-primary text-right truncate max-w-50">
-                      {recipient.name}
+                      {recipient.name ?? recipient.alias}
                     </span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3.5">
@@ -314,7 +324,7 @@ export default function Transfer() {
                   </div>
                   <div className="flex items-center justify-between px-4 py-3.5">
                     <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Comisión</span>
-                    <span className="font-semibold text-text-light-primary dark:text-text-dark-primary">Sin cargo</span>
+                    <span className="font-semibold text-text-light-primary dark:text-turquoise-500">Sin cargo</span>
                   </div>
                   <div className="flex items-center justify-between px-4 py-3.5">
                     <span className="text-[13.5px] font-semibold text-text-light-primary dark:text-text-dark-primary">
@@ -347,8 +357,7 @@ export default function Transfer() {
                 onCancel={() => setConfirmOpen(false)}
                 onConfirm={handleConfirmSend}
                 title="¿Confirmás el envío?"
-                description={`Vas a enviar ${formatCurrency(numericAmount, currencyCode)} a ${recipient.name}. Esta acción no se puede deshacer.`}
-                rows={[
+                description={`Vas a enviar ${formatCurrency(numericAmount, currencyCode)} a ${recipient.name}. Esta acción no se puede deshacer.`} rows={[
                   { label: "Alias", value: recipient.alias },
                   { label: "Comisión", value: "Sin cargo", accent: true },
                   { label: "Total a debitar", value: formatCurrency(numericAmount, currencyCode) },

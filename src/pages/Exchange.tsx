@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { CURRENCIES, CURRENCY_CODES } from "../constants/currencies";
 import { useExchangeForm } from "../hooks/useExchangeForm";
 import type { CurrencyCode } from "../types/wallet";
+import { ExchangeRatesList } from "../components/wallet/ExchangeRatesList";
 
 export default function Exchange() {
   const { user } = useAuth();
@@ -15,8 +16,6 @@ export default function Exchange() {
     amount,
     balances,
     exchangeRate,
-    usdToArs,
-    brlToArs,
     convertedAmount,
     rateError,
     numericAmount,
@@ -219,33 +218,7 @@ export default function Exchange() {
           </div>
 
           {/* Cotizaciones compartidas */}
-          <aside className="rounded-card border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-5">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-[#8b99d1]">
-                Cotizaciones de hoy
-              </p>
-
-              <span className="text-xs font-medium text-violet-500 dark:text-violet-300">Actualizadas</span>
-            </div>
-
-            {walletLoading ? (
-              <p className="py-4 text-sm text-gray-500 dark:text-[#a9afca]">Cargando cotizaciones...</p>
-            ) : usdToArs <= 0 || brlToArs <= 0 ? (
-              <p className="py-4 text-sm text-red-500">No pudimos cargar las cotizaciones</p>
-            ) : (
-              <ul className="divide-y divide-gray-300 dark:divide-[#343956]">
-                <li className="flex items-center justify-between gap-4 py-4 text-sm">
-                  <span className="text-gray-600 dark:text-[#d8dcf0]">Dólar estadounidense → Peso argentino</span>
-                  <strong className="text-right">1 USD = {formatMoney(usdToArs)} ARS</strong>
-                </li>
-
-                <li className="flex items-center justify-between gap-4 py-4 text-sm">
-                  <span className="text-gray-600 dark:text-[#d8dcf0]">Real brasileño → Peso argentino</span>
-                  <strong className="text-right">1 BRL = {formatMoney(brlToArs)} ARS</strong>
-                </li>
-              </ul>
-            )}
-          </aside>
+        <ExchangeRatesList/>
         </div>
       </section>
     </main>
