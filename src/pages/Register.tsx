@@ -95,7 +95,7 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
-    async function handleGoogleCredential(credentialResponse: CredentialResponse) {
+  async function handleGoogleCredential(credentialResponse: CredentialResponse) {
     if (!credentialResponse.credential) {
       setServerError("No pudimos registrarte con Google.");
       return;
@@ -183,36 +183,36 @@ export default function Register() {
     }
   }
 
-  const hasLength = password.length >= 8 ;
-const hasUppercase = /[A-Z]/.test(password);
-const hasLowercase = /[a-z]/.test(password);
-const hasNumber = /[0-9]/.test(password);
-const hasSymbol = /[^A-Za-z0-9]/.test(password);
+  const hasLength = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSymbol = /[^A-Za-z0-9]/.test(password);
 
-const strengthScore = [
-  hasLength,
-  hasUppercase,
-  hasLowercase,
-  hasNumber,
-  hasSymbol,
-].filter(Boolean).length;
+  const strengthScore = [
+    hasLength,
+    hasUppercase,
+    hasLowercase,
+    hasNumber,
+    hasSymbol,
+  ].filter(Boolean).length;
 
-const strengthLabel =
-  strengthScore <= 2
-    ? "Débil"
-    : strengthScore <= 4
-      ? "Segura"
-      : "Muy segura";
+  const strengthLabel =
+    strengthScore <= 2
+      ? "Débil"
+      : strengthScore <= 4
+        ? "Segura"
+        : "Muy segura";
 
-const strengthColor =
-  strengthScore <= 2
-    ? "bg-magenta-500"
-    : "bg-turquoise-500";
+  const strengthColor =
+    strengthScore <= 2
+      ? "bg-magenta-500"
+      : "bg-turquoise-500";
 
-const strengthTextColor =
-  strengthScore <= 2
-    ? "text-magenta-500"
-    : "text-turquoise-500";
+  const strengthTextColor =
+    strengthScore <= 2
+      ? "text-magenta-500"
+      : "text-turquoise-500";
   return (
     <div className="min-h-screen lg:flex bg-surface-dark lg:bg-surface-light">
       <AuthBrandPanel />
@@ -336,7 +336,7 @@ const strengthTextColor =
               Continuar
             </Button>
           </form>
-<div className="flex items-center gap-3 my-6">
+          <div className="flex items-center gap-3 my-6">
             <div className="flex-1 h-px bg-border-dark lg:bg-border-light" />
             <span className="text-[11px] text-text-dark-tertiary lg:text-text-light-tertiary">O</span>
             <div className="flex-1 h-px bg-border-dark lg:bg-border-light" />
@@ -353,14 +353,14 @@ const strengthTextColor =
               text="signup_with"
             />
           </div>
-          <div className="hidden lg:flex lg:justify-start">
+          <div className="hidden lg:flex lg:justify-center">
             <GoogleLogin
               onSuccess={handleGoogleCredential}
               onError={() => setServerError("No pudimos registrarte con Google.")}
               theme="outline"
               shape="pill"
               size="large"
-              width="320"
+              width="400"
               text="signup_with"
             />
           </div>
