@@ -8,7 +8,7 @@ import type {
   UpdateProfilePayload,
   ChangePasswordPayload,
 } from "../types/auth";
-import type { WalletSummary } from "../types/wallet";
+import type { CurrencyCode, DepositResult, WalletSummary } from "../types/wallet";
 
 export async function register(payload: RegisterPayload): Promise<RegisterResponse> {
   const { data } = await api.post<RegisterResponse>("/auth/register", payload);
@@ -62,8 +62,16 @@ export async function getMyWallet(): Promise<WalletSummary> {
   return data;
 }
 
-export async function updatePreferredCurrency(preferredCurrency: string) {
-  const { data } = await api.patch("/wallets/me/preferred-currency", { preferredCurrency });
+export async function updatePreferredCurrency(preferredCurrency: CurrencyCode): Promise<WalletSummary> {
+  const { data } = await api.patch<WalletSummary>("/wallets/me/preferred-currency", { preferredCurrency });
+  return data;
+}
+
+// POST /wallets/deposit real: el back valida el límite máximo por moneda
+// (ver DEPOSIT_LIMITS en deposit.service.ts) y devuelve la transacción
+// creada + el wallet actualizado, todo en una sola respuesta.
+export async function depositFunds(currencyCode: CurrencyCode, amount: number): Promise<DepositResult> {
+  const { data } = await api.post<DepositResult>("/wallets/deposit", { currencyCode, amount });
   return data;
 }
 
