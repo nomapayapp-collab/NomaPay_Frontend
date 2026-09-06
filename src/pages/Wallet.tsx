@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Header } from "../components/layout/Header";
 import { Button } from "../components/ui/Button";
-import { Switch } from "../components/ui/Switch";
 import { TopUpModal } from "../components/wallet/TopUpModal";
 import { BalanceCard } from "../components/wallet/BalanceCard";
 import { useWallet } from "../hooks/useWallet";
@@ -15,7 +14,7 @@ import {
   IconStar,
   IconAlertTriangle,
 } from "../assets/icons/Icons";
-import type { CurrencyBalance, CurrencyCode } from "../types/wallet";
+import type { CurrencyCode } from "../types/wallet";
 import { CURRENCY_NAMES } from "../constants/currencies";
 
 export default function Wallet() {
@@ -25,9 +24,6 @@ export default function Wallet() {
 
   const [copied, setCopied] = useState(false);
   const [topUpOpen, setTopUpOpen] = useState(false);
-
-  // "activar/desactivar moneda" todavía no tiene endpoint en el back 
-  const [activeOverrides, setActiveOverrides] = useState<Partial<Record<CurrencyCode, boolean>>>({});
 
   const [savingFavorite, setSavingFavorite] = useState<CurrencyCode | null>(null);
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
@@ -67,53 +63,6 @@ export default function Wallet() {
     } finally {
       setSavingFavorite(null);
     }
-  }
-
-  function isCurrencyActive(balance: CurrencyBalance) {
-    return activeOverrides[balance.currency.code] ?? true;
-  }
-
-  function handleToggleCurrency(balance: CurrencyBalance) {
-    const active = isCurrencyActive(balance);
-    if (active && balance.amount > 0) return; // no se puede desactivar una moneda con saldo
-    setActiveOverrides((prev) => ({ ...prev, [balance.currency.code]: !active }));
-  }
-
-  
-
-  function renderActiveCurrenciesList() {
-    return (
-      <div>
-        <p className="card__title mb-3">Monedas activas</p>
-        <div className="flex flex-wrap gap-2">
-          {wallet.balances.map((balance) => {
-            const active = isCurrencyActive(balance);
-            const disableToggle = active && balance.amount > 0;
-            return (
-              <div
-                key={balance.currency.code}
-                className="w-full sm:w-75 lg:flex-1 lg:min-w-0 rounded-card border border-border-light dark:border-border-dark p-4 flex items-center gap-3"
-              >
-                <span className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-black/5 dark:bg-white/8 font-bold text-[11px] text-text-light-primary dark:text-text-dark-primary">
-                  {balance.currency.code}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
-                     {formatCurrency(balance.amount, balance.currency.code)}
-                  </p>
-                </div>
-                <Switch
-                  checked={active}
-                  disabled={disableToggle}
-                  onChange={() => handleToggleCurrency(balance)}
-                  label={`${CURRENCY_NAMES[balance.currency.code]} ${active ? "activada" : "desactivada"}`}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
   }
 
   function renderFavoriteCurrency() {
@@ -209,7 +158,6 @@ export default function Wallet() {
           {/* ---------- Mobile ---------- */}
           <div className="lg:hidden flex flex-col gap-5">
             <BalanceCard />
-            {renderActiveCurrenciesList()}
             {renderWarningNote()}
             {renderCargarSaldoButton()}
             {renderRecibirDinero()}
@@ -220,7 +168,6 @@ export default function Wallet() {
           <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
             <div className="lg:col-span-2 flex flex-col gap-6">
               <BalanceCard />
-              {renderActiveCurrenciesList()}
               <div className="rounded-card border border-border-light dark:border-border-dark p-6">
                 <p className="card__title mb-3">Movimientos en {selected.currency.code}</p>
                 {movements.length === 0 ? (
