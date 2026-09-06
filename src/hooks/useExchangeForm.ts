@@ -17,7 +17,7 @@ const formatMoney = (value: number) =>
 const formatRate = (value: number) =>
   new Intl.NumberFormat("es-AR", {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 6,
+    maximumFractionDigits: 2,
   }).format(value);
 
 /**

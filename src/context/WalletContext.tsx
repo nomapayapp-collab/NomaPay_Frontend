@@ -83,32 +83,58 @@ async function getCurrentExchangeRates(): Promise<
     }
 
     const data = await response.json();
+const usdToArs = data.rates?.ARS;
+const usdToBrl = data.rates?.BRL;
 
-    const usdToArs = data.rates?.ARS;
-    const usdToBrl = data.rates?.BRL;
+if (
+  typeof usdToArs !== "number" ||
+  typeof usdToBrl !== "number" ||
+  usdToArs <= 0 ||
+  usdToBrl <= 0
+) {
+  throw new Error("Cotizaciones inválidas");
+}
 
-    if (
-      typeof usdToArs !== "number" ||
-      typeof usdToBrl !== "number" ||
-      usdToArs <= 0 ||
-      usdToBrl <= 0
-    ) {
-      throw new Error("Cotizaciones inválidas");
-    }
+// Tasas inversas
+const arsToUsd = 1 / usdToArs;
+const brlToUsd = 1 / usdToBrl;
 
-    const brlToArs = usdToArs / usdToBrl;
+// Tasas cruzadas
+const arsToBrl = usdToBrl / usdToArs;
+const brlToArs = usdToArs / usdToBrl;
 
-    return [
-      {
-        from: "USD",
-        to: "ARS",
-        rate: usdToArs,
-      },
-      {
-        from: "BRL",
-        to: "ARS",
-        rate: brlToArs,
-      },
+return [
+  {
+    from: "USD",
+    to: "ARS",
+    rate: usdToArs,
+  },
+  {
+    from: "ARS",
+    to: "USD",
+    rate: arsToUsd,
+  },
+  {
+    from: "USD",
+    to: "BRL",
+    rate: usdToBrl,
+  },
+  {
+    from: "BRL",
+    to: "USD",
+    rate: brlToUsd,
+  },
+  {
+    from: "ARS",
+    to: "BRL",
+    rate: arsToBrl,
+  },
+  {
+    from: "BRL",
+    to: "ARS",
+    rate: brlToArs,
+  },
+
     ];
   } catch {
     return FALLBACK_RATES;
