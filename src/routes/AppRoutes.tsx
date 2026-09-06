@@ -12,6 +12,8 @@ import ComingSoon from "../pages/ComingSoon";
 import Wallet from "../pages/Wallet";
 import Transfer from "../pages/Transfer";
 import Receipt from "../pages/Receipt";
+import RecoverPassword from "../pages/password/RecoverPassword";
+import ResetPassword from "../pages/password/ResetPassword";
 
 export default function AppRoutes() {
   return (
@@ -19,6 +21,8 @@ export default function AppRoutes() {
       <Route path="/" element={<Root />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/recover-password" element={<RecoverPassword />} />
++      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/profile" element={
         <ProtectedRoute>
           <Config />

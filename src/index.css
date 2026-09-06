@@ -211,6 +211,9 @@
   .input--error {
     @apply border-magenta-500;
   }
+  .input:focus-visible {
+    @apply outline-none ring-0 ring-offset-0 border-violet-500;
+  }
   .input__label {
     @apply block text-[12.5px] font-medium text-text-dark-secondary mb-1.5;
   }
@@ -241,6 +244,8 @@
   .alert-note__description {
     @apply text-[13px] text-text-dark-secondary;
   }
+  .alert-note--success { @apply border-turquoise-500 bg-turquoise-100/10; }
+  .alert-note--success .alert-note__title { @apply text-turquoise-700; }
   body.light .alert-note__description {
     @apply text-text-light-secondary;
   }

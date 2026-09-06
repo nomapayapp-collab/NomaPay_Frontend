@@ -67,3 +67,26 @@ export async function updatePreferredCurrency(preferredCurrency: string) {
   return data;
 }
 
+// ---- Recuperar / restablecer contraseña ----
+// MOCK: todavía no existen /auth/forgot-password ni /auth/reset-password en el
+// backend.
+
+export async function forgotPassword(email: string): Promise<void> {
+  // TODO: reemplazar por la llamada real cuando el backend la tenga:
+  // await api.post("/auth/forgot-password", { email });
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  console.log(`[MOCK] Se "enviaría" un email de recuperación a ${email}`);
+}
+
+export async function resetPassword(token: string, newPassword: string): Promise<void> {
+  // TODO: reemplazar por la llamada real cuando el backend la tenga:
+  // await api.post("/auth/reset-password", { token, newPassword });
+  await new Promise((resolve) => setTimeout(resolve, 700));
+
+  if (!token) {
+    throw new Error("Token inválido o vencido.");
+  }
+
+  console.log(`[MOCK] Se "cambiaría" la contraseña con el token ${token}`);
+  console.log(`[MOCK] Se "cambiaría" la contraseña (${newPassword.length} caracteres) con el token ${token}`);
+}
