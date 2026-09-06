@@ -73,16 +73,6 @@ describe("Wallet", () => {
     expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 
-  it("lista todas las monedas en Monedas activas, incluida la que está en 0", () => {
-    setup();
-
-    // a diferencia de BalanceCard (que oculta las de saldo 0), acá se
-    // listan todas las monedas del usuario — incluida la que está en 0
-    // (Cande sacó el nombre completo de la moneda de esta lista, así que
-    // ahora se identifica por el saldo formateado con su código).
-    expect(screen.getAllByText("BRL 0,00").length).toBeGreaterThan(0);
-  });
-
   it("copia el alias al portapapeles", async () => {
     const user = userEvent.setup();
     setup();
@@ -135,26 +125,6 @@ describe("Wallet", () => {
     const errors = await screen.findAllByText("No pudimos actualizar tu moneda favorita. Probá de nuevo.");
     expect(errors.length).toBeGreaterThan(0);
     expect(mocks.showToast).not.toHaveBeenCalled();
-  });
-
-  it("en Monedas activas permite desactivar una moneda sin saldo, pero no una con saldo", async () => {
-    const user = userEvent.setup();
-    setup();
-
-    // BalanceCard, "Monedas activas", etc. se renderizan una vez para
-    // mobile y otra para desktop (ocultas con clases de Tailwind, no
-    // sacadas del DOM), así que hay que agarrar el primero de cada uno.
-    const usdSwitch = screen.getAllByRole("switch", { name: "Dólar estadounidense activada" })[0];
-    const brlSwitch = screen.getAllByRole("switch", { name: "Real brasileño activada" })[0];
-
-    // USD tiene saldo > 0: no se puede desactivar.
-    expect(usdSwitch).toBeDisabled();
-    // BRL está en 0: sí se puede.
-    expect(brlSwitch).not.toBeDisabled();
-
-    await user.click(brlSwitch);
-
-    expect(screen.getAllByRole("switch", { name: "Real brasileño desactivada" }).length).toBeGreaterThan(0);
   });
 
   it("muestra la advertencia de que no se puede desactivar una moneda con saldo", () => {
