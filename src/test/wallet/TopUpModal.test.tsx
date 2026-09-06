@@ -11,7 +11,7 @@ vi.mock("../../hooks/useWallet", () => ({
   useWallet: mocks.useWallet,
 }));
 
-vi.mock("../../../hooks/useToast", () => ({
+vi.mock("../../hooks/useToast", () => ({
   useToast: () => ({ showToast: vi.fn() }),
 }));
 

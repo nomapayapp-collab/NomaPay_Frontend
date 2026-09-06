@@ -63,7 +63,7 @@ describe("Summary", () => {
     });
   });
 
-  it("muestra el título y el subtítulo", () => {
+  it("muestra el título y el período semanal", () => {
     render(<Summary />);
 
     expect(
@@ -71,7 +71,7 @@ describe("Summary", () => {
     ).toBeInTheDocument();
 
     expect(
-      screen.getByText("Cómo se movió tu plata esta semana"),
+      screen.getByText("Semana del 31 ago al 6 sep"),
     ).toBeInTheDocument();
   });
 
@@ -79,26 +79,44 @@ describe("Summary", () => {
     render(<Summary />);
 
     expect(screen.getByText("Balance total")).toBeInTheDocument();
-    expect(screen.getByText(/ARS\s*1\.982,30/)).toBeInTheDocument();
+    expect(screen.getByText("ARS 1.982,30")).toBeInTheDocument();
   });
 
-  it("muestra el gráfico, el desglose y el botón de envío", () => {
+  it("muestra el gráfico, el desglose y el aviso semanal", () => {
     render(<Summary />);
 
     expect(
       screen.getByText("Entradas, salidas y cambios por día"),
     ).toBeInTheDocument();
 
-    expect(screen.getByText("Desglose por tipo")).toBeInTheDocument();
-
-    expect(screen.getAllByText("Entradas").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Salidas").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Cambios").length).toBeGreaterThan(0);
+    expect(
+      screen.getByText("Desglose por tipo"),
+    ).toBeInTheDocument();
 
     expect(
-      screen.getByRole("button", {
-        name: "Enviarme este resumen",
-      }),
+      screen.getByText("Comparado con la semana pasada"),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getAllByText("Entradas").length,
+    ).toBeGreaterThan(0);
+
+    expect(
+      screen.getAllByText("Salidas").length,
+    ).toBeGreaterThan(0);
+
+    expect(
+      screen.getAllByText("Cambios").length,
+    ).toBeGreaterThan(0);
+
+    expect(
+      screen.getByText("Resumen semanal por correo"),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(
+        /Recibirás automáticamente tu resumen todos los domingos/,
+      ),
     ).toBeInTheDocument();
   });
 
