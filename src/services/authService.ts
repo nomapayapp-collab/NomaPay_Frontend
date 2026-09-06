@@ -57,6 +57,11 @@ export async function changePassword(payload: ChangePasswordPayload): Promise<vo
   await api.patch("/users/me/password", payload);
 }
 
+export async function updateTheme(theme: "light" | "dark"): Promise<AuthUser> {
+  const { data } = await api.patch<AuthUser>("/users/me/theme", { theme });
+  return data;
+}
+
 export async function getMyWallet(): Promise<WalletSummary> {
   const { data } = await api.get<WalletSummary>("/wallets/me");
   return data;
