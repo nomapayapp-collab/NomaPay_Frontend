@@ -102,3 +102,83 @@ export const EMAIL_TEMPLATES: Record<string, { subject: string; text: string; ht
   // transaction_sent, transaction_received, transaction_deposit, transaction_exchange, weekly_summary:
   // los vas sumando acá con sus {{VARIABLES}} a medida que termines cada uno en Stripo.
 }
+export const TRANSACTION_SENT: Record<string, { subject: string; text: string; html: string }> = {
+  transaction_sent: {
+    subject: "Recuperá tu contraseña — NomaPay",
+    text: "Para restablecer tu contraseña, entrá a: {{RESET_LINK}}",
+    html: `<!DOCTYPE html>
+    <html lang="es">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comprobante — NomaPay</title>
+    </head>
+    <body style="margin:0; padding:0; background-color:#0B0F24; font-family: Arial, Helvetica, sans-serif;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0B0F24; padding:40px 16px;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="width:480px; max-width:100%;">
+
+              <!-- Wordmark -->
+              <tr>
+                <td align="center" style="padding-bottom:28px;">
+                  <span style="font-size:22px; font-weight:700; letter-spacing:0.02em;">
+                    <span style="color:#FFFFFF;">NOMA</span><span style="color:#FF2E88;">PAY</span>
+                  </span>
+                </td>
+              </tr>
+
+              <!-- Card -->
+              <tr>
+                <td style="background-color:#171C3D; border-radius:16px; padding:36px 32px;">
+
+                  <!-- Círculo de estado -->
+                  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 20px auto;">
+                    <tr>
+                      <td align="center" valign="middle" width="64" height="64" bgcolor="{{ESTADO_COLOR}}" style="border-radius:32px; font-size:30px; color:#FFFFFF; line-height:64px; text-align:center;">
+                        {{ESTADO_ICONO}}
+                      </td>
+                    </tr>
+                  </table>
+
+                  <p style="margin:0 0 4px 0; font-size:19px; font-weight:700; color:#FFFFFF; text-align:center;">
+                    {{ESTADO_TEXTO}}
+                  </p>
+
+                  <p style="margin:0 0 24px 0; font-size:34px; font-weight:700; color:#FFFFFF; text-align:center;">
+                    {{MONTO}} {{MONEDA}}
+                  </p>
+
+                  <p style="margin:0 0 24px 0; font-size:13px; color:#9BA3C7; text-align:center;">
+                    Operación N° {{NUMERO_OPERACION}}
+                  </p>
+
+                  <!-- Detalle (lo arma el back según el estado) -->
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F1330; border-radius:12px;">
+                    <tr>
+                      <td style="padding:18px 20px; font-size:14px; line-height:1.9; color:#C3C7DE;">
+                        {{DETALLE_HTML}}
+                      </td>
+                    </tr>
+                  </table>
+
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td align="center" style="padding-top:28px;">
+                  <p style="margin:0; font-size:11.5px; line-height:1.6; color:#9BA3C7;">
+                    NomaPay — Cobrá global. Viví local.
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>`
+  }
+}
