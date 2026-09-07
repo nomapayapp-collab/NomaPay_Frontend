@@ -21,7 +21,7 @@ export function Header({ greeting, title, subtitle, actions }: HeaderProps) {
   const { user } = useAuth();
 
   return (
-    <header className="flex items-start justify-between mb-6">
+    <header className="flex items-start justify-between pb-5 mb-6 border-b border-border-light dark:border-white/10 -mx-5 px-5 lg:-mx-10 lg:px-10">
       <div>
         {greeting && <p className="text-[15px] text-text-light-secondary dark:text-text-dark-secondary mb-0.5">{greeting}</p>}
         <h1 className="title">{title}</h1>
@@ -34,7 +34,7 @@ export function Header({ greeting, title, subtitle, actions }: HeaderProps) {
           type="button"
           onClick={() => navigate("/profile")}
           aria-label="Mi perfil"
-          className="flex items-center gap-2 rounded-control py-1 pl-1 pr-1 lg:pr-3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="flex items-center gap-2 rounded-control py-2 pl-2 pr-5  lg:pr-3 border border-border-light dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
         >
           <Avatar user={user} size="sm" />
           <span className="hidden lg:inline text-[13.5px] font-medium text-text-light-primary dark:text-text-dark-primary truncate max-w-35">

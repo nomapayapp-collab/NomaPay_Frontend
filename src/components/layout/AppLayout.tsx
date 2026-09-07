@@ -8,7 +8,7 @@ export function AppLayout({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-surface-light dark:bg-surface-dark">
+    <div className="flex min-h-screen bg-surface-light dark:bg-surface-dark-base">
       <Sidebar />
 
       <TopTabBar />

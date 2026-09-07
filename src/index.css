@@ -64,7 +64,7 @@
   --color-text-light-secondary: #4A5070;
   --color-text-light-tertiary: #616A8E;
 
-  --radius-control: 12px;
+  --radius-control: 20px;
   --radius-card: 16px;
 
   --shadow-elevation-sm: 0 2px 8px rgba(15, 19, 48, 0.10);
@@ -99,7 +99,7 @@
    ========================================================================== */
 @layer base {
   body {
-    @apply bg-surface-dark text-text-dark-primary antialiased font-sans;
+    @apply bg-surface-dark-base text-text-dark-primary antialiased font-sans;
   }
   body.light {
     @apply bg-surface-light-base text-text-light-primary;
@@ -172,8 +172,11 @@
     @apply w-14 h-14;
   }
 
+  /* bg-surface-dark-elevated (no surface-dark, que ahora es el tono del
+     sidebar): body < sidebar < card en oscuridad, así las cards se
+     despegan del fondo en vez de quedar todo plano al mismo color. */
   .card {
-    @apply rounded-card p-6 bg-surface-dark border border-border-dark;
+    @apply rounded-card p-6 bg-surface-dark-elevated border border-border-dark;
   }
   body.light .card {
     @apply bg-surface-light border-border-light shadow-elevation-sm;
@@ -183,7 +186,7 @@
   }
   .card--aura {
     background-image: var(--gradient-aura);
-    @apply bg-surface-dark;
+    @apply bg-surface-dark-elevated;
   }
   .card__title {
     @apply text-[11px] font-semibold tracking-[0.14em] uppercase text-text-dark-tertiary;

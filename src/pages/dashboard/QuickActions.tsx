@@ -17,7 +17,7 @@ const NAV_ACTIONS: NavAction[] = [
 
 const ACTION_BTN_CLASS =
   "flex flex-col items-center gap-2 text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary " +
-  "lg:flex-row lg:gap-3 lg:px-5 lg:py-4 lg:rounded-card lg:border lg:border-border-light dark:lg:border-border-dark " +
+  "lg:flex-row lg:gap-3 lg:px-5 lg:py-4 lg:rounded-card lg:border lg:border-border-light dark:lg:border-white/10 " +
   "lg:bg-surface-light-input dark:lg:bg-surface-dark-elevated lg:hover:border-violet-500/40 lg:flex-1";
 
 export function QuickActions() {
