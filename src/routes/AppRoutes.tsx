@@ -9,6 +9,7 @@ import Config from "../pages/config/Config";
 import NotFound from "../pages/NotFound";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import ComingSoon from "../pages/ComingSoon";
+import History from "../pages/History";
 import Wallet from "../pages/Wallet";
 import Transfer from "../pages/Transfer";
 import Receipt from "../pages/Receipt";
@@ -22,7 +23,7 @@ export default function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/recover-password" element={<RecoverPassword />} />
-+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/profile" element={
         <ProtectedRoute>
           <Config />
@@ -68,7 +69,7 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <AppLayout>
-              <ComingSoon title="Historial" />
+              <History />
             </AppLayout>
           </ProtectedRoute>
         }

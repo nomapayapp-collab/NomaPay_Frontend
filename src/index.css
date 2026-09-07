@@ -235,6 +235,7 @@
   .badge--warning { @apply bg-amber-100 text-amber-700; }
   .badge--error   { @apply bg-magenta-100 text-magenta-700; }
   .badge--info    { @apply bg-violet-100 text-violet-700; }
+  .badge--neutral { @apply bg-black/8 dark:bg-white/10 text-text-light-secondary dark:text-text-dark-secondary; }
 
   .alert-note {
     @apply rounded-control border p-4;
