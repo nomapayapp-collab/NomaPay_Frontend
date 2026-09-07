@@ -149,17 +149,6 @@ async function waitForPrimaryCurrencySelected() {
   });
 }
 
-async function openConfirmationModal() {
-  await userEvent.click(
-    screen.getByRole("button", {
-      name: /continuar/i,
-    }),
-  );
-
-  return screen.findByRole("button", {
-    name: /sí, convertir/i,
-  });
-}
 
 describe("Exchange", () => {
   beforeEach(() => {
