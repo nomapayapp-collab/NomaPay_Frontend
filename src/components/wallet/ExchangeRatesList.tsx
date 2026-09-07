@@ -2,7 +2,9 @@ import { Card } from "../../components/ui/Card";
 import { useWallet } from "../../hooks/useWallet";
 
 /**
- * "Cotizaciones de hoy". Usa las tasas mockeadas de WalletContext.
+ * "Cotizaciones de hoy". Usa las tasas en vivo de WalletContext
+ * (getCurrentExchangeRates en services/exchangeRates.ts) — solo cae a
+ * FALLBACK_RATES si la API externa de cotizaciones falla.
  */
 export function ExchangeRatesList() {
   const { wallet } = useWallet();

@@ -19,6 +19,7 @@ const STATUS_BADGE: Record<MovementStatus, string> = {
   completado: "badge--success",
   rechazada: "badge--error",
   pendiente: "badge--warning",
+  cancelada: "badge--neutral",
 };
 
 const STATUS_LABEL: Record<MovementStatus, string> = {
@@ -26,6 +27,7 @@ const STATUS_LABEL: Record<MovementStatus, string> = {
   completado: "Completado",
   rechazada: "Rechazada",
   pendiente: "Pendiente",
+  cancelada: "Cancelada",
 };
 
 type Filter = "todos" | "cobros" | "cambios";
@@ -43,8 +45,8 @@ function formatDate(iso: string) {
 /**
  * "Movimientos recientes". En mobile es la lista compacta de siempre; en
  * desktop (lg+) se despliega como tabla con fecha/estado y suma los filtros
- * Todos/Cobros/Cambios del mockup — todo sobre datos mockeados (WalletContext),
- * no hay endpoint de movimientos todavía.
+ * Todos/Cobros/Cambios del mockup — wallet.recentMovements sale de GET
+ * /history real (mapeado en WalletContext), no hay datos inventados acá.
  */
 export function RecentMovements() {
   const { wallet } = useWallet();
@@ -109,7 +111,9 @@ export function RecentMovements() {
           <ul className="divide-y divide-border-light dark:divide-border-dark">
             {movements.map(({ id, type, description, detail, status, amount, currency, date }) => {
               const Icon = TYPE_ICON[type];
-              const rejected = status === "rechazada";
+              // ni rechazada ni cancelada movieron plata de verdad — mismo
+              // tratamiento visual apagado para las dos.
+              const voided = status === "rechazada" || status === "cancelada";
               return (
                 <li
                   key={id}
@@ -118,7 +122,7 @@ export function RecentMovements() {
                   <div className="flex items-center gap-3 min-w-0">
                     <span
                       className={`hidden lg:flex w-9 h-9 rounded-full items-center justify-center shrink-0 ${
-                        rejected ? "bg-magenta-500/15 text-magenta-500" : "bg-black/5 dark:bg-white/8 text-text-light-secondary dark:text-text-dark-secondary"
+                        voided ? "bg-magenta-500/15 text-magenta-500" : "bg-black/5 dark:bg-white/8 text-text-light-secondary dark:text-text-dark-secondary"
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -137,10 +141,10 @@ export function RecentMovements() {
 
                   <span
                     className={`tabular font-medium text-right ${
-                      rejected ? "text-text-light-tertiary dark:text-text-dark-tertiary" : amount < 0 ? "text-text-light-secondary dark:text-text-dark-secondary" : "text-turquoise-500"
+                      voided ? "text-text-light-tertiary dark:text-text-dark-tertiary" : amount < 0 ? "text-text-light-secondary dark:text-text-dark-secondary" : "text-turquoise-500"
                     }`}
                   >
-                    {rejected ? "" : amount < 0 ? "-" : "+"}
+                    {voided ? "" : amount < 0 ? "-" : "+"}
                     {formatCurrency(Math.abs(amount), currency)}
                   </span>
                 </li>

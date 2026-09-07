@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../components/layout/Header";
 import { Input } from "../components/ui/Input";
@@ -12,7 +12,8 @@ import {
 } from "../assets/icons/Icons";
 import { useWallet } from "../hooks/useWallet";
 import { formatCurrency } from "../utils/formatCurrency";
-import { MOCK_CONTACTS } from "../constants/mockContacts";
+import { getFrequentContacts } from "../services/contactService";
+import type { FrequentContact } from "../types/contact";
 import { CURRENCY_NAMES } from "../constants/currencies";
 import type { CurrencyCode } from "../types/wallet";
 
@@ -39,6 +40,19 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+// Un contacto frecuente sin alias ni CBU no se puede usar como destinatario
+// (no hay con qué identificarlo en /transfers) — no debería pasar, pero
+// por las dudas lo filtramos en vez de romper.
+function contactIdentifier(contact: FrequentContact): string | null {
+  return contact.alias ?? contact.cbu ?? null;
+}
+
+function contactToRecipient(contact: FrequentContact): Recipient | null {
+  const alias = contactIdentifier(contact);
+  if (!alias) return null;
+  return { alias, name: `${contact.name} ${contact.surname}`.trim() };
+}
+
 export default function Transfer() {
   const navigate = useNavigate();
   const { wallet } = useWallet();
@@ -51,6 +65,34 @@ export default function Transfer() {
   const [message, setMessage] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sending, setSending] = useState(false);
+
+  // Contactos frecuentes reales (GET /contacts) — los 3 destinatarios con
+  // más transferencias completadas. Si falla, no rompemos la pantalla:
+  // el usuario igual puede escribir un alias/CBU a mano.
+  const [contacts, setContacts] = useState<FrequentContact[]>([]);
+  const [contactsLoading, setContactsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    getFrequentContacts()
+      .then((data) => {
+        if (!cancelled) setContacts(data);
+      })
+      .catch(() => {
+        if (!cancelled) setContacts([]);
+      })
+      .finally(() => {
+        if (!cancelled) setContactsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const usableContacts: (Recipient & { id: number })[] = contacts.flatMap((contact) => {
+    const recipient = contactToRecipient(contact);
+    return recipient ? [{ ...recipient, id: contact.id }] : [];
+  });
 
   const transferableBalances = wallet.balances.filter(
     (balance) => balance.amount > 0,
@@ -78,9 +120,9 @@ export default function Transfer() {
   const amountValid =
     numericAmount > 0 && numericAmount <= available;
 
-  const filteredContacts = MOCK_CONTACTS.filter(
+  const filteredContacts = usableContacts.filter(
     (contact) =>
-      contact.name
+      (contact.name ?? "")
         .toLowerCase()
         .includes(query.toLowerCase()) ||
       contact.alias
@@ -88,7 +130,7 @@ export default function Transfer() {
         .includes(query.toLowerCase()),
   );
 
-  const exactMatch = MOCK_CONTACTS.some(
+  const exactMatch = usableContacts.some(
     (contact) =>
       contact.alias.toLowerCase() ===
       query.trim().toLowerCase(),
@@ -311,10 +353,15 @@ export default function Transfer() {
                     Frecuentes
                   </p>
 
-                  {filteredContacts.length === 0 ? (
+                  {contactsLoading ? (
+                    <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                      Buscando tus contactos frecuentes...
+                    </p>
+                  ) : filteredContacts.length === 0 ? (
                     <p className="text-[13.5px] text-magenta-500">
-                      No encontramos contactos con ese
-                      nombre o alias.
+                      {query.trim().length > 0
+                        ? "No encontramos contactos con ese nombre o alias."
+                        : "Todavía no tenés contactos frecuentes."}
                     </p>
                   ) : (
                     <ul className="flex flex-col gap-1">
@@ -334,12 +381,12 @@ export default function Transfer() {
                                   "var(--gradient-swoosh)",
                               }}
                             >
-                              {initials(contact.name)}
+                              {initials(contact.name ?? contact.alias)}
                             </span>
 
                             <div className="min-w-0 flex-1">
                               <p className="truncate font-medium text-text-light-primary dark:text-text-dark-primary">
-                                {contact.name}
+                                {contact.name ?? contact.alias}
                               </p>
 
                               <p className="truncate text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
@@ -627,41 +674,51 @@ export default function Transfer() {
               Frecuentes
             </p>
 
-            <ul className="flex flex-col gap-1">
-              {MOCK_CONTACTS.map((contact) => (
-                <li key={contact.id}>
-                  <button
-                    type="button"
-                    disabled={sending}
-                    onClick={() => {
-                      selectRecipient(contact);
-                      setStep(1);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-control px-2 py-2 text-left hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/5"
-                  >
-                    <span
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
-                      style={{
-                        backgroundImage:
-                          "var(--gradient-swoosh)",
+            {contactsLoading ? (
+              <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                Buscando tus contactos frecuentes...
+              </p>
+            ) : usableContacts.length === 0 ? (
+              <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                Todavía no tenés contactos frecuentes.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-1">
+                {usableContacts.map((contact) => (
+                  <li key={contact.id}>
+                    <button
+                      type="button"
+                      disabled={sending}
+                      onClick={() => {
+                        selectRecipient(contact);
+                        setStep(1);
                       }}
+                      className="flex w-full items-center gap-3 rounded-control px-2 py-2 text-left hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/5"
                     >
-                      {initials(contact.name)}
-                    </span>
+                      <span
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
+                        style={{
+                          backgroundImage:
+                            "var(--gradient-swoosh)",
+                        }}
+                      >
+                        {initials(contact.name ?? contact.alias)}
+                      </span>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13.5px] font-medium text-text-light-primary dark:text-text-dark-primary">
-                        {contact.name}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13.5px] font-medium text-text-light-primary dark:text-text-dark-primary">
+                          {contact.name ?? contact.alias}
+                        </p>
 
-                      <p className="truncate text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary">
-                        {contact.alias}
-                      </p>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                        <p className="truncate text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                          {contact.alias}
+                        </p>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           <div className="alert-note alert-note--info">

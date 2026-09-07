@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   useWallet: vi.fn(),
   useAuth: vi.fn(),
   navigate: vi.fn(),
+  getFrequentContacts: vi.fn(),
 }));
 
 vi.mock("../../hooks/useWallet", () => ({
@@ -15,6 +16,10 @@ vi.mock("../../hooks/useWallet", () => ({
 
 vi.mock("../../hooks/useAuth", () => ({
   useAuth: mocks.useAuth,
+}));
+
+vi.mock("../../services/contactService", () => ({
+  getFrequentContacts: mocks.getFrequentContacts,
 }));
 
 vi.mock("react-router-dom", async () => {
@@ -26,6 +31,14 @@ const BALANCES = [
   { currency: { code: "ARS" as const, name: "Peso argentino", symbol: "$" }, amount: 5000, isPrimary: true },
   { currency: { code: "USD" as const, name: "Dólar estadounidense", symbol: "US$" }, amount: 200 },
   { currency: { code: "BRL" as const, name: "Real brasileño", symbol: "R$" }, amount: 0 },
+];
+
+// Misma gente que antes vivía en mockContacts.ts, pero con la forma que
+// devuelve GET /contacts de verdad (FrequentContact).
+const FREQUENT_CONTACTS = [
+  { id: 1, alias: "julian.torres.nomapay", cbu: null, name: "Julián", surname: "Torres", profilePictureUrl: null, interactionCount: 5 },
+  { id: 2, alias: "martina.gomez", cbu: null, name: "Martina", surname: "Gómez", profilePictureUrl: null, interactionCount: 3 },
+  { id: 3, alias: "bruno.ibanez", cbu: null, name: "Bruno", surname: "Ibáñez", profilePictureUrl: null, interactionCount: 1 },
 ];
 
 function setup() {
@@ -46,6 +59,7 @@ function setup() {
 describe("Transfer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.getFrequentContacts.mockResolvedValue(FREQUENT_CONTACTS);
   });
 
   it("no deja continuar del paso 1 sin elegir destinatario", () => {
@@ -60,7 +74,9 @@ describe("Transfer", () => {
     // getAllByRole[0]: el mismo contacto aparece en la lista de Frecuentes
     // del paso 1 Y en el panel lateral de desktop (que siempre está en el
     // DOM). Usamos el primero, que es el de la columna principal.
-    await user.click(screen.getAllByRole("button", { name: /Julián Torres/ })[0]);
+    // findAllByRole porque los contactos llegan async (GET /contacts).
+    const [julian] = await screen.findAllByRole("button", { name: /Julián Torres/ });
+    await user.click(julian);
     await user.click(screen.getByRole("button", { name: "Continuar" }));
 
     await user.type(screen.getByPlaceholderText("0,00"), "1500");
@@ -78,7 +94,8 @@ describe("Transfer", () => {
     const user = userEvent.setup();
     setup();
 
-    await user.click(screen.getAllByRole("button", { name: /Julián Torres/ })[0]);
+    const [julian] = await screen.findAllByRole("button", { name: /Julián Torres/ });
+    await user.click(julian);
     await user.click(screen.getByRole("button", { name: "Continuar" }));
 
     await user.type(screen.getByPlaceholderText("0,00"), "999999");
@@ -95,7 +112,7 @@ describe("Transfer", () => {
 
     expect(screen.getByRole("button", { name: "Continuar" })).toBeEnabled();
   });
-  
+
   it("usa el texto tipeado como aliasOrCbu cuando no es un contacto conocido", async () => {
     const user = userEvent.setup();
     setup();
@@ -116,5 +133,15 @@ describe("Transfer", () => {
         expect.objectContaining({ state: expect.objectContaining({ aliasOrCbu: "no.existe.nomapay" }) }),
       );
     });
+  });
+
+  it("muestra un estado vacío si el usuario no tiene contactos frecuentes", async () => {
+    mocks.getFrequentContacts.mockResolvedValue([]);
+    setup();
+
+    // El mensaje aparece dos veces: en la lista de Frecuentes del paso 1 y
+    // en el panel lateral de desktop (que siempre está en el DOM).
+    const emptyMessages = await screen.findAllByText("Todavía no tenés contactos frecuentes.");
+    expect(emptyMessages.length).toBeGreaterThan(0);
   });
 });
