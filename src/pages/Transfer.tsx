@@ -5,76 +5,126 @@ import { Input } from "../components/ui/Input";
 import { Select } from "../components/ui/Select";
 import { Button } from "../components/ui/Button";
 import { ConfirmActionModal } from "../components/ui/ConfirmActionModal";
-import { IconBack, IconSearch, IconCheck } from "../assets/icons/Icons";
+import {
+  IconBack,
+  IconSearch,
+  IconCheck,
+} from "../assets/icons/Icons";
 import { useWallet } from "../hooks/useWallet";
 import { formatCurrency } from "../utils/formatCurrency";
 import { MOCK_CONTACTS } from "../constants/mockContacts";
-import type { CurrencyCode } from "../types/wallet";
 import { CURRENCY_NAMES } from "../constants/currencies";
+import type { CurrencyCode } from "../types/wallet";
 
-type Recipient = { alias: string; name?: string };
+type Recipient = {
+  alias: string;
+  name?: string;
+};
 
-const STEP_LABELS = ["Destinatario", "Monto", "Confirmar"];
+const STEP_LABELS = [
+  "Destinatario",
+  "Monto",
+  "Confirmar",
+];
+
 const MESSAGE_MAX = 140;
 
 function initials(name: string) {
   return name
     .split(" ")
-    .map((p) => p[0])
+    .map((part) => part[0])
     .filter(Boolean)
     .slice(0, 2)
     .join("")
     .toUpperCase();
 }
 
-/**
- * Transferir dinero — 3 pasos (destinatario → monto → confirmar). Al
- * enviar se abre un modal de "¿confirmás?" y recién ahí se navega al
- * Comprobante (/comprobante), que es quien resuelve la operación
- * (pendiente → completada/rechazada). Ver Receipt.tsx.
- */
 export default function Transfer() {
   const navigate = useNavigate();
   const { wallet } = useWallet();
 
   const [step, setStep] = useState(1);
   const [query, setQuery] = useState("");
-  const [recipient, setRecipient] = useState<Recipient | null>(null);
-  const transferableBalances = wallet.balances.filter((b) => b.amount > 0);
-  const [currencyCode, setCurrencyCode] = useState<CurrencyCode>(
-    wallet.balances.find((b) => b.isPrimary && b.amount > 0)?.currency.code ??
-      transferableBalances[0]?.currency.code ??
-      "ARS"
-  );
+  const [recipient, setRecipient] =
+    useState<Recipient | null>(null);
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [sending, setSending] = useState(false);
 
-  const balance = wallet.balances.find((b) => b.currency.code === currencyCode);
+  const transferableBalances = wallet.balances.filter(
+    (balance) => balance.amount > 0,
+  );
+
+  const [currencyCode, setCurrencyCode] =
+    useState<CurrencyCode>(
+      wallet.balances.find(
+        (balance) =>
+          balance.isPrimary && balance.amount > 0,
+      )?.currency.code ??
+        transferableBalances[0]?.currency.code ??
+        "ARS",
+    );
+
+  const balance = wallet.balances.find(
+    (item) => item.currency.code === currencyCode,
+  );
+
   const available = balance?.amount ?? 0;
-  const numericAmount = Number(amount.replace(",", "."));
-  const amountValid = numericAmount > 0 && numericAmount <= available;
+
+  const numericAmount =
+    Number(amount.replace(",", ".")) || 0;
+
+  const amountValid =
+    numericAmount > 0 && numericAmount <= available;
 
   const filteredContacts = MOCK_CONTACTS.filter(
-    (c) =>
-      c.name.toLowerCase().includes(query.toLowerCase()) ||
-      c.alias.toLowerCase().includes(query.toLowerCase())
+    (contact) =>
+      contact.name
+        .toLowerCase()
+        .includes(query.toLowerCase()) ||
+      contact.alias
+        .toLowerCase()
+        .includes(query.toLowerCase()),
   );
-  const exactMatch = MOCK_CONTACTS.some((c) => c.alias.toLowerCase() === query.trim().toLowerCase());
 
-  function selectRecipient(r: Recipient) {
-    setRecipient(r);
+  const exactMatch = MOCK_CONTACTS.some(
+    (contact) =>
+      contact.alias.toLowerCase() ===
+      query.trim().toLowerCase(),
+  );
+
+  function selectRecipient(selectedRecipient: Recipient) {
+    setRecipient(selectedRecipient);
     setQuery("");
   }
 
-  function handleSubmitStep3(e: FormEvent) {
-    e.preventDefault();
-    if (!recipient || !amountValid) return;
+  function handleSubmitStep3(event: FormEvent) {
+    event.preventDefault();
+
+    if (!recipient || !amountValid || sending) {
+      return;
+    }
+
     setConfirmOpen(true);
   }
 
+  function handleCancelConfirmation() {
+    if (sending) {
+      return;
+    }
+
+    setConfirmOpen(false);
+  }
+
   function handleConfirmSend() {
-    if (!recipient) return;
+    if (!recipient || !amountValid || sending) {
+      return;
+    }
+
+    setSending(true);
+    setConfirmOpen(false);
+
     navigate("/comprobante", {
       state: {
         amount: numericAmount,
@@ -85,140 +135,216 @@ export default function Transfer() {
   }
 
   return (
-    <div className="px-5 pt-8 pb-8 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto">
-      <Header title="Transferir dinero" subtitle="A cualquier usuario al instante" />
+    <div className="mx-auto w-full max-w-md px-5 pb-8 pt-8 lg:max-w-none lg:px-10 lg:py-8">
+      <Header
+        title="Transferir dinero"
+        subtitle="A cualquier usuario al instante"
+      />
 
       {step > 1 && (
         <button
           type="button"
-          onClick={() => setStep((s) => s - 1)}
-          className="flex items-center gap-1.5 text-[13.5px] font-medium text-violet-300 hover:text-violet-500 mb-4 -mt-2"
+          disabled={sending}
+          onClick={() =>
+            setStep((currentStep) => currentStep - 1)
+          }
+          className="-mt-2 mb-4 flex items-center gap-1.5 text-[13.5px] font-medium text-violet-300 hover:text-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <IconBack className="w-3.5 h-3.5" /> Volver
+          <IconBack className="h-3.5 w-3.5" />
+          Volver
         </button>
       )}
 
-      {/* progreso — mobile */}
-      <div className="lg:hidden mb-7">
-        <p className="text-[12px] font-semibold tracking-widest uppercase text-text-light-tertiary dark:text-text-dark-tertiary mb-2">
+      {/* Progreso móvil */}
+      <div className="mb-7 lg:hidden">
+        <p className="mb-2 text-[12px] font-semibold uppercase tracking-widest text-text-light-tertiary dark:text-text-dark-tertiary">
           {step} DE 3 · {STEP_LABELS[step - 1]}
         </p>
+
         <div className="flex gap-1.5">
-          {STEP_LABELS.map((_, i) => (
-            <div key={i} className={`h-1.5 flex-1 rounded-full ${i < step ? "bg-violet-500" : "bg-black/8 dark:bg-white/10"}`} />
+          {STEP_LABELS.map((label, index) => (
+            <div
+              key={label}
+              className={`h-1.5 flex-1 rounded-full ${
+                index < step
+                  ? "bg-violet-500"
+                  : "bg-black/8 dark:bg-white/10"
+              }`}
+            />
           ))}
         </div>
       </div>
 
-      {/* progreso — desktop */}
-      <div className="hidden lg:flex items-center gap-3 mb-8">
-        {STEP_LABELS.map((label, i) => {
-          const n = i + 1;
-          const done = n < step;
-          const active = n === step;
+      {/* Progreso escritorio */}
+      <div className="mb-8 hidden items-center gap-3 lg:flex">
+        {STEP_LABELS.map((label, index) => {
+          const number = index + 1;
+          const done = number < step;
+          const active = number === step;
+
           return (
-            <div key={label} className="flex items-center gap-3 flex-1">
-              <div className="flex items-center gap-2.5 shrink-0">
+            <div
+              key={label}
+              className="flex flex-1 items-center gap-3"
+            >
+              <div className="flex shrink-0 items-center gap-2.5">
                 <span
                   className={[
-                    "w-7 h-7 rounded-full flex items-center justify-center text-[12.5px] font-bold shrink-0",
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12.5px] font-bold",
                     done
                       ? "bg-violet-500 text-white"
                       : active
-                        ? "bg-violet-500/15 text-violet-300 border border-violet-500"
-                        : "bg-black/5 dark:bg-white/8 text-text-light-tertiary dark:text-text-dark-tertiary",
+                        ? "border border-violet-500 bg-violet-500/15 text-violet-300"
+                        : "bg-black/5 text-text-light-tertiary dark:bg-white/8 dark:text-text-dark-tertiary",
                   ].join(" ")}
                 >
-                  {done ? <IconCheck className="w-3.5 h-3.5" /> : n}
+                  {done ? (
+                    <IconCheck className="h-3.5 w-3.5" />
+                  ) : (
+                    number
+                  )}
                 </span>
+
                 <span
-                  className={`text-[13.5px] font-medium ${active || done
-                    ? "text-text-light-primary dark:text-text-dark-primary"
-                    : "text-text-light-tertiary dark:text-text-dark-tertiary"
-                    }`}
+                  className={`text-[13.5px] font-medium ${
+                    active || done
+                      ? "text-text-light-primary dark:text-text-dark-primary"
+                      : "text-text-light-tertiary dark:text-text-dark-tertiary"
+                  }`}
                 >
                   {label}
                 </span>
               </div>
-              {n < 3 && <div className={`h-px flex-1 ${done ? "bg-violet-500" : "bg-border-light dark:bg-border-dark"}`} />}
+
+              {number < 3 && (
+                <div
+                  className={`h-px flex-1 ${
+                    done
+                      ? "bg-violet-500"
+                      : "bg-border-light dark:bg-border-dark"
+                  }`}
+                />
+              )}
             </div>
           );
         })}
       </div>
 
-      <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
-        <div className="lg:col-span-2 flex flex-col gap-6">
+      <div className="items-start lg:grid lg:grid-cols-3 lg:gap-6">
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          {/* Paso 1: destinatario */}
           {step === 1 && (
             <div className="flex flex-col gap-5">
               <Input
-                icon={<IconSearch className="w-4 h-4" />}
+                icon={<IconSearch className="h-4 w-4" />}
                 placeholder="Buscar alias, CBU o contacto"
                 value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
+                onChange={(event) => {
+                  setQuery(event.target.value);
                   setRecipient(null);
                 }}
                 autoFocus
               />
 
               {recipient && (
-                <div className="rounded-card border border-violet-500 bg-violet-500/5 p-4 flex items-center gap-3">
+                <div className="flex items-center gap-3 rounded-card border border-violet-500 bg-violet-500/5 p-4">
                   <span
-                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-bold text-white text-[13px]"
-                    style={{ backgroundImage: "var(--gradient-swoosh)" }}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white"
+                    style={{
+                      backgroundImage:
+                        "var(--gradient-swoosh)",
+                    }}
                   >
-                    {recipient.name ? initials(recipient.name) : "?"}
+                    {recipient.name
+                      ? initials(recipient.name)
+                      : "?"}
                   </span>
+
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-text-light-primary dark:text-text-dark-primary truncate">
+                    <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
                       {recipient.name ?? recipient.alias}
                     </p>
-                    <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary truncate">
-                      {recipient.name ? recipient.alias : "Verificamos este alias o CBU al confirmar"}
+
+                    <p className="truncate text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                      {recipient.name
+                        ? recipient.alias
+                        : "Verificamos este alias o CBU al confirmar"}
                     </p>
                   </div>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setRecipient(null)}>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setRecipient(null)}
+                  >
                     Cambiar
                   </Button>
                 </div>
               )}
 
-              {!recipient && query.trim().length > 0 && !exactMatch && (
-                <button
-                  type="button"
-                  onClick={() => selectRecipient({ alias: query.trim() })}
-                  className="rounded-card border border-dashed border-border-light dark:border-border-dark p-4 text-left hover:border-violet-500/40"
-                >
-                  <p className="text-[13px] text-text-light-tertiary dark:text-text-dark-tertiary mb-1">Usar como destinatario</p>
-                  <p className="font-semibold text-text-light-primary dark:text-text-dark-primary truncate">{query.trim()}</p>
-                </button>
-              )}
+              {!recipient &&
+                query.trim().length > 0 &&
+                !exactMatch && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      selectRecipient({
+                        alias: query.trim(),
+                      })
+                    }
+                    className="rounded-card border border-dashed border-border-light p-4 text-left hover:border-violet-500/40 dark:border-border-dark"
+                  >
+                    <p className="mb-1 text-[13px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                      Usar como destinatario
+                    </p>
+
+                    <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
+                      {query.trim()}
+                    </p>
+                  </button>
+                )}
 
               {!recipient && (
                 <div>
-                  <p className="card__title mb-3">Frecuentes</p>
+                  <p className="card__title mb-3">
+                    Frecuentes
+                  </p>
+
                   {filteredContacts.length === 0 ? (
                     <p className="text-[13.5px] text-magenta-500">
-                      No encontramos contactos con ese nombre o alias.
+                      No encontramos contactos con ese
+                      nombre o alias.
                     </p>
                   ) : (
                     <ul className="flex flex-col gap-1">
-                      {filteredContacts.map((c) => (
-                        <li key={c.id}>
+                      {filteredContacts.map((contact) => (
+                        <li key={contact.id}>
                           <button
                             type="button"
-                            onClick={() => selectRecipient(c)}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-control hover:bg-black/5 dark:hover:bg-white/5 text-left"
+                            onClick={() =>
+                              selectRecipient(contact)
+                            }
+                            className="flex w-full items-center gap-3 rounded-control px-3 py-2.5 text-left hover:bg-black/5 dark:hover:bg-white/5"
                           >
                             <span
-                              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-bold text-white text-[13px]"
-                              style={{ backgroundImage: "var(--gradient-swoosh)" }}
+                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white"
+                              style={{
+                                backgroundImage:
+                                  "var(--gradient-swoosh)",
+                              }}
                             >
-                              {initials(c.name)}
+                              {initials(contact.name)}
                             </span>
+
                             <div className="min-w-0 flex-1">
-                              <p className="font-medium text-text-light-primary dark:text-text-dark-primary truncate">{c.name}</p>
-                              <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary truncate">{c.alias}</p>
+                              <p className="truncate font-medium text-text-light-primary dark:text-text-dark-primary">
+                                {contact.name}
+                              </p>
+
+                              <p className="truncate text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                                {contact.alias}
+                              </p>
                             </div>
                           </button>
                         </li>
@@ -228,139 +354,265 @@ export default function Transfer() {
                 </div>
               )}
 
-              <Button type="button" variant="primary" fullWidth disabled={!recipient} onClick={() => setStep(2)}>
+              <Button
+                type="button"
+                variant="primary"
+                fullWidth
+                disabled={!recipient}
+                onClick={() => setStep(2)}
+              >
                 Continuar
               </Button>
             </div>
           )}
 
+          {/* Paso 2: monto */}
           {step === 2 && (
             <form
               className="flex flex-col gap-5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (amountValid) setStep(3);
+              onSubmit={(event) => {
+                event.preventDefault();
+
+                if (amountValid) {
+                  setStep(3);
+                }
               }}
             >
               {transferableBalances.length === 0 ? (
                 <div className="alert-note alert-note--warning">
-                  <p className="alert-note__title">No tenés saldo disponible</p>
-                  <p className="alert-note__description">Todavía no tenés saldo en ninguna moneda para transferir.</p>
+                  <p className="alert-note__title">
+                    No tenés saldo disponible
+                  </p>
+
+                  <p className="alert-note__description">
+                    Todavía no tenés saldo en ninguna
+                    moneda para transferir.
+                  </p>
                 </div>
               ) : (
                 <Select
                   label="Moneda"
                   value={currencyCode}
-                  onChange={(v) => setCurrencyCode(v as CurrencyCode)}
-                  options={transferableBalances.map((b) => ({
-                    value: b.currency.code,
-                    label: `${b.currency.code} · ${CURRENCY_NAMES[b.currency.code]}`,
-                  }))}
+                  onChange={(value) =>
+                    setCurrencyCode(
+                      value as CurrencyCode,
+                    )
+                  }
+                  options={transferableBalances.map(
+                    (item) => ({
+                      value: item.currency.code,
+                      label: `${item.currency.code} · ${
+                        CURRENCY_NAMES[
+                          item.currency.code
+                        ]
+                      }`,
+                    }),
+                  )}
                 />
               )}
 
               <div>
                 <p className="input__label">Monto</p>
-                <div className="rounded-card border border-dashed border-border-light dark:border-border-dark focus-within:border-violet-500 bg-surface-light-input dark:bg-surface-dark-elevated px-5 py-6 flex items-center gap-2">
+
+                <div className="flex items-center gap-2 rounded-card border border-dashed border-border-light bg-surface-light-input px-5 py-6 focus-within:border-violet-500 dark:border-border-dark dark:bg-surface-dark-elevated">
                   <span className="text-[28px] font-bold text-text-light-tertiary dark:text-text-dark-tertiary">
                     {balance?.currency.symbol ?? ""}
                   </span>
+
                   <input
                     type="text"
                     inputMode="decimal"
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value.replace(/[^0-9,]/g, ""))}
+                    onChange={(event) =>
+                      setAmount(
+                        event.target.value.replace(
+                          /[^0-9,]/g,
+                          "",
+                        ),
+                      )
+                    }
                     placeholder="0,00"
                     autoFocus
-                    className="flex-1 min-w-0 border-0 bg-transparent text-[28px] font-bold text-text-light-primary dark:text-text-dark-primary placeholder:text-text-light-tertiary dark:placeholder:text-text-dark-tertiary outline-none ring-0 ring-offset-0 focus:ring-0 focus:ring-offset-0"
+                    className="min-w-0 flex-1 border-0 bg-transparent text-[28px] font-bold text-text-light-primary outline-none ring-0 ring-offset-0 placeholder:text-text-light-tertiary focus:ring-0 focus:ring-offset-0 dark:text-text-dark-primary dark:placeholder:text-text-dark-tertiary"
                   />
                 </div>
+
                 <p
-                  className={`text-[12.5px] mt-2 ${numericAmount > available ? "text-magenta-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"
-                    }`}
+                  className={`mt-2 text-[12.5px] ${
+                    numericAmount > available
+                      ? "text-magenta-500"
+                      : "text-text-light-tertiary dark:text-text-dark-tertiary"
+                  }`}
                 >
-                  Disponible: {formatCurrency(available, currencyCode)} en tu billetera
+                  Disponible:{" "}
+                  {formatCurrency(
+                    available,
+                    currencyCode,
+                  )}{" "}
+                  en tu billetera
                 </p>
               </div>
 
               <div>
-                <label className="input__label" htmlFor="transfer-message">
+                <label
+                  className="input__label"
+                  htmlFor="transfer-message"
+                >
                   Mensaje (opcional)
                 </label>
+
                 <textarea
                   id="transfer-message"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value.slice(0, MESSAGE_MAX))}
+                  onChange={(event) =>
+                    setMessage(
+                      event.target.value.slice(
+                        0,
+                        MESSAGE_MAX,
+                      ),
+                    )
+                  }
                   rows={3}
                   className="input resize-none"
                   placeholder="Agregá un mensaje para el destinatario"
                 />
-                <p className="text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary mt-1.5 text-right">
+
+                <p className="mt-1.5 text-right text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary">
                   {message.length}/{MESSAGE_MAX}
                 </p>
               </div>
 
-              <Button type="submit" variant="primary" fullWidth disabled={!amountValid}>
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                disabled={!amountValid}
+              >
                 Continuar
               </Button>
             </form>
           )}
 
+          {/* Paso 3: revisión */}
           {step === 3 && recipient && (
             <>
-              <form onSubmit={handleSubmitStep3} className="flex flex-col gap-6">
-                <div className="rounded-card border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3.5">
-                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Destinatario</span>
-                    <span className="font-semibold text-text-light-primary dark:text-text-dark-primary text-right truncate max-w-50">
+              <form
+                onSubmit={handleSubmitStep3}
+                className="flex flex-col gap-6"
+              >
+                <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light dark:divide-border-dark dark:border-border-dark">
+                  <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                      Destinatario
+                    </span>
+
+                    <span className="max-w-50 truncate text-right font-semibold text-text-light-primary dark:text-text-dark-primary">
                       {recipient.name ?? recipient.alias}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between px-4 py-3.5">
-                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Monto</span>
-                    <span className="font-semibold tabular text-text-light-primary dark:text-text-dark-primary">
-                      {formatCurrency(numericAmount, currencyCode)}
+
+                  <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                      Monto
+                    </span>
+
+                    <span className="tabular font-semibold text-text-light-primary dark:text-text-dark-primary">
+                      {formatCurrency(
+                        numericAmount,
+                        currencyCode,
+                      )}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between px-4 py-3.5">
-                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">Comisión</span>
-                    <span className="font-semibold text-text-light-primary dark:text-turquoise-500">Sin cargo</span>
+
+                  <div className="flex items-center justify-between gap-4 px-4 py-3.5">
+                    <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                      Comisión
+                    </span>
+
+                    <span className="font-semibold text-text-light-primary dark:text-turquoise-500">
+                      Sin cargo
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between px-4 py-3.5">
+
+                  <div className="flex items-center justify-between gap-4 px-4 py-3.5">
                     <span className="text-[13.5px] font-semibold text-text-light-primary dark:text-text-dark-primary">
                       Total a enviar
                     </span>
-                    <span className="font-bold tabular text-text-light-primary dark:text-text-dark-primary">
-                      {formatCurrency(numericAmount, currencyCode)}
+
+                    <span className="tabular font-bold text-text-light-primary dark:text-text-dark-primary">
+                      {formatCurrency(
+                        numericAmount,
+                        currencyCode,
+                      )}
                     </span>
                   </div>
+
                   {message && (
                     <div className="px-4 py-3.5">
-                      <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary block mb-1">Mensaje</span>
-                      <p className="text-[14px] text-text-light-primary dark:text-text-dark-primary">{message}</p>
+                      <span className="mb-1 block text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                        Mensaje
+                      </span>
+
+                      <p className="text-[14px] text-text-light-primary dark:text-text-dark-primary">
+                        {message}
+                      </p>
                     </div>
                   )}
                 </div>
 
                 <div className="alert-note alert-note--info">
-                  <p className="alert-note__title">Verificá el alias antes de enviar</p>
-                  <p className="alert-note__description">Las transferencias no se pueden deshacer una vez confirmadas.</p>
+                  <p className="alert-note__title">
+                    Verificá el alias antes de enviar
+                  </p>
+
+                  <p className="alert-note__description">
+                    Las transferencias no se pueden
+                    deshacer una vez confirmadas.
+                  </p>
                 </div>
 
-                <Button type="submit" variant="primary" fullWidth>
-                  Enviar dinero
+                <Button
+                  type="submit"
+                  variant="primary"
+                  fullWidth
+                  loading={sending}
+                  disabled={sending}
+                >
+                  {sending
+                    ? "Procesando..."
+                    : "Enviar dinero"}
                 </Button>
               </form>
 
               <ConfirmActionModal
                 open={confirmOpen}
-                onCancel={() => setConfirmOpen(false)}
+                onCancel={handleCancelConfirmation}
                 onConfirm={handleConfirmSend}
+                confirming={sending}
                 title="¿Confirmás el envío?"
-                description={`Vas a enviar ${formatCurrency(numericAmount, currencyCode)} a ${recipient.name}. Esta acción no se puede deshacer.`} rows={[
-                  { label: "Alias", value: recipient.alias },
-                  { label: "Comisión", value: "Sin cargo", accent: true },
-                  { label: "Total a debitar", value: formatCurrency(numericAmount, currencyCode) },
+                description={`Vas a enviar ${formatCurrency(
+                  numericAmount,
+                  currencyCode,
+                )} a ${
+                  recipient.name ?? recipient.alias
+                }. Esta acción no se puede deshacer.`}
+                rows={[
+                  {
+                    label: "Alias",
+                    value: recipient.alias,
+                  },
+                  {
+                    label: "Comisión",
+                    value: "Sin cargo",
+                    accent: true,
+                  },
+                  {
+                    label: "Total a debitar",
+                    value: formatCurrency(
+                      numericAmount,
+                      currencyCode,
+                    ),
+                  },
                 ]}
                 confirmLabel="Confirmar envío"
               />
@@ -368,29 +620,43 @@ export default function Transfer() {
           )}
         </div>
 
+        {/* Columna lateral */}
         <div className="hidden lg:flex lg:flex-col lg:gap-6">
-          <div className="rounded-card border border-border-light dark:border-border-dark p-5">
-            <p className="card__title mb-3">Frecuentes</p>
+          <div className="rounded-card border border-border-light p-5 dark:border-border-dark">
+            <p className="card__title mb-3">
+              Frecuentes
+            </p>
+
             <ul className="flex flex-col gap-1">
-              {MOCK_CONTACTS.map((c) => (
-                <li key={c.id}>
+              {MOCK_CONTACTS.map((contact) => (
+                <li key={contact.id}>
                   <button
                     type="button"
+                    disabled={sending}
                     onClick={() => {
-                      selectRecipient(c);
+                      selectRecipient(contact);
                       setStep(1);
                     }}
-                    className="w-full flex items-center gap-3 px-2 py-2 rounded-control hover:bg-black/5 dark:hover:bg-white/5 text-left"
+                    className="flex w-full items-center gap-3 rounded-control px-2 py-2 text-left hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/5"
                   >
                     <span
-                      className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-bold text-white text-[12px]"
-                      style={{ backgroundImage: "var(--gradient-swoosh)" }}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
+                      style={{
+                        backgroundImage:
+                          "var(--gradient-swoosh)",
+                      }}
                     >
-                      {initials(c.name)}
+                      {initials(contact.name)}
                     </span>
+
                     <div className="min-w-0 flex-1">
-                      <p className="text-[13.5px] font-medium text-text-light-primary dark:text-text-dark-primary truncate">{c.name}</p>
-                      <p className="text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary truncate">{c.alias}</p>
+                      <p className="truncate text-[13.5px] font-medium text-text-light-primary dark:text-text-dark-primary">
+                        {contact.name}
+                      </p>
+
+                      <p className="truncate text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                        {contact.alias}
+                      </p>
                     </div>
                   </button>
                 </li>
@@ -399,8 +665,14 @@ export default function Transfer() {
           </div>
 
           <div className="alert-note alert-note--info">
-            <p className="alert-note__title">Verificá el alias antes de enviar</p>
-            <p className="alert-note__description">Fijate que el nombre coincida antes de confirmar la transferencia.</p>
+            <p className="alert-note__title">
+              Verificá el alias antes de enviar
+            </p>
+
+            <p className="alert-note__description">
+              Fijate que el nombre coincida antes de
+              confirmar la transferencia.
+            </p>
           </div>
         </div>
       </div>

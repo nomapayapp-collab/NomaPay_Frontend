@@ -5,14 +5,12 @@ import {
   it,
   vi,
 } from "vitest";
-
 import {
   fireEvent,
   render,
   screen,
   waitFor,
 } from "@testing-library/react";
-
 import userEvent from "@testing-library/user-event";
 import Exchange from "../../pages/Exchange";
 
@@ -42,12 +40,16 @@ vi.mock("../../services/walletService", () => ({
   exchangeCurrency: mockExchangeCurrency,
 }));
 
-// Exchange usa <Header>, que llama a useNavigate() para el botón de
-// perfil — sin este mock, useNavigate() revienta porque el render no
-// está envuelto en un <Router> (mismo patrón que Wallet/Transfer).
 vi.mock("react-router-dom", async () => {
-  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
-  return { ...actual, useNavigate: () => mockNavigate };
+  const actual =
+    await vi.importActual<
+      typeof import("react-router-dom")
+    >("react-router-dom");
+
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  };
 });
 
 const walletMock = {
@@ -78,6 +80,7 @@ const walletMock = {
       amount: 0,
     },
   ],
+
   exchangeRates: [
     {
       from: "USD",
@@ -90,6 +93,7 @@ const walletMock = {
       rate: 300,
     },
   ],
+
   recentMovements: [],
 };
 
@@ -104,11 +108,14 @@ const exchangeResponseMock = {
     fee: "0.05",
     finalAmount: "17000.00",
     exchangeRate: "1700.00",
-    transactionDate: "2026-09-04T16:28:52.543Z",
+    transactionDate:
+      "2026-09-04T16:28:52.543Z",
   },
+
   wallet: {
     walletId: 14,
     preferredCurrency: "USD",
+
     balances: [
       {
         currencyCode: "USD",
@@ -132,15 +139,25 @@ const exchangeResponseMock = {
   },
 };
 
-// Espera a que el efecto que autoselecciona la moneda primaria (USD, en
-// walletMock) haya corrido — el trigger del Select "DE" pasa a mostrar
-// "Dólar estadounidense". Reemplaza al viejo `toHaveValue("USD")` sobre
-// el <select> nativo, que ya no existe.
 async function waitForPrimaryCurrencySelected() {
   await waitFor(() => {
     expect(
-      screen.getByRole("button", { name: /dólar estadounidense/i }),
+      screen.getByRole("button", {
+        name: /dólar estadounidense/i,
+      }),
     ).toBeInTheDocument();
+  });
+}
+
+async function openConfirmationModal() {
+  await userEvent.click(
+    screen.getByRole("button", {
+      name: /continuar/i,
+    }),
+  );
+
+  return screen.findByRole("button", {
+    name: /sí, convertir/i,
   });
 }
 
@@ -159,6 +176,8 @@ describe("Exchange", () => {
       loading: false,
       error: null,
       refetch: mockRefetch,
+      setPreferredCurrency: vi.fn(),
+      deposit: vi.fn(),
       mockDeposit: vi.fn(),
       mockTransfer: vi.fn(),
     });
@@ -192,7 +211,9 @@ describe("Exchange", () => {
     });
 
     expect(
-      screen.getByText(/disponible: us\$ 1\.000,00/i),
+      screen.getByText(
+        /disponible:\s*us\$\s*1\.000,00/i,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -206,6 +227,8 @@ describe("Exchange", () => {
       loading: true,
       error: null,
       refetch: mockRefetch,
+      setPreferredCurrency: vi.fn(),
+      deposit: vi.fn(),
       mockDeposit: vi.fn(),
       mockTransfer: vi.fn(),
     });
@@ -213,7 +236,9 @@ describe("Exchange", () => {
     render(<Exchange />);
 
     expect(
-      screen.getByText(/cargando saldos y cotizaciones/i),
+      screen.getByText(
+        /cargando saldos y cotizaciones/i,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -227,6 +252,8 @@ describe("Exchange", () => {
       loading: false,
       error: "No pudimos cargar tu saldo.",
       refetch: mockRefetch,
+      setPreferredCurrency: vi.fn(),
+      deposit: vi.fn(),
       mockDeposit: vi.fn(),
       mockTransfer: vi.fn(),
     });
@@ -234,7 +261,9 @@ describe("Exchange", () => {
     render(<Exchange />);
 
     expect(
-      screen.getByText(/no pudimos cargar tu saldo/i),
+      screen.getByText(
+        /no pudimos cargar tu saldo/i,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -245,15 +274,16 @@ describe("Exchange", () => {
 
     await waitForPrimaryCurrencySelected();
 
-    // el selector "A" arranca en Peso argentino (USD ya está de "DE")
     await user.click(
-      screen.getByRole("button", { name: /peso argentino/i }),
+      screen.getByRole("button", {
+        name: /peso argentino/i,
+      }),
     );
 
-    // USD no tiene que aparecer como opción elegible en "A" — se filtra
-    // en vez de mostrarse deshabilitada.
     expect(
-      screen.queryByRole("option", { name: /dólar estadounidense/i }),
+      screen.queryByRole("option", {
+        name: /dólar estadounidense/i,
+      }),
     ).not.toBeInTheDocument();
   });
 
@@ -271,7 +301,9 @@ describe("Exchange", () => {
     );
 
     expect(
-      screen.getByLabelText(/monto a convertir/i),
+      screen.getByLabelText(
+        /monto a convertir/i,
+      ),
     ).toHaveValue("100,00");
   });
 
@@ -289,7 +321,9 @@ describe("Exchange", () => {
     );
 
     expect(
-      screen.getByLabelText(/monto a convertir/i),
+      screen.getByLabelText(
+        /monto a convertir/i,
+      ),
     ).toHaveValue("1.000,00");
   });
 
@@ -308,14 +342,19 @@ describe("Exchange", () => {
       },
     });
 
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /confirmar conversión/i,
-      }),
+    const continueButton = screen.getByRole(
+      "button",
+      {
+        name: /continuar/i,
+      },
     );
 
+    expect(continueButton).toBeDisabled();
+
     expect(
-      screen.getByText(/no tenés saldo suficiente/i),
+      screen.getByText(
+        /no tenés saldo suficiente/i,
+      ),
     ).toBeInTheDocument();
 
     expect(
@@ -343,26 +382,39 @@ describe("Exchange", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: /confirmar conversión/i,
+        name: /continuar/i,
       }),
     );
+
+    const confirmButton =
+      await screen.findByRole("button", {
+        name: /sí, convertir/i,
+      });
+
+    await user.click(confirmButton);
 
     await waitFor(() => {
       expect(
         mockExchangeCurrency,
-      ).toHaveBeenCalledWith({
-        fromCurrency: "USD",
-        toCurrency: "ARS",
-        amount: 10,
-      });
+      ).toHaveBeenCalledTimes(1);
     });
 
     expect(
-      await screen.findByText(/conversión aprobada/i),
+      mockExchangeCurrency,
+    ).toHaveBeenCalledWith({
+      fromCurrency: "USD",
+      toCurrency: "ARS",
+      amount: 10,
+    });
+
+    expect(
+      await screen.findByText(
+        /conversión aprobada/i,
+      ),
     ).toBeInTheDocument();
 
     expect(input).toHaveValue("0,00");
-    expect(mockRefetch).toHaveBeenCalled();
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 
   it("muestra un error cuando falla la conversión", async () => {
@@ -385,14 +437,25 @@ describe("Exchange", () => {
 
     await user.click(
       screen.getByRole("button", {
-        name: /confirmar conversión/i,
+        name: /continuar/i,
       }),
     );
+
+    const confirmButton =
+      await screen.findByRole("button", {
+        name: /sí, convertir/i,
+      });
+
+    await user.click(confirmButton);
 
     expect(
       await screen.findByText(
         /no pudimos realizar la conversión/i,
       ),
     ).toBeInTheDocument();
+
+    expect(
+      mockExchangeCurrency,
+    ).toHaveBeenCalledTimes(1);
   });
 });
