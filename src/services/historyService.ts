@@ -5,3 +5,7 @@ export async function getHistory(): Promise<HistoryItem[]> {
   const { data } = await api.get<HistoryItem[]>("/history");
   return data;
 }
+
+
+
+

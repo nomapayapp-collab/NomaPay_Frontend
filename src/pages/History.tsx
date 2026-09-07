@@ -15,7 +15,8 @@ import {
 } from "../assets/icons/Icons";
 import { formatCurrency } from "../utils/formatCurrency";
 import { formatShortDate, formatDateTime, formatDayHeader, monthLabel } from "../utils/formatDate";
-import { useHistory, HISTORY_TYPE_FILTERS, isPositive } from "../hooks/useHistory";
+import { useHistory, HISTORY_TYPE_FILTERS, SUMMARY_CURRENCIES, isPositive } from "../hooks/useHistory";
+import { useWallet } from "../hooks/useWallet";
 import type { HistoryItem, HistoryOperationType } from "../types/history";
 
 /**
@@ -235,6 +236,12 @@ function groupByDay(item: HistoryItem) {
  * muestran — apenas el back los sume, aparecen solos sin tocar nada acá.
  */
 export default function History() {
+  // Moneda favorita del usuario (la que ya usa para marcar isPrimary en
+  // Wallet/Config) — el panel de Resumen arranca mostrando esa, y desde
+  // ahí el usuario puede cambiar con los filtros USD/ARS/BRL de la card.
+  const { wallet } = useWallet();
+  const favoriteCurrency = wallet.balances.find((b) => b.isPrimary)?.currency.code ?? "USD";
+
   const {
     loading,
     error,
@@ -255,8 +262,10 @@ export default function History() {
     expandedId,
     toggleExpanded,
     summary,
+    summaryCurrency,
+    setSummaryCurrency,
     byType,
-  } = useHistory();
+  } = useHistory(favoriteCurrency);
 
   const emptyState = (
     <div className="rounded-card border border-dashed border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-3 py-14 text-center">
@@ -379,62 +388,70 @@ export default function History() {
 
         {/* ---------- Sidebar desktop ---------- */}
         {!loading && !error && hasResults && (
-          <div className="hidden lg:flex flex-col gap-6 mt-[52px]">
+          <div className="hidden lg:flex flex-col gap-6 mt-13">
             <Card>
-              <p className="card__title mb-3">Resumen del período</p>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <p className="card__title">Resumen del período</p>
+                <div className="flex items-center gap-1 shrink-0">
+                  {SUMMARY_CURRENCIES.map((code) => (
+                    <button
+                      key={code}
+                      type="button"
+                      onClick={() => setSummaryCurrency(code)}
+                      className={`px-2 py-1 rounded-full text-[11.5px] font-medium transition-colors ${
+                        summaryCurrency === code
+                          ? "bg-violet-500 text-white"
+                          : "bg-black/5 dark:bg-white/8 text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary"
+                      }`}
+                    >
+                      {code}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="flex flex-col gap-3 text-[13.5px]">
                 <div className="flex items-start justify-between gap-3">
-                  <p className="text-text-light-tertiary dark:text-text-dark-tertiary">Entradas · {summary.entradas.count} mov.</p>
-                  <div className="text-right">
-                    {summary.entradas.totals.size === 0 ? (
-                      <p className="text-text-light-secondary dark:text-text-dark-secondary">—</p>
-                    ) : (
-                      Array.from(summary.entradas.totals.entries()).map(([code, amount]) => (
-                        <p key={code} className="text-turquoise-500 font-medium tabular">
-                          +{formatCurrency(amount, code)}
-                        </p>
-                      ))
-                    )}
-                  </div>
+                  <p className="text-text-light-tertiary dark:text-text-dark-tertiary">
+                    Entradas · {summary.entradas.get(summaryCurrency)?.count ?? 0} mov.
+                  </p>
+                  {summary.entradas.get(summaryCurrency) ? (
+                    <p className="text-turquoise-500 font-medium tabular">
+                      +{formatCurrency(summary.entradas.get(summaryCurrency)!.total, summaryCurrency)}
+                    </p>
+                  ) : (
+                    <p className="text-text-light-secondary dark:text-text-dark-secondary">—</p>
+                  )}
                 </div>
                 <div className="flex items-start justify-between gap-3">
-                  <p className="text-text-light-tertiary dark:text-text-dark-tertiary">Salidas · {summary.salidas.count} mov.</p>
-                  <div className="text-right">
-                    {summary.salidas.totals.size === 0 ? (
-                      <p className="text-text-light-secondary dark:text-text-dark-secondary">—</p>
-                    ) : (
-                      Array.from(summary.salidas.totals.entries()).map(([code, amount]) => (
-                        <p key={code} className="text-text-light-primary dark:text-text-dark-primary font-medium tabular">
-                          −{formatCurrency(amount, code)}
-                        </p>
-                      ))
-                    )}
-                  </div>
+                  <p className="text-text-light-tertiary dark:text-text-dark-tertiary">
+                    Salidas · {summary.salidas.get(summaryCurrency)?.count ?? 0} mov.
+                  </p>
+                  {summary.salidas.get(summaryCurrency) ? (
+                    <p className="text-text-light-primary dark:text-text-dark-primary font-medium tabular">
+                      −{formatCurrency(summary.salidas.get(summaryCurrency)!.total, summaryCurrency)}
+                    </p>
+                  ) : (
+                    <p className="text-text-light-secondary dark:text-text-dark-secondary">—</p>
+                  )}
                 </div>
                 <div className="flex items-start justify-between gap-3">
-                  <p className="text-text-light-tertiary dark:text-text-dark-tertiary">Cambios · {summary.cambios.count} op.</p>
-                  <div className="text-right">
-                    {summary.cambios.totals.size === 0 ? (
-                      <p className="text-text-light-secondary dark:text-text-dark-secondary">—</p>
-                    ) : (
-                      Array.from(summary.cambios.totals.entries()).map(([code, amount]) => (
-                        <p key={code} className="text-text-light-primary dark:text-text-dark-primary font-medium tabular">
-                          {formatCurrency(amount, code)}
-                        </p>
-                      ))
-                    )}
-                  </div>
+                  <p className="text-text-light-tertiary dark:text-text-dark-tertiary">
+                    Cambios · {summary.cambios.get(summaryCurrency)?.count ?? 0} op.
+                  </p>
+                  {summary.cambios.get(summaryCurrency) ? (
+                    <p className="text-text-light-primary dark:text-text-dark-primary font-medium tabular">
+                      {formatCurrency(summary.cambios.get(summaryCurrency)!.total, summaryCurrency)}
+                    </p>
+                  ) : (
+                    <p className="text-text-light-secondary dark:text-text-dark-secondary">—</p>
+                  )}
                 </div>
                 {summary.comisiones && (
                   <div className="flex items-start justify-between gap-3 pt-2 border-t border-border-light dark:border-border-dark">
                     <p className="text-text-light-tertiary dark:text-text-dark-tertiary">Comisiones pagadas</p>
-                    <div className="text-right">
-                      {Array.from(summary.comisiones.entries()).map(([code, amount]) => (
-                        <p key={code} className="text-text-light-primary dark:text-text-dark-primary font-medium tabular">
-                          {formatCurrency(amount, code)}
-                        </p>
-                      ))}
-                    </div>
+                    <p className="text-text-light-primary dark:text-text-dark-primary font-medium tabular">
+                      {formatCurrency(summary.comisiones.get(summaryCurrency) ?? 0, summaryCurrency)}
+                    </p>
                   </div>
                 )}
               </div>

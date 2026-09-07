@@ -6,11 +6,16 @@ import type { HistoryItem } from "../../types/history";
 
 const mocks = vi.hoisted(() => ({
   useAuth: vi.fn(),
+  useWallet: vi.fn(),
   getHistory: vi.fn(),
 }));
 
 vi.mock("../../hooks/useAuth", () => ({
   useAuth: mocks.useAuth,
+}));
+
+vi.mock("../../hooks/useWallet", () => ({
+  useWallet: mocks.useWallet,
 }));
 
 vi.mock("../../services/historyService", () => ({
@@ -55,6 +60,19 @@ const ITEMS: HistoryItem[] = [
 
 function setup() {
   mocks.useAuth.mockReturnValue({ user: { name: "Cande", surname: "Pérez", alias: "cande.viajera.ar" } });
+  // moneda favorita USD (isPrimary) — coincide con la moneda de la mayoría
+  // de los ITEMS de prueba, así el panel de Resumen arranca mostrando algo.
+  mocks.useWallet.mockReturnValue({
+    wallet: {
+      balances: [
+        { currency: { code: "USD", name: "Dólar estadounidense", symbol: "US$" }, amount: 500, isPrimary: true },
+        { currency: { code: "ARS", name: "Peso argentino", symbol: "$" }, amount: 0 },
+        { currency: { code: "BRL", name: "Real brasileño", symbol: "R$" }, amount: 0 },
+      ],
+      exchangeRates: [],
+      recentMovements: [],
+    },
+  });
   return render(<History />);
 }
 
