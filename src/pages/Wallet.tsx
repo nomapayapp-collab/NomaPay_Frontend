@@ -12,7 +12,6 @@ import {
   IconCopy,
   IconCheck,
   IconStar,
-  IconAlertTriangle,
 } from "../assets/icons/Icons";
 import type { CurrencyCode } from "../types/wallet";
 import { CURRENCY_NAMES } from "../constants/currencies";
@@ -109,21 +108,6 @@ export default function Wallet() {
     );
   }
 
-  function renderWarningNote() {
-    return (
-      <div className="alert-note alert-note--warning flex items-start gap-3">
-        <span className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-amber-500/15 text-amber-500">
-          <IconAlertTriangle className="w-4 h-4" />
-        </span>
-        <div>
-          <p className="alert-note__title text-amber-500">No podés desactivar una moneda con saldo</p>
-          <p className="alert-note__description">
-            Convertí o transferí el saldo a cero y recién ahí vas a poder sacarla de tu billetera.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   function renderCargarSaldoButton() {
     return (
@@ -158,7 +142,6 @@ export default function Wallet() {
           {/* ---------- Mobile ---------- */}
           <div className="lg:hidden flex flex-col gap-5">
             <BalanceCard />
-            {renderWarningNote()}
             {renderCargarSaldoButton()}
             {renderRecibirDinero()}
             {renderFavoriteCurrency()}
@@ -198,7 +181,6 @@ export default function Wallet() {
 
             <div className="flex flex-col gap-4">
               {renderFavoriteCurrency()}
-              {renderWarningNote()}
               {renderCargarSaldoButton()}
               {renderRecibirDinero()}
             </div>

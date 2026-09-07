@@ -3,13 +3,11 @@ import { Header } from "../components/layout/Header";
 import { Select } from "../components/ui/Select";
 import { ConfirmActionModal } from "../components/ui/ConfirmActionModal";
 import { ExchangeRatesList } from "../components/wallet/ExchangeRatesList";
-import { useAuth } from "../hooks/useAuth";
 import { useExchangeForm } from "../hooks/useExchangeForm";
 import { CURRENCIES, CURRENCY_CODES } from "../constants/currencies";
 import type { CurrencyCode } from "../types/wallet";
 
 export default function Exchange() {
-  const { user } = useAuth();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const {
@@ -66,7 +64,6 @@ export default function Exchange() {
     <main className="w-full text-gray-900 dark:text-white">
       <section className="w-full px-4 pb-8 pt-6 sm:px-6 lg:px-10">
         <Header
-          greeting={`Hola, ${user?.name ?? ""}`}
           title="Convertir monedas"
           subtitle="Entre tus propias monedas"
         />
@@ -95,9 +92,7 @@ export default function Exchange() {
                   </p>
 
                   <p className="text-xs text-gray-500 dark:text-[#9da5c8]">
-                    Disponible:{" "}
-                    {CURRENCIES[fromCurrency].symbol}{" "}
-                    {formatMoney(balances[fromCurrency])}
+                    Disponible:
                   </p>
                 </div>
 
@@ -145,9 +140,15 @@ export default function Exchange() {
 
               {/* Moneda de destino */}
               <article className="rounded-card border border-border-light bg-surface-light-input p-4 dark:border-border-dark dark:bg-surface-dark-elevated">
-                <p className="mb-2 text-xs font-bold tracking-widest text-gray-500 dark:text-[#9da5c8]">
-                  A
-                </p>
+                <div className="mb-2 flex items-center justify-between gap-4">
+                  <p className="text-xs font-bold tracking-widest text-gray-500 dark:text-[#9da5c8]">
+                    A
+                  </p>
+
+                  <p className="text-xs text-gray-500 dark:text-[#9da5c8]">
+                    Disponible:
+                  </p>
+                </div>
 
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex min-w-0 items-center gap-3">
@@ -179,9 +180,6 @@ export default function Exchange() {
                   </strong>
                 </div>
 
-                <p className="mt-2 text-right text-xs font-semibold text-emerald-500">
-                  Comisión +0,5%
-                </p>
               </article>
 
               {/* Monto */}
@@ -210,40 +208,45 @@ export default function Exchange() {
                     {fromCurrency}
                   </span>
                 </div>
-                           {numericAmount > balances[fromCurrency] && (
-  <p
-    role="alert"
-    className="mt-2 text-sm font-medium text-red-600 dark:text-red-300"
-  >
-    No tenés saldo suficiente
-  </p>
-)}
+                {numericAmount > balances[fromCurrency] && (
+                  <p
+                    role="alert"
+                    className="mt-2 text-sm font-medium text-red-600 dark:text-red-300"
+                  >
+                    No tenés saldo suficiente
+                  </p>
+                )}
 
 
 
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {[10, 25, 50, 80].map((percentage) => (
+                <div className="mt-3 flex justify-between flex-wrap gap-2">
+                  <span className="flex flex-wrap gap-2">
+                    {[10, 25, 50, 80].map((percentage) => (
+                      <button
+                        key={percentage}
+                        type="button"
+                        disabled={exchangeLoading}
+                        onClick={() =>
+                          selectPercentage(percentage / 100)
+                        }
+                        className="rounded-full border border-gray-400 px-4 py-1.5 text-xs disabled:opacity-50 dark:border-[#596080]"
+                      >
+                        {percentage}%
+                      </button>
+                    ))}
+
                     <button
-                      key={percentage}
                       type="button"
                       disabled={exchangeLoading}
-                      onClick={() =>
-                        selectPercentage(percentage / 100)
-                      }
-                      className="rounded-full border border-gray-400 px-4 py-1.5 text-xs disabled:opacity-50 dark:border-[#596080]"
+                      onClick={selectMaximum}
+                      className="rounded-full border border-[#793aff] bg-[#ede9ff] px-4 py-1.5 text-xs text-[#5526c9] disabled:opacity-50 dark:bg-[#2c1765] dark:text-white"
                     >
-                      {percentage}%
+                      Máximo
                     </button>
-                  ))}
-
-                  <button
-                    type="button"
-                    disabled={exchangeLoading}
-                    onClick={selectMaximum}
-                    className="rounded-full border border-[#793aff] bg-[#ede9ff] px-4 py-1.5 text-xs text-[#5526c9] disabled:opacity-50 dark:bg-[#2c1765] dark:text-white"
-                  >
-                    Máximo
-                  </button>
+                  </span>
+                  <p className="mt-2 text-right text-xs font-semibold text-emerald-500">
+                    Comisión +0,5%
+                  </p>
                 </div>
               </section>
             </section>
