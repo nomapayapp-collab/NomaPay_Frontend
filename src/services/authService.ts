@@ -1,4 +1,3 @@
-import { api } from "./api";
 import type {
   AuthResponse,
   RegisterResponse,
@@ -102,4 +101,19 @@ export async function resetPassword(token: string, newPassword: string): Promise
 
   console.log(`[MOCK] Se "cambiaría" la contraseña con el token ${token}`);
   console.log(`[MOCK] Se "cambiaría" la contraseña (${newPassword.length} caracteres) con el token ${token}`);
+}
+
+import { api } from "./api";
+
+type DeleteAccountResponse = {
+  message: string;
+};
+
+export async function deleteMyAccount(): Promise<string> {
+  const { data } =
+    await api.delete<DeleteAccountResponse>(
+      "/users/me",
+    );
+
+  return data.message;
 }

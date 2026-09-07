@@ -1,33 +1,51 @@
-import { useEffect, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+} from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Avatar } from "../../components/ui/Avatar";
+import { Select } from "../../components/ui/Select";
+import { ConfirmActionModal } from "../../components/ui/ConfirmActionModal";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { EditAliasModal } from "./EditAliasModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
+
 import {
   IconCheck,
   IconChevronRight,
   IconCopy,
   IconBack,
   IconEdit,
+  IconAlertTriangle,
 } from "../../assets/icons/Icons";
 
 import { useAuth } from "../../hooks/useAuth";
+import { useWallet } from "../../hooks/useWallet";
 import * as authService from "../../services/authService";
+
 import type { CurrencyCode } from "../../types/wallet";
 import { COUNTRIES } from "../../constants/countries";
-import { CURRENCY_CODES, CURRENCY_NAMES } from "../../constants/currencies";
-import { Select } from "../../components/ui/Select";
-import { useWallet } from "../../hooks/useWallet";
+import {
+  CURRENCY_CODES,
+  CURRENCY_NAMES,
+} from "../../constants/currencies";
 
-function extractErrorMessage(err: unknown, fallback: string): string {
-  if (axios.isAxiosError(err) && typeof err.response?.data?.error === "string") {
-    return err.response.data.error;
+function extractErrorMessage(
+  error: unknown,
+  fallback: string,
+): string {
+  if (
+    axios.isAxiosError(error) &&
+    typeof error.response?.data?.error === "string"
+  ) {
+    return error.response.data.error;
   }
+
   return fallback;
 }
 
@@ -36,18 +54,49 @@ export default function Config() {
   const { refetch: refetchWallet } = useWallet();
   const navigate = useNavigate();
 
-  const [name, setNameState] = useState(user?.name ?? "");
-  const [surname, setSurnameState] = useState(user?.surname ?? "");
-  const [country, setCountry] = useState(user?.country ?? COUNTRIES[0].code);
-  const [alias, setAlias] = useState(user?.alias ?? "");
-  const [preferredCurrency, setPreferredCurrency] = useState<CurrencyCode>("USD");
+  const [name, setNameState] = useState(
+    user?.name ?? "",
+  );
 
-  const [copiedField, setCopiedField] = useState<"alias" | "cbu" | null>(null);
+  const [surname, setSurnameState] = useState(
+    user?.surname ?? "",
+  );
+
+  const [country, setCountry] = useState(
+    user?.country ?? COUNTRIES[0].code,
+  );
+
+  const [alias, setAlias] = useState(
+    user?.alias ?? "",
+  );
+
+  const [preferredCurrency, setPreferredCurrency] =
+    useState<CurrencyCode>("USD");
+
+  const [copiedField, setCopiedField] = useState<
+    "alias" | "cbu" | null
+  >(null);
+
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    null,
+  );
 
-  const [aliasModalOpen, setAliasModalOpen] = useState(false);
-  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
+  const [aliasModalOpen, setAliasModalOpen] =
+    useState(false);
+
+  const [passwordModalOpen, setPasswordModalOpen] =
+    useState(false);
+
+  const [deleteModalOpen, setDeleteModalOpen] =
+    useState(false);
+
+  const [deletingAccount, setDeletingAccount] =
+    useState(false);
+
+  const [deleteError, setDeleteError] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     authService
@@ -55,125 +104,259 @@ export default function Config() {
       .then((profile) => {
         setNameState(profile.name);
         setSurnameState(profile.surname);
-        setCountry(profile.country ?? COUNTRIES[0].code);
+
+        setCountry(
+          profile.country ?? COUNTRIES[0].code,
+        );
+
         setAlias(profile.alias ?? "");
       })
-      .catch(() => {});
+      .catch(() => {
+        // Se conservan los datos disponibles en AuthContext.
+      });
 
     authService
       .getMyWallet()
-      .then((wallet) => setPreferredCurrency(wallet.preferredCurrency))
-      .catch(() => {});
+      .then((wallet) => {
+        setPreferredCurrency(
+          wallet.preferredCurrency,
+        );
+      })
+      .catch(() => {
+        // Se conserva USD como valor inicial.
+      });
   }, []);
 
-  async function copyToClipboard(text: string, field: "alias" | "cbu") {
+  async function copyToClipboard(
+    text: string,
+    field: "alias" | "cbu",
+  ) {
+    if (!text) return;
+
     try {
       await navigator.clipboard.writeText(text);
       setCopiedField(field);
-      setTimeout(() => setCopiedField(null), 1500);
+
+      setTimeout(() => {
+        setCopiedField(null);
+      }, 1500);
     } catch {
-      // no se pudo copiar al portapapeles — no rompemos la UI por esto
+      // Si el portapapeles no está disponible,
+      // no interrumpimos la pantalla.
     }
   }
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (loading) return;
+
     setError(null);
     setLoading(true);
 
     const errors: string[] = [];
 
     try {
-      const updated = await authService.updateProfile({ country });
-      updateUser(updated);
-    } catch (err) {
-      errors.push(extractErrorMessage(err, "No pudimos actualizar tus datos."));
+      const updatedUser =
+        await authService.updateProfile({
+          country,
+        });
+
+      updateUser(updatedUser);
+    } catch (requestError) {
+      errors.push(
+        extractErrorMessage(
+          requestError,
+          "No pudimos actualizar tus datos.",
+        ),
+      );
     }
 
     try {
-      await authService.updatePreferredCurrency(preferredCurrency);
-      refetchWallet();
-    } catch (err) {
-      errors.push(extractErrorMessage(err, "No pudimos actualizar la moneda preferida."));
+      await authService.updatePreferredCurrency(
+        preferredCurrency,
+      );
+
+      await refetchWallet();
+    } catch (requestError) {
+      errors.push(
+        extractErrorMessage(
+          requestError,
+          "No pudimos actualizar la moneda preferida.",
+        ),
+      );
     }
 
     setLoading(false);
 
     if (errors.length > 0) {
       setError(errors.join(" "));
-    } else {
-      navigate(-1);
+      return;
+    }
+
+    navigate(-1);
+  }
+
+  async function handleDeleteAccount() {
+    if (deletingAccount) return;
+
+    setDeletingAccount(true);
+    setDeleteError(null);
+
+    try {
+      await authService.deleteMyAccount();
+
+      setDeleteModalOpen(false);
+
+      /*
+       * El backend elimina la cookie de sesión.
+       * Al recargar también se limpia el usuario
+       * que se encuentra guardado en AuthContext.
+       */
+      window.location.replace("/login");
+    } catch (requestError) {
+      const message = extractErrorMessage(
+        requestError,
+        "No pudimos eliminar tu cuenta. Intentá nuevamente.",
+      );
+
+      setDeleteError(message);
+      setDeleteModalOpen(false);
+    } finally {
+      setDeletingAccount(false);
     }
   }
 
-  const displayName = [name, surname].filter(Boolean).join(" ");
+  function openDeleteModal() {
+    if (deletingAccount) return;
+
+    setDeleteError(null);
+    setDeleteModalOpen(true);
+  }
+
+  function closeDeleteModal() {
+    if (deletingAccount) return;
+
+    setDeleteModalOpen(false);
+  }
+
+  const displayName = [name, surname]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div className="min-h-screen flex bg-surface-light dark:bg-surface-dark">
+    <div className="flex min-h-screen bg-surface-light dark:bg-surface-dark">
       <Sidebar />
 
-      <div className="flex-1 px-6 py-8 lg:px-10 lg:py-8">
-        <div className="max-w-sm lg:max-w-none mx-auto lg:mx-0">
-          {/* Header mobile — sin cambios */}
-          <div className="flex items-center gap-3 mb-6 lg:hidden">
-            <button type="button" onClick={() => navigate(-1)} className="icon-btn" aria-label="Volver">
-              <IconBack className="w-5 h-5" />
+      <div className="flex-1 px-6 py-8 lg:px-10">
+        <div className="mx-auto max-w-sm lg:mx-0 lg:max-w-none">
+          {/* Header mobile */}
+          <div className="mb-6 flex items-center gap-3 lg:hidden">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="icon-btn"
+              aria-label="Volver"
+            >
+              <IconBack className="h-5 w-5" />
             </button>
-            <h1 className="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">Mi perfil</h1>
+
+            <h1 className="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">
+              Mi perfil
+            </h1>
           </div>
 
           {/* Header desktop */}
-          <div className="hidden lg:flex lg:items-center lg:justify-between mb-8">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary mb-1">
-                Datos, cuenta y seguridad
-              </p>
-              <h1 className="text-2xl font-bold text-text-light-primary dark:text-text-dark-primary">Mi perfil</h1>
-            </div>
-            <Button type="submit" form="config-form" variant="primary" loading={loading}>
-              Guardar cambios
-            </Button>
-            {/* TODO(desktop): campana de notificaciones del mockup — no hay
-                sistema de notificaciones en el back todavía. */}
+          <div className="mb-8 hidden lg:block">
+            <p className="mb-1 text-xs uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
+              Datos, cuenta y seguridad
+            </p>
+
+            <h1 className="text-2xl font-bold text-text-light-primary dark:text-text-dark-primary">
+              Mi perfil
+            </h1>
           </div>
 
           {error && (
-            <div className="alert-note alert-note--error mb-4">
-              <p className="alert-note__description">{error}</p>
+            <div
+              role="alert"
+              className="alert-note alert-note--error mb-4"
+            >
+              <p className="alert-note__description">
+                {error}
+              </p>
             </div>
           )}
 
-          <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-light dark:border-border-dark lg:p-5">
+          <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
+            {/* Columna principal */}
+            <div className="flex flex-col gap-6 lg:col-span-2">
+              {/* Perfil */}
+              <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-light lg:p-5 dark:lg:border-border-dark">
                 <Avatar user={user} size="lg" />
+
                 <div className="min-w-0 flex-1">
-                  <p className="text-xl font-extrabold text-text-light-primary dark:text-text-dark-primary truncate">
+                  <p className="truncate text-xl font-extrabold text-text-light-primary dark:text-text-dark-primary">
                     {displayName || "Tu perfil"}
                   </p>
-                  {alias && <p className="text-sm text-text-light-tertiary dark:text-text-dark-tertiary truncate">@{alias}</p>}
+
+                  {alias && (
+                    <p className="truncate text-sm text-text-light-tertiary dark:text-text-dark-tertiary">
+                      @{alias}
+                    </p>
+                  )}
                 </div>
-                {/* TODO(desktop): "Cambiar foto" del mockup — no hay endpoint
-                    para subir foto de perfil todavía. */}
               </div>
 
-              <form id="config-form" onSubmit={handleSubmit} className="flex flex-col gap-6">
+              <form
+                id="config-form"
+                onSubmit={handleSubmit}
+                className="flex flex-col gap-6"
+              >
+                {/* Datos personales */}
                 <div className="flex flex-col gap-4">
-                  <p className="text-xs tracking-[0.2em] uppercase text-text-light-tertiary dark:text-text-dark-tertiary font-semibold">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
                     Datos personales
                   </p>
 
-                  <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-4">
-                    <Input label="Nombre" id="name" value={name} disabled hint="Por ahora no se puede editar desde acá." />
-                    <Input label="Apellido" id="surname" value={surname} disabled />
+                  <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2">
+                    <Input
+                      label="Nombre"
+                      id="name"
+                      value={name}
+                      disabled
+                      hint="Por ahora no se puede editar desde acá."
+                    />
+
+                    <Input
+                      label="Apellido"
+                      id="surname"
+                      value={surname}
+                      disabled
+                    />
                   </div>
 
-                  <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-4">
+                  <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2">
                     <div>
-                      <label className="input__label" htmlFor="email">Email</label>
+                      <label
+                        className="input__label"
+                        htmlFor="email"
+                      >
+                        Email
+                      </label>
+
                       <div className="relative">
-                        <input id="email" className="input pr-11 opacity-60 cursor-not-allowed" value={user?.email ?? ""} disabled />
-                        <IconCheck className="w-5 h-5 text-turquoise-500 absolute right-4 top-1/2 -translate-y-1/2" />
+                        <input
+                          id="email"
+                          className="input cursor-not-allowed pr-11 opacity-60"
+                          value={user?.email ?? ""}
+                          disabled
+                          readOnly
+                        />
+
+                        <IconCheck className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-turquoise-500" />
                       </div>
                     </div>
 
@@ -182,113 +365,274 @@ export default function Config() {
                       id="country"
                       value={country}
                       onChange={setCountry}
-                      options={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
+                      options={COUNTRIES.map(
+                        (countryOption) => ({
+                          value: countryOption.code,
+                          label: countryOption.name,
+                        }),
+                      )}
                     />
                   </div>
                 </div>
 
+                {/* Cuenta */}
                 <div className="flex flex-col gap-1">
-                  <p className="text-xs tracking-[0.2em] uppercase text-text-light-tertiary dark:text-text-dark-tertiary font-semibold mb-3">Cuenta</p>
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
+                    Cuenta
+                  </p>
 
-                  <div className="rounded-card border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark overflow-hidden">
+                  <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light dark:divide-border-dark dark:border-border-dark">
+                    {/* Alias */}
                     <div className="flex items-center justify-between px-4 py-3.5">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">Alias</p>
-                        <p className="font-semibold text-text-light-primary dark:text-text-dark-primary truncate">{alias}</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
+                          Alias
+                        </p>
+
+                        <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
+                          {alias}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0 ml-3">
-                        <button type="button" onClick={() => setAliasModalOpen(true)} className="text-text-light-tertiary dark:text-text-dark-tertiary hover:text-text-light-primary dark:hover:text-text-dark-primary" aria-label="Editar alias">
-                          <IconEdit className="w-5 h-5" />
+
+                      <div className="ml-3 flex shrink-0 items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setAliasModalOpen(true)
+                          }
+                          className="text-text-light-tertiary transition hover:text-text-light-primary dark:text-text-dark-tertiary dark:hover:text-text-dark-primary"
+                          aria-label="Editar alias"
+                        >
+                          <IconEdit className="h-5 w-5" />
                         </button>
-                        <button type="button" onClick={() => copyToClipboard(alias, "alias")} className="text-text-light-tertiary dark:text-text-dark-tertiary hover:text-text-light-primary dark:hover:text-text-dark-primary" aria-label="Copiar alias">
-                          {copiedField === "alias" ? <IconCheck className="w-5 h-5 text-turquoise-500" /> : <IconCopy className="w-5 h-5" />}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            copyToClipboard(
+                              alias,
+                              "alias",
+                            )
+                          }
+                          className="text-text-light-tertiary transition hover:text-text-light-primary dark:text-text-dark-tertiary dark:hover:text-text-dark-primary"
+                          aria-label="Copiar alias"
+                        >
+                          {copiedField === "alias" ? (
+                            <IconCheck className="h-5 w-5 text-turquoise-500" />
+                          ) : (
+                            <IconCopy className="h-5 w-5" />
+                          )}
                         </button>
                       </div>
                     </div>
 
+                    {/* CBU */}
                     <div className="flex items-center justify-between px-4 py-3.5">
-                      <div>
-                        <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">CBU</p>
-                        <p className="font-semibold text-text-light-primary dark:text-text-dark-primary tabular">{user?.cbu ?? ""}</p>
+                      <div className="min-w-0">
+                        <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
+                          CBU
+                        </p>
+
+                        <p className="truncate font-semibold tabular-nums text-text-light-primary dark:text-text-dark-primary">
+                          {user?.cbu ?? ""}
+                        </p>
                       </div>
-                      <button type="button" onClick={() => copyToClipboard(user?.cbu ?? "", "cbu")} className="text-text-light-tertiary dark:text-text-dark-tertiary hover:text-text-light-primary dark:hover:text-text-dark-primary shrink-0 ml-3" aria-label="Copiar CBU">
-                        {copiedField === "cbu" ? <IconCheck className="w-5 h-5 text-turquoise-500" /> : <IconCopy className="w-5 h-5" />}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          copyToClipboard(
+                            user?.cbu ?? "",
+                            "cbu",
+                          )
+                        }
+                        className="ml-3 shrink-0 text-text-light-tertiary transition hover:text-text-light-primary dark:text-text-dark-tertiary dark:hover:text-text-dark-primary"
+                        aria-label="Copiar CBU"
+                      >
+                        {copiedField === "cbu" ? (
+                          <IconCheck className="h-5 w-5 text-turquoise-500" />
+                        ) : (
+                          <IconCopy className="h-5 w-5" />
+                        )}
                       </button>
                     </div>
 
-                    <button type="button" onClick={() => setPasswordModalOpen(true)} className="w-full flex items-center justify-between px-4 py-3.5">
-                      <span className="font-medium text-text-light-primary dark:text-text-dark-primary">Cambiar contraseña</span>
-                      <IconChevronRight className="w-4 h-4 text-text-light-tertiary dark:text-text-dark-tertiary" />
+                    {/* Contraseña */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPasswordModalOpen(true)
+                      }
+                      className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-black/5 dark:hover:bg-white/5"
+                    >
+                      <span className="font-medium text-text-light-primary dark:text-text-dark-primary">
+                        Cambiar contraseña
+                      </span>
+
+                      <IconChevronRight className="h-4 w-4 text-text-light-tertiary dark:text-text-dark-tertiary" />
                     </button>
                   </div>
                 </div>
 
+                {/* Moneda favorita */}
                 <div>
-                  <p className="text-xs tracking-[0.2em] uppercase text-text-light-tertiary dark:text-text-dark-tertiary font-semibold mb-3">Moneda favorita</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {CURRENCY_CODES.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => setPreferredCurrency(c)}
-                        className={[
-                          "px-5 py-2.5 rounded-full text-sm font-semibold border transition-colors",
-                          preferredCurrency === c
-                            ? "border-violet-500 text-violet-500 bg-violet-500/10"
-                            : "border-border-light dark:border-border-dark text-text-light-secondary dark:text-text-dark-secondary bg-surface-light-input dark:bg-surface-dark-elevated",
-                        ].join(" ")}
-                      >
-                        {c}
-                      </button>
-                    ))}
+                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
+                    Moneda favorita
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    {CURRENCY_CODES.map(
+                      (currencyCode) => (
+                        <button
+                          key={currencyCode}
+                          type="button"
+                          onClick={() =>
+                            setPreferredCurrency(
+                              currencyCode,
+                            )
+                          }
+                          className={[
+                            "rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors",
+                            preferredCurrency ===
+                            currencyCode
+                              ? "border-violet-500 bg-violet-500/10 text-violet-500"
+                              : "border-border-light bg-surface-light-input text-text-light-secondary dark:border-border-dark dark:bg-surface-dark-elevated dark:text-text-dark-secondary",
+                          ].join(" ")}
+                        >
+                          {currencyCode}
+                        </button>
+                      ),
+                    )}
                   </div>
                 </div>
 
-                <Button type="submit" variant="primary" fullWidth loading={loading} className="lg:hidden">
-                  Guardar cambios
-                </Button>
-              </form>
+                {/* Acciones mobile */}
+                <div className="flex flex-col gap-3 lg:hidden">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    fullWidth
+                    loading={loading}
+                  >
+                    Guardar cambios
+                  </Button>
 
-              {/* TODO(desktop): "Cerrar mi cuenta" (eliminar cuenta) del mockup —
-                  no hay endpoint de baja de cuenta en el back todavía, y es una
-                  acción destructiva que necesita su propio diseño (¿bloquear si
-                  el saldo no es 0? ¿doble confirmación?). Se agrega cuando esté
-                  esa lógica del lado del back. */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    fullWidth
+                    disabled={deletingAccount}
+                    onClick={openDeleteModal}
+                    className="border-magenta-500 text-magenta-500 hover:bg-magenta-500/10"
+                  >
+                    Eliminar cuenta
+                  </Button>
+
+                  {deleteError && (
+                    <div
+                      role="alert"
+                      className="alert-note alert-note--error"
+                    >
+                      <p className="alert-note__description">
+                        {deleteError}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </form>
             </div>
 
-            <div className="hidden lg:flex lg:flex-col lg:gap-6">
-              <div className="rounded-card border border-border-light dark:border-border-dark p-5">
-                <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary mb-4">Tu cuenta</p>
+            {/* Columna derecha desktop */}
+            <div className="hidden flex-col gap-4 lg:flex">
+              {/* Datos de la cuenta */}
+              <div className="rounded-card border border-border-light p-5 dark:border-border-dark">
+                <p className="mb-4 text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
+                  Tu cuenta
+                </p>
+
                 <div className="flex flex-col gap-4">
                   <div>
-                    <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">Alias</p>
-                    <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary truncate">{alias}</p>
+                    <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
+                      Alias
+                    </p>
+
+                    <p className="truncate text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
+                      {alias}
+                    </p>
                   </div>
+
                   <div>
-                    <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">CBU</p>
-                    <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary tabular truncate">{user?.cbu ?? ""}</p>
+                    <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
+                      CBU
+                    </p>
+
+                    <p className="truncate text-sm font-semibold tabular-nums text-text-light-primary dark:text-text-dark-primary">
+                      {user?.cbu ?? ""}
+                    </p>
                   </div>
+
                   <div>
-                    <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary mb-1">Moneda favorita</p>
+                    <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
+                      Moneda favorita
+                    </p>
+
                     <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
-                      {preferredCurrency} · {CURRENCY_NAMES[preferredCurrency]}
+                      {preferredCurrency} ·{" "}
+                      {
+                        CURRENCY_NAMES[
+                          preferredCurrency
+                        ]
+                      }
                     </p>
                   </div>
                 </div>
               </div>
-              {/* TODO(desktop): panel "Monedas activas" + "Gestionar" del
-                  mockup — hoy las 3 monedas están siempre activas para todos
-                  los usuarios, no existe un on/off por cuenta. Si arman esa
-                  lógica en el back, va acá. */}
+
+              {/* Guardar debajo de los datos */}
+              <Button
+                type="submit"
+                form="config-form"
+                variant="primary"
+                fullWidth
+                loading={loading}
+              >
+                Guardar cambios
+              </Button>
+
+              {/* Eliminar debajo de guardar */}
+              <Button
+                type="button"
+                variant="outline"
+                fullWidth
+                disabled={deletingAccount}
+                onClick={openDeleteModal}
+                className="border-magenta-500 text-magenta-500 hover:bg-magenta-500/10"
+              >
+                Eliminar cuenta
+              </Button>
+
+              {deleteError && (
+                <div
+                  role="alert"
+                  className="alert-note alert-note--error"
+                >
+                  <p className="alert-note__description">
+                    {deleteError}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
+      {/* Modal para editar alias */}
       <EditAliasModal
         open={aliasModalOpen}
         currentAlias={alias}
-        onClose={() => setAliasModalOpen(false)}
+        onClose={() =>
+          setAliasModalOpen(false)
+        }
         onSaved={(updatedUser) => {
           updateUser(updatedUser);
           setAlias(updatedUser.alias);
@@ -296,7 +640,37 @@ export default function Config() {
         }}
       />
 
-      <ChangePasswordModal open={passwordModalOpen} onClose={() => setPasswordModalOpen(false)} />
+      {/* Modal para cambiar contraseña */}
+      <ChangePasswordModal
+        open={passwordModalOpen}
+        onClose={() =>
+          setPasswordModalOpen(false)
+        }
+      />
+
+      {/* Confirmación para eliminar cuenta */}
+      <ConfirmActionModal
+        open={deleteModalOpen}
+        onCancel={closeDeleteModal}
+        onConfirm={handleDeleteAccount}
+        confirming={deletingAccount}
+        icon={IconAlertTriangle}
+        title="¿Eliminar tu cuenta?"
+        description="Esta acción es permanente y no se puede deshacer. Tu email y alias quedarán disponibles para un nuevo registro."
+        rows={[
+          {
+            label: "Cuenta",
+            value: user?.email ?? "Tu cuenta",
+          },
+          {
+            label: "Requisito",
+            value:
+              "Todos los saldos deben estar en cero",
+            accent: true,
+          },
+        ]}
+        confirmLabel="Sí, eliminar cuenta"
+      />
     </div>
   );
 }
