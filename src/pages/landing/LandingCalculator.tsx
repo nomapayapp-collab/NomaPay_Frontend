@@ -16,10 +16,7 @@ export function LandingCalculator() {
   const [amount, setAmount] = useState(1000);
   const [senderCurrency, setSenderCurrency] = useState<CurrencyCode>("USD");
 
-  // Cotizaciones en vivo (mismo service que usa WalletContext ya logueado).
-  // Esta página es pública/sin login, así que no hay WalletContext acá —
-  // arrancamos con FALLBACK_RATES para no mostrar la calculadora en 0
-  // mientras llega la respuesta.
+  
   const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>(FALLBACK_RATES);
 
   useEffect(() => {

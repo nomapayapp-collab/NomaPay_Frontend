@@ -7,11 +7,7 @@ export type CurrencyMeta = {
   color: string;
 };
 
-/**
- * Metadata de cada moneda soportada — nombre, símbolo y color del badge.
- * Fuente única: antes esto estaba repetido (con distintos subconjuntos de
- * campos) en Wallet.tsx, Config.tsx y Exchange.tsx.
- */
+
 export const CURRENCIES: Record<CurrencyCode, CurrencyMeta> = {
   ARS: { name: "Peso argentino", symbol: "$", color: "bg-[#6f42c1]" },
   USD: { name: "Dólar estadounidense", symbol: "US$", color: "bg-[#168c94]" },

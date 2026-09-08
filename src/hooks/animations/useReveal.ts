@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-/**
- * dispara isVisible=true una sola vez cuando el elemento
- * referenciado entra en el viewport. Base para las animaciones "aparece
- * al scrollear" de la landing.
- */
+
 export function useReveal<T extends HTMLElement>(options?: {
   threshold?: number;
   rootMargin?: string;

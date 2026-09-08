@@ -14,22 +14,7 @@ function getStoredTheme(): Theme {
   }
 }
 
-/**
- * Modo claro/oscuro de toda la app.
- *
- * El tema inicial ya se aplica antes de que React monte (ver el script en
- * index.html, evita el flash del tema incorrecto al cargar). Este hook
- * sincroniza el estado de React con la clase "light" del body, expone
- * toggleTheme() para el switch de Configuración, y sincroniza el tema con
- * la cuenta (GET /users/me trae `theme`, PATCH /users/me/theme lo guarda)
- * para que viaje entre dispositivos.
- *
- * Se usa en dos lugares a la vez (TopTabBar y Sidebar, mobile/desktop), cada
- * uno con su propio useState — no comparten estado de React, solo la clase
- * del body y localStorage. Por eso el "adoptar el tema de la cuenta" usa un
- * ref para aplicarse una sola vez por valor, y el toggle nunca dispara el
- * PATCH desde un efecto (evita duplicados si algún día conviven ambos).
- */
+
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(getStoredTheme);
   const { user, isAuthenticated } = useAuth();

@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
 
-/**
- * true/false según si el media query matchea ahora mismo — se actualiza
- * solo al cruzar el breakpoint (resize, rotar el celular, etc).
- *
- * Uso: const isDesktop = useMediaQuery("(min-width: 1024px)");
- */
+
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
 

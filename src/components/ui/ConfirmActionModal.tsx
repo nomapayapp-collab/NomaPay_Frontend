@@ -15,11 +15,6 @@ type ConfirmRow = {
   accent?: boolean;
 };
 
-/**
- * Confirmación "a lo GitHub": el usuario tiene que volver a escribir un
- * valor exacto (ej. su email) para que el botón de confirmar se habilite.
- * Se resetea cada vez que el modal se abre.
- */
 type ConfirmationInput = {
   label: string;
   expectedValue: string;
@@ -32,8 +27,6 @@ type ConfirmActionModalProps = {
   onConfirm: () => void | Promise<void>;
   confirming?: boolean;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
-  /** "danger" es para acciones destructivas (ej. eliminar cuenta): ícono en
-   *  rojo y descripción en negrita/color fuerte en vez del gris habitual. */
   variant?: "default" | "danger";
   title: string;
   description: string;
@@ -56,7 +49,8 @@ export function ConfirmActionModal({
   confirmLabel = "Confirmar",
 }: ConfirmActionModalProps) {
   const confirmationLock = useRef(false);
-  const [typedConfirmation, setTypedConfirmation] = useState("");
+  const [typedConfirmation, setTypedConfirmation] =
+    useState("");
 
   useEffect(() => {
     if (open) {
@@ -64,11 +58,27 @@ export function ConfirmActionModal({
     }
   }, [open]);
 
+  const normalizedTypedConfirmation =
+    typedConfirmation.trim().toLowerCase();
+
+  const normalizedExpectedValue =
+    confirmationInput?.expectedValue.trim().toLowerCase() ?? "";
+
   const confirmationMismatch =
-    !!confirmationInput && typedConfirmation !== confirmationInput.expectedValue;
+    !!confirmationInput &&
+    normalizedTypedConfirmation !== normalizedExpectedValue;
+
+  const showConfirmationError =
+    !!confirmationInput &&
+    typedConfirmation.length > 0 &&
+    confirmationMismatch;
 
   async function handleConfirm() {
-    if (confirming || confirmationLock.current) {
+    if (
+      confirming ||
+      confirmationLock.current ||
+      confirmationMismatch
+    ) {
       return;
     }
 
@@ -94,12 +104,18 @@ export function ConfirmActionModal({
       open={open}
       onClose={handleCancel}
       title={title}
-      borderClassName={variant === "danger" ? "border border-magenta-500" : undefined}
+      borderClassName={
+        variant === "danger"
+          ? "border border-magenta-500"
+          : undefined
+      }
     >
       <div className="flex flex-col gap-5">
         <div
           className={`flex h-11 w-11 items-center justify-center rounded-control ${
-            variant === "danger" ? "bg-magenta-500/15 text-magenta-500" : "bg-violet-500/15 text-violet-300"
+            variant === "danger"
+              ? "bg-magenta-500/15 text-magenta-500"
+              : "bg-violet-500/15 text-violet-300"
           }`}
         >
           <Icon className="h-5 w-5" />
@@ -142,21 +158,46 @@ export function ConfirmActionModal({
 
         {confirmationInput && (
           <div>
-            <label htmlFor="confirm-action-input" className="input__label">
+            <label
+              htmlFor="confirm-action-input"
+              className="input__label"
+            >
               {confirmationInput.label}
             </label>
+
             <input
               id="confirm-action-input"
-              type="text"
-              className={`input ${variant === "danger" ? "input--error" : ""}`}
+              type="email"
+              className={`input ${
+                showConfirmationError ? "input--error" : ""
+              }`}
               value={typedConfirmation}
-              onChange={(e) => setTypedConfirmation(e.target.value)}
+              onChange={(event) =>
+                setTypedConfirmation(event.target.value)
+              }
               placeholder={confirmationInput.placeholder}
               autoComplete="off"
               autoCorrect="off"
               autoCapitalize="off"
               spellCheck={false}
+              aria-invalid={showConfirmationError}
+              aria-describedby={
+                showConfirmationError
+                  ? "confirm-action-input-error"
+                  : undefined
+              }
             />
+
+            {showConfirmationError && (
+              <p
+                id="confirm-action-input-error"
+                role="alert"
+                className="mt-1.5 text-[12px] font-medium text-magenta-500"
+              >
+                El email ingresado no coincide con el de tu
+                cuenta.
+              </p>
+            )}
           </div>
         )}
 

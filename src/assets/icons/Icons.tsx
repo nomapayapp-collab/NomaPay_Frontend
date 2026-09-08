@@ -1,18 +1,4 @@
 
-/**
- * Icons.tsx — todos los íconos de UI de NomaPay como componentes de React.
- *
- * Uso:
- *   import { IconHome, IconWallet, IconSend } from "@/components/icons/Icons";
- *   <IconHome className="w-5 h-5 text-violet-500" />
- *
- * Todos son stroke-based (viewBox 0 0 24 24, currentColor), así que heredan
- * el color de texto del elemento padre — no hace falta pasar "color", solo
- * className con un text-* de Tailwind.
- *
- * Excepción: IconStar es fill-based (relleno), como corresponde a un ícono
- * de "favorito" que se ve mejor sólido.
- */
 import type { SVGProps } from "react";
 type IconProps = SVGProps<SVGSVGElement>;
 
@@ -304,25 +290,7 @@ export function IconMessage({ className = "" }: { className?: string }) {
   );
 }
 
-/* export function IconGlobe({ className = "" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-    </svg>
-  );
-} */
 
-/* export function IconBriefcase({ className = "" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="7" width="20" height="14" rx="2" />
-      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-    </svg>
-  );
-}
- */
 
 export function IconGlobe(props: IconProps) {
   return (

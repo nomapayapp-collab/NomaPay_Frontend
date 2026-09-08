@@ -39,10 +39,7 @@ const FILTERS: { key: Filter; label: string; types?: MovementType[] }[] = [
   { key: "cambios", label: "Cambios", types: ["cambio"] },
 ];
 
-// El listado completo vive en Historial — acá mostramos nada más los
-// últimos MAX_VISIBLE_MOVEMENTS del filtro activo (wallet.recentMovements
-// ya viene ordenado por fecha DESC del back, así que un simple slice
-// alcanza para quedarnos con los más recientes).
+
 const MAX_VISIBLE_MOVEMENTS = 10;
 
 function formatDate(iso: string) {

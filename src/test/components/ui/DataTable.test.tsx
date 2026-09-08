@@ -2,7 +2,7 @@ import { useState } from "react";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { DataTable, type DataTableColumn } from "../../components/ui/DataTable";
+import { DataTable, type DataTableColumn } from "../../../components/ui/DataTable";
 
 type Item = { id: number; name: string; category: string };
 

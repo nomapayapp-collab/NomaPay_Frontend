@@ -1,9 +1,4 @@
-/**
- * Formateo de fechas consistente en toda la app (es-AR). Nace de
- * Historial pero es de uso general — no depende de nada del dominio.
- */
 
-/** formatShortDate("2026-08-25T13:24:00.000Z") → "25 ago" */
 export function formatShortDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es-AR", { day: "2-digit", month: "short" }).replace(".", "");
 }

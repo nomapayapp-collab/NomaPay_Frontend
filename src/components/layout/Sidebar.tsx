@@ -34,13 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/summary", label: "Resumen", icon: IconGrid },
 ];
 
-/**
- * Navegación lateral fija de desktop (lg+) — equivalente al riel de mobile.
- * Se monta en las mismas pantallas que ya montan el riel.
- *
- * El botón de perfil vive en el Header (arriba a la derecha, en todas las
- * pantallas) — acá al pie solo quedan modo claro/oscuro y logout.
- */
+
 export function Sidebar() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();

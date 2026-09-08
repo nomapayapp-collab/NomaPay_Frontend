@@ -10,12 +10,7 @@ type HeaderProps = {
   actions?: ReactNode;
 };
 
-/**
- * Header de página. El botón de perfil (avatar + nombre en desktop, solo
- * el círculo en mobile) vive siempre acá, del lado derecho — `actions` son
- * botones extra de la página que se muestran a la izquierda de ese botón,
- * no lo reemplazan.
- */
+
 export function Header({ greeting, title, subtitle, actions }: HeaderProps) {
   const navigate = useNavigate();
   const { user } = useAuth();

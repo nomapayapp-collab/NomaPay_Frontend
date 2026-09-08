@@ -30,9 +30,7 @@ type ToastContextValue = {
 
 export const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
-// ícono por defecto de cada variante — mismo criterio de color que
-// .badge/.alert-note (turquesa=éxito, magenta=error, ámbar=advertencia,
-// violeta=info).
+
 const DEFAULT_ICONS: Record<ToastVariant, ToastIcon> = {
   success: IconCheck,
   error: IconX,
@@ -44,11 +42,7 @@ const AUTO_DISMISS_MS = 4000;
 
 let nextId = 0;
 
-/**
- * Toasts globales de la app — se muestran arriba de todo (por encima de
- * cualquier Modal abierto) y se cierran solos a los 4s, o antes con la X.
- * Uso: const { showToast } = useToast(); showToast("Listo", "success");
- */
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
 
@@ -71,7 +65,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
 
-      <div className="fixed top-4 inset-x-0 z-[110] flex flex-col items-center gap-2 px-4 pointer-events-none">
+      <div className="fixed top-4 inset-x-0 z-110 flex flex-col items-center gap-2 px-4 pointer-events-none">
         {toasts.map((toast) => (
           <div
             key={toast.id}

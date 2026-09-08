@@ -10,10 +10,6 @@ export function BalanceCard() {
   const { wallet } = useWallet();
   const [showBalance, setShowBalance] = useState(true);
 
-  // Mostramos siempre las 3 monedas — así un usuario recién registrado
-  // (todo en 0) ve las 3 tarjetas igual, no solo la primaria. Las monedas
-  // con saldo van primero; las que están en 0 quedan al final (entre
-  // ellas, la primaria/favorita rompe el empate).
   const balances = [...wallet.balances].sort((a, b) => {
     const aHasBalance = a.amount > 0;
     const bHasBalance = b.amount > 0;
@@ -24,10 +20,7 @@ export function BalanceCard() {
   if (balances.length === 0) return null;
 
   return (
-    // min-w-70 + flex-1 (en vez de un ancho fijo tipo 95%/w-75 que siempre
-    // desbordaba) hace que las cards se repartan el ancho disponible y solo
-    // se achiquen hasta ese mínimo — el scroll/snap solo aparece cuando la
-    // suma de esos mínimos no entra en pantalla, no siempre.
+   
     <div className="flex gap-4 overflow-x-auto scrollbar-app snap-x snap-mandatory pb-2 -mx-1 px-1">
       {balances.map((balance) => {
         const others = balances.filter((b) => b !== balance);
