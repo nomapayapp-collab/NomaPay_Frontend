@@ -140,8 +140,9 @@ export default function Wallet() {
           <div className="lg:hidden flex flex-col gap-5">
             <BalanceCard />
             {renderCargarSaldoButton()}
-            {renderRecibirDinero()}
             {renderFavoriteCurrency()}
+            {renderRecibirDinero()}
+
           </div>
 
           {/* ---------- Desktop ---------- */}
@@ -149,6 +150,10 @@ export default function Wallet() {
             <BalanceCard />
 
             <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
+              <div className="flex flex-col gap-4">
+                {renderFavoriteCurrency()}
+                {renderCargarSaldoButton()}
+              </div>
               <div className="lg:col-span-2">
                 <div className="rounded-card border border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark-elevated p-6">
                   <p className="card__title mb-3">Movimientos en {selected.currency.code}</p>
@@ -162,11 +167,10 @@ export default function Wallet() {
                         <li key={m.id} className="flex items-center justify-between py-3 text-[14px]">
                           <span className="text-text-light-primary dark:text-text-dark-primary">{m.description}</span>
                           <span
-                            className={`tabular font-medium ${
-                              m.amount < 0
+                            className={`tabular font-medium ${m.amount < 0
                                 ? "text-text-light-secondary dark:text-text-dark-secondary"
                                 : "text-turquoise-500"
-                            }`}
+                              }`}
                           >
                             {m.amount < 0 ? "-" : "+"}
                             {formatCurrency(Math.abs(m.amount), m.currency)}
@@ -176,11 +180,6 @@ export default function Wallet() {
                     </ul>
                   )}
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                {renderFavoriteCurrency()}
-                {renderCargarSaldoButton()}
               </div>
             </div>
           </div>

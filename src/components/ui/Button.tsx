@@ -9,7 +9,8 @@ import { Link, type LinkProps } from "react-router-dom";
  *   secondary    → degradado PAY (azul-violeta→rosa). Envíos / progreso.
  *   outline      → borde, fondo transparente. Acción secundaria.
  *   ghost        → sin fondo ni borde, solo texto. Acciones terciarias (ej. "Historial").
- *   destructive  → rojo sólido. SOLO acciones irreversibles.
+ *   destructiveOutline → igual que outline pero en rojo (borde y texto). Acciones
+ *                        destructivas (ej. "Eliminar cuenta").
  *
  * Tamaños: "md" (default) | "sm"
  *
@@ -24,7 +25,7 @@ import { Link, type LinkProps } from "react-router-dom";
  *   <Button variant="primary" iconOnly aria-label="Buscar"><IconSearch className="w-5 h-5" /></Button>
  */
 
-type Variant = "primary" | "secondary" | "outline" | "ghost" | "destructive";
+type Variant = "primary" | "secondary" | "outline" | "ghost" | "destructiveOutline";
 type Size = "sm" | "md";
 
 const variantClass: Record<Variant, string> = {
@@ -32,7 +33,7 @@ const variantClass: Record<Variant, string> = {
   secondary: "btn--secondary",
   outline: "btn--outline",
   ghost: "btn--ghost",
-  destructive: "btn--destructive",
+  destructiveOutline: "btn--destructive-outline",
 };
 
 type CommonProps = {

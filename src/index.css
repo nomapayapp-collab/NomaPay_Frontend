@@ -146,12 +146,18 @@
   }
   .btn--ghost {
     @apply bg-transparent text-text-dark-secondary hover:text-text-dark-primary;
-  }
+  } 
   body.light .btn--ghost {
     @apply text-text-light-secondary hover:text-text-light-primary;
   }
-  .btn--destructive {
-    @apply bg-destructive text-white hover:opacity-90;
+  /* destructiveOutline: mismo look que .btn--outline (borde + fondo
+     transparente), pero en rojo — para "Eliminar cuenta" y acciones
+     destructivas que no deben leerse como un botón sólido/primario. */
+  .btn--destructive-outline {
+    @apply bg-destructive/10 border border-destructive/40 text-destructive hover:bg-destructive/20;
+  }
+  body.light .btn--destructive-outline {
+    @apply bg-transparent border-destructive/40 text-destructive hover:bg-destructive/10;
   }
   .btn--sm {
     @apply px-3.5 py-2 text-[13px];

@@ -9,6 +9,8 @@ const emptyBalances: Record<CurrencyCode, number> = Object.fromEntries(
   CURRENCY_CODES.map((code) => [code, 0]),
 ) as Record<CurrencyCode, number>;
 
+const EXCHANGE_FEE_PERCENTAGE = 0.5;
+
 const formatMoney = (value: number) =>
   new Intl.NumberFormat("es-AR", {
     minimumFractionDigits: 2,
@@ -21,12 +23,6 @@ const formatRate = (value: number) =>
     maximumFractionDigits: 2,
   }).format(value);
 
-/**
- * Toda la lógica del formulario de "Convertir monedas": estado, cálculo de
- * tasas, validaciones y el submit contra el back. Exchange.tsx se queda
- * solo con el JSX que consume esto — separado así porque era la mitad del
- * archivo y no tenía nada que ver con el render.
- */
 export function useExchangeForm() {
   const { wallet, loading: walletLoading, error: walletError, refetch } = useWallet();
   const { showToast } = useToast();
@@ -36,10 +32,6 @@ export function useExchangeForm() {
   const [amount, setAmount] = useState("0,00");
   const [exchangeLoading, setExchangeLoading] = useState(false);
 
-  /*
-   * Convierte los balances del WalletContext en un objeto fácil de
-   * consultar: balances.USD, balances.ARS, etc.
-   */
   const balances = useMemo(() => {
     const updatedBalances = { ...emptyBalances };
 
@@ -71,11 +63,6 @@ export function useExchangeForm() {
     });
   }, [wallet.balances]);
 
-  /*
-   * Busca el valor de una moneda expresado en ARS. WalletContext guarda:
-   * 1 USD = X ARS
-   * 1 BRL = X ARS
-   */
   const getValueInArs = (currencyCode: CurrencyCode) => {
     if (currencyCode === "ARS") return 1;
 
@@ -104,7 +91,11 @@ export function useExchangeForm() {
   const brlToArs = getValueInArs("BRL");
 
   const numericAmount = Number(amount.replace(/\./g, "").replace(",", ".")) || 0;
-  const convertedAmount = numericAmount * exchangeRate;
+
+  // Misma cuenta que calculateConversion() en el back
+  const feeAmount = numericAmount * (EXCHANGE_FEE_PERCENTAGE / 100);
+  const amountAfterFee = numericAmount - feeAmount;
+  const convertedAmount = amountAfterFee * exchangeRate;
 
   const rateError = !walletLoading && exchangeRate <= 0 ? "No pudimos obtener la tasa de cambio" : "";
 
@@ -194,6 +185,9 @@ export function useExchangeForm() {
     numericAmount,
     convertedAmount,
     rateError,
+
+    feePercentage: EXCHANGE_FEE_PERCENTAGE,
+    feeAmount,
 
     exchangeLoading,
 

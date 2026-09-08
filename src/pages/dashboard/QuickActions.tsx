@@ -15,13 +15,14 @@ const NAV_ACTIONS: NavAction[] = [
   { label: "Convertir", icon: IconSwap, to: "/exchange", color: "var(--color-turquoise-500)" },
 ];
 
-// El border-color de cada botón sale del mismo "color" que ya tenía su
-// ícono (era la única razón de ser de esa prop) — por eso ACTION_BTN_CLASS
-// ya no trae un color de borde fijo, se aplica por botón vía style.
 const ACTION_BTN_CLASS =
-  "flex flex-col items-center gap-2 text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary " +
+  "group flex flex-col items-center gap-2 " +
+  "text-text-light-secondary dark:text-text-dark-secondary " +
+  "hover:text-text-light-primary dark:hover:text-text-dark-primary " +
+  "transition-all duration-200 ease-out " +
   "lg:flex-row lg:gap-3 lg:px-5 lg:py-4 lg:rounded-card lg:border " +
-  "lg:bg-surface-light-input dark:lg:bg-surface-dark-elevated lg:flex-1";
+  "lg:bg-surface-light-input dark:lg:bg-surface-dark-elevated lg:flex-1 " +
+  "lg:hover:-translate-y-0.5 lg:hover:shadow-md";
 
 export function QuickActions() {
   const navigate = useNavigate();
@@ -38,11 +39,21 @@ export function QuickActions() {
             className={ACTION_BTN_CLASS}
             style={{ borderColor: color }}
           >
-            {/* en mobile no hay pill con borde (eso arranca en lg:), así que
-                el aro de color va directo en el círculo del ícono; en
-                desktop se apaga (lg:border-0) porque ya lo da el botón. */}
-            <span className="icon-btn icon-btn--lg border lg:border-0 lg:w-10 lg:h-10" style={{ borderColor: color }}>
-              <Icon className="w-6 h-6 lg:w-5 lg:h-5" color={color} />
+            <span className="
+                icon-btn icon-btn--lg border
+                lg:border-0 lg:w-10 lg:h-10
+                transition-all duration-200 ease-out
+                group-hover:scale-110
+              "
+              style={{ borderColor: color }}>
+              <Icon
+                className="
+                  w-6 h-6 lg:w-5 lg:h-5
+                  transition-transform duration-200
+                  group-hover:scale-110
+                "
+                color={color}
+              />
             </span>
             <span className="text-[12.5px] font-medium lg:text-[14px]">{label}</span>
           </button>
@@ -55,7 +66,12 @@ export function QuickActions() {
           style={{ borderColor: "var(--color-amber-500)" }}
         >
           <span
-            className="icon-btn icon-btn--lg border lg:border-0 lg:w-10 lg:h-10"
+            className="
+              icon-btn icon-btn--lg border
+              lg:border-0 lg:w-10 lg:h-10
+              transition-all duration-200 ease-out
+              group-hover:scale-110
+            "
             style={{ borderColor: "var(--color-amber-500)" }}
           >
             <IconPlus className="w-6 h-6 lg:w-5 lg:h-5" color="var(--color-amber-500)" />

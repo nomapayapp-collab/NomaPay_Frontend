@@ -491,7 +491,7 @@ export default function Config() {
 
                   <Button
                     type="button"
-                    variant="destructive"
+                    variant="destructiveOutline"
                     fullWidth
                     disabled={deletingAccount}
                     onClick={openDeleteModal}
@@ -561,7 +561,7 @@ export default function Config() {
               {/* Eliminar debajo de guardar */}
               <Button
                 type="button"
-                variant="destructive"
+                variant="destructiveOutline"
                 fullWidth
                 disabled={deletingAccount}
                 onClick={openDeleteModal}

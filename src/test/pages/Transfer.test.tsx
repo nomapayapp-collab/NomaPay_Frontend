@@ -139,10 +139,8 @@ describe("Transfer", () => {
       FREQUENT_CONTACTS,
     );
 
-    // El endpoint de búsqueda todavía no está disponible.
-    // Transfer debe permitir continuar manualmente.
     mocks.lookupAlias.mockRejectedValue(
-      new Error("Endpoint no disponible"),
+      new Error("network error"),
     );
   });
 
@@ -156,7 +154,7 @@ describe("Transfer", () => {
     ).toBeDisabled();
   });
 
-  it("elige un contacto de Frecuentes y arma el resumen del paso 3", async () => {
+  it("elige un contacto frecuente y arma el resumen", async () => {
     const user = userEvent.setup();
 
     setup();
@@ -203,7 +201,7 @@ describe("Transfer", () => {
     ).toHaveTextContent("ARS 1.500,00");
   });
 
-  it("no deja avanzar del paso 2 si el monto supera el saldo disponible", async () => {
+  it("no deja avanzar si el monto supera el saldo", async () => {
     const user = userEvent.setup();
 
     setup();
@@ -235,7 +233,7 @@ describe("Transfer", () => {
     ).toBeDisabled();
   });
 
-  it("permite usar un alias tipeado a mano como destinatario", async () => {
+  it("permite usar un alias manual si no puede verificarlo", async () => {
     const user = userEvent.setup();
 
     setup();
@@ -267,8 +265,15 @@ describe("Transfer", () => {
     ).toBeEnabled();
   });
 
-  it("usa el texto tipeado como aliasOrCbu cuando no es un contacto conocido", async () => {
+  it("usa un alias verificado por el backend", async () => {
     const user = userEvent.setup();
+
+    mocks.lookupAlias.mockResolvedValue({
+      found: true,
+      name: "Nueva",
+      surname: "Persona",
+      alias: "nueva.persona",
+    });
 
     setup();
 
@@ -276,21 +281,20 @@ describe("Transfer", () => {
       screen.getByPlaceholderText(
         "Buscar alias, CBU o contacto",
       ),
-      "no.existe.nomapay",
+      "nueva.persona",
     );
 
-    const manualRecipientButton =
-      await screen.findByRole(
-        "button",
-        {
-          name: /Usar como destinatario/i,
-        },
-        {
-          timeout: 2000,
-        },
-      );
+    const foundOption = await screen.findByRole(
+      "button",
+      {
+        name: /Nueva Persona/i,
+      },
+      {
+        timeout: 2000,
+      },
+    );
 
-    await user.click(manualRecipientButton);
+    await user.click(foundOption);
 
     await user.click(
       screen.getByRole("button", {
@@ -326,22 +330,77 @@ describe("Transfer", () => {
         "/comprobante",
         expect.objectContaining({
           state: expect.objectContaining({
-            aliasOrCbu: "no.existe.nomapay",
+            aliasOrCbu: "nueva.persona",
           }),
         }),
       );
     });
   });
 
-  it("muestra un estado vacío si el usuario no tiene contactos frecuentes", async () => {
-    mocks.getFrequentContacts.mockResolvedValue([]);
+  it("no permite usar un alias inexistente", async () => {
+    const user = userEvent.setup();
+
+    mocks.lookupAlias.mockResolvedValue({
+      found: false,
+    });
 
     setup();
 
-    const emptyMessages = await screen.findAllByText(
-      "Todavía no tenés contactos frecuentes.",
+    await user.type(
+      screen.getByPlaceholderText(
+        "Buscar alias, CBU o contacto",
+      ),
+      "no.existe.nomapay",
     );
 
-    expect(emptyMessages.length).toBeGreaterThan(0);
+    await screen.findByText(
+      "No encontramos ningún usuario con ese alias o CBU.",
+      undefined,
+      {
+        timeout: 2000,
+      },
+    );
+
+    expect(
+      screen.queryByRole("button", {
+        name: /Usar como destinatario/i,
+      }),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", {
+        name: "Continuar",
+      }),
+    ).toBeDisabled();
   });
+
+ it("no muestra contactos cuando la lista está vacía", async () => {
+  mocks.getFrequentContacts.mockResolvedValue([]);
+
+  setup();
+
+  await waitFor(() => {
+    expect(
+      mocks.getFrequentContacts,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  expect(
+    screen.queryByRole("button", {
+      name: /Julián Torres/i,
+    }),
+  ).not.toBeInTheDocument();
+
+  expect(
+    screen.queryByRole("button", {
+      name: /Martina Gómez/i,
+    }),
+  ).not.toBeInTheDocument();
+
+  expect(
+    screen.queryByRole("button", {
+      name: /Bruno Ibáñez/i,
+    }),
+  ).not.toBeInTheDocument();
+});
 });
