@@ -22,8 +22,6 @@ export default function Exchange() {
     rateError,
     numericAmount,
     exchangeLoading,
-    exchangeError,
-    exchangeSuccess,
     updateAmount,
     changeFromCurrency,
     changeToCurrency,
@@ -294,17 +292,6 @@ export default function Exchange() {
               </button>
             </section>
 
-            {exchangeError && (
-              <p className="mt-4 rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
-                {exchangeError}
-              </p>
-            )}
-
-            {exchangeSuccess && (
-              <p className="mt-4 rounded-lg bg-green-100 px-4 py-3 text-sm text-green-700 dark:bg-green-950 dark:text-green-300">
-                {exchangeSuccess}
-              </p>
-            )}
           </div>
 
           {/* Cotizaciones compartidas */}
@@ -326,17 +313,17 @@ export default function Exchange() {
             value: `${formatMoney(numericAmount)} ${fromCurrency}`,
           },
           {
-            label: "Recibís",
-            value: `${formatMoney(convertedAmount)} ${toCurrency}`,
-            accent: true,
-          },
-          {
             label: "Cotización",
             value: `1 ${fromCurrency} = ${formatRate(exchangeRate)} ${toCurrency}`,
           },
           {
             label: "Comisión",
             value: "0,5%",
+          },
+          {
+            label: "Recibís",
+            value: `${formatMoney(convertedAmount)} ${toCurrency}`,
+            accent: true,
           },
         ]}
         confirmLabel="Sí, convertir"
