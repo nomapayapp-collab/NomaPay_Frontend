@@ -25,7 +25,6 @@ export default function Wallet() {
   const [topUpOpen, setTopUpOpen] = useState(false);
 
   const [savingFavorite, setSavingFavorite] = useState<CurrencyCode | null>(null);
-  const [favoriteError, setFavoriteError] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -53,12 +52,11 @@ export default function Wallet() {
   async function handleSetFavorite(code: CurrencyCode) {
     if (code === selected?.currency.code) return;
     setSavingFavorite(code);
-    setFavoriteError(null);
     try {
       await setPreferredCurrency(code);
       showToast(`Tu moneda favorita ahora es ${code}`, "success", { icon: IconStar });
     } catch {
-      setFavoriteError("No pudimos actualizar tu moneda favorita. Probá de nuevo.");
+      showToast("No pudimos actualizar tu moneda favorita. Probá de nuevo.", "error");
     } finally {
       setSavingFavorite(null);
     }
@@ -103,7 +101,6 @@ export default function Wallet() {
             );
           })}
         </div>
-        {favoriteError && <p className="text-[12.5px] text-magenta-500 mt-3">{favoriteError}</p>}
       </div>
     );
   }
@@ -148,41 +145,43 @@ export default function Wallet() {
           </div>
 
           {/* ---------- Desktop ---------- */}
-          <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <BalanceCard />
-              <div className="rounded-card border border-border-light dark:border-border-dark p-6">
-                <p className="card__title mb-3">Movimientos en {selected.currency.code}</p>
-                {movements.length === 0 ? (
-                  <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary py-4 text-center">
-                    Todavía no tenés movimientos en {selected.currency.code}.
-                  </p>
-                ) : (
-                  <ul className="divide-y divide-border-light dark:divide-border-dark">
-                    {movements.map((m) => (
-                      <li key={m.id} className="flex items-center justify-between py-3 text-[14px]">
-                        <span className="text-text-light-primary dark:text-text-dark-primary">{m.description}</span>
-                        <span
-                          className={`tabular font-medium ${
-                            m.amount < 0
-                              ? "text-text-light-secondary dark:text-text-dark-secondary"
-                              : "text-turquoise-500"
-                          }`}
-                        >
-                          {m.amount < 0 ? "-" : "+"}
-                          {formatCurrency(Math.abs(m.amount), m.currency)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
+          <div className="hidden lg:flex lg:flex-col lg:gap-6">
+            <BalanceCard />
 
-            <div className="flex flex-col gap-4">
-              {renderFavoriteCurrency()}
-              {renderCargarSaldoButton()}
-              {renderRecibirDinero()}
+            <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
+              <div className="lg:col-span-2">
+                <div className="rounded-card border border-border-light dark:border-border-dark p-6">
+                  <p className="card__title mb-3">Movimientos en {selected.currency.code}</p>
+                  {movements.length === 0 ? (
+                    <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary py-4 text-center">
+                      Todavía no tenés movimientos en {selected.currency.code}.
+                    </p>
+                  ) : (
+                    <ul className="divide-y divide-border-light dark:divide-border-dark">
+                      {movements.map((m) => (
+                        <li key={m.id} className="flex items-center justify-between py-3 text-[14px]">
+                          <span className="text-text-light-primary dark:text-text-dark-primary">{m.description}</span>
+                          <span
+                            className={`tabular font-medium ${
+                              m.amount < 0
+                                ? "text-text-light-secondary dark:text-text-dark-secondary"
+                                : "text-turquoise-500"
+                            }`}
+                          >
+                            {m.amount < 0 ? "-" : "+"}
+                            {formatCurrency(Math.abs(m.amount), m.currency)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                {renderFavoriteCurrency()}
+                {renderCargarSaldoButton()}
+              </div>
             </div>
           </div>
         </>
