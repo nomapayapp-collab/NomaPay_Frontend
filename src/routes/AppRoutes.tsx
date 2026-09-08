@@ -1,6 +1,5 @@
 import { Route, Routes } from "react-router-dom";
 import { AppLayout } from "../components/layout/AppLayout";
-import ComingSoon from "../pages/ComingSoon";
 import Exchange from "../pages/Exchange";
 import Login from "../pages/Login";
 import NotFound from "../pages/NotFound";
@@ -36,18 +35,8 @@ export default function AppRoutes() {
           <AppLayout>
             <Wallet />
           </AppLayout>
-        </ProtectedRoute>} />
-      <Route
-        path="/comprar-vender"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ComingSoon title="Comprar / Vender" />
-            </AppLayout>
-          </ProtectedRoute>
-        }
+        </ProtectedRoute>} 
       />
-
       <Route
         path="/exchange"
         element={
