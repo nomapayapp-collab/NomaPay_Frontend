@@ -27,6 +27,8 @@ export type DataTableProps<T> = {
   skeletonRows?: number;
   error?: ReactNode;
   emptyState?: ReactNode;
+  /** se renderiza como pie de la card de desktop, separado por un borde superior (ej. paginación) — no aparece en la vista mobile. */
+  footer?: ReactNode;
 };
 
 /**
@@ -54,6 +56,7 @@ export function DataTable<T>({
   skeletonRows = 4,
   error = null,
   emptyState,
+  footer,
 }: DataTableProps<T>) {
   if (loading) {
     return (
@@ -170,6 +173,7 @@ export function DataTable<T>({
           ))}
         </div>
         <div className="divide-y divide-border-light dark:divide-border-dark">{items.map(renderDesktopRow)}</div>
+        {footer && <div className="border-t border-border-light dark:border-border-dark px-5 py-3">{footer}</div>}
       </div>
 
       {/* ---------- Mobile ---------- */}

@@ -19,26 +19,33 @@ import { useHistory, HISTORY_TYPE_FILTERS, SUMMARY_CURRENCIES, isPositive } from
 import { useWallet } from "../hooks/useWallet";
 import type { HistoryItem, HistoryOperationType } from "../types/history";
 
-/**
- * `iconClass` es el círculo de la fila (tinte suave, como en el resto de la
- * app — Receipt.tsx, Wallet.tsx). `barClass` es un color sólido aparte,
- * solo para la barra de "Por tipo": no puede ser el mismo tinte al 15%
- * del ícono porque ahí se ve lavado — necesita un color fuerte de verdad.
- * Los 4 tipos usan los 4 acentos de la paleta para que cada barra se
- * distinga de las demás (magenta queda libre para "Envíos" acá porque en
- * la barra es solo color de gráfico, no un estado — el rojo de "Rechazada"
- * sigue siendo el único lugar donde magenta significa error).
- */
+
 const TYPE_META: Record<
   HistoryOperationType,
-  { icon: ComponentType<SVGProps<SVGSVGElement>>; iconClass: string; barClass: string; title: string; labelPlural: string }
+  {
+    icon: ComponentType<SVGProps<SVGSVGElement>>;
+    iconClass: string;
+    barClass: string;
+    title: string;
+    /** singular corto, para la columna TIPO de la tabla. */
+    typeLabel: string;
+    labelPlural: string;
+  }
 > = {
-  carga: { icon: IconPlus, iconClass: "bg-turquoise-500/20 text-turquoise-500", barClass: "bg-amber-500", title: "Carga de saldo", labelPlural: "Cargas" },
+  carga: {
+    icon: IconPlus,
+    iconClass: "bg-turquoise-500/20 text-turquoise-500",
+    barClass: "bg-amber-500",
+    title: "Carga de saldo",
+    typeLabel: "Carga",
+    labelPlural: "Cargas",
+  },
   cobro: {
     icon: IconTrend,
     iconClass: "bg-turquoise-500/20 text-turquoise-500",
     barClass: "bg-turquoise-500",
     title: "Transferencia recibida",
+    typeLabel: "Ingreso",
     labelPlural: "Ingresos",
   },
   pago: {
@@ -46,6 +53,7 @@ const TYPE_META: Record<
     iconClass: "bg-black/5 dark:bg-white/8 text-text-light-secondary dark:text-text-dark-secondary",
     barClass: "bg-magenta-500",
     title: "Transferencia enviada",
+    typeLabel: "Envío",
     labelPlural: "Envíos",
   },
   cambio: {
@@ -53,6 +61,7 @@ const TYPE_META: Record<
     iconClass: "bg-violet-500/20 text-violet-500",
     barClass: "bg-violet-500",
     title: "Cambio de moneda",
+    typeLabel: "Cambio",
     labelPlural: "Cambios",
   },
 };
@@ -68,6 +77,23 @@ function getTitle(item: HistoryItem): string {
     return `Recibido de ${item.counterparty.name}`;
   }
   return TYPE_META[item.operationType].title;
+}
+
+/**
+ * Subtexto chico bajo el título de cada fila (mockup: alias del
+ * contraparte para envíos/ingresos, tasa para cambios). Carga no tiene un
+ * campo propio en HistoryItem para esto (el mockup mostraba "Transferencia
+ * bancaria" pero no es un dato real que tengamos) — se deja sin subtexto.
+ */
+function getSubtitle(item: HistoryItem): string | undefined {
+  if (item.operationType === "cambio" && item.exchangeData && item.amount > 0) {
+    const rate = item.exchangeData.finalAmount / item.amount;
+    return `Tasa ${rate.toLocaleString("es-AR", { maximumFractionDigits: 4 })}`;
+  }
+  if ((item.operationType === "pago" || item.operationType === "cobro") && item.counterparty) {
+    return item.counterparty.alias;
+  }
+  return undefined;
 }
 
 /** "0,5%", redondeado — evita mostrar basura de punto flotante. */
@@ -159,13 +185,21 @@ const COLUMNS: DataTableColumn<HistoryItem>[] = [
     render: (item) => {
       const meta = TYPE_META[item.operationType];
       const Icon = meta.icon;
+      const subtitle = getSubtitle(item);
       return (
         <span className="flex items-center gap-3 min-w-0">
-          <span className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${meta.iconClass}`}>
+          <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${meta.iconClass}`}>
             <Icon className="w-4 h-4" />
           </span>
-          <span className="block truncate font-medium text-[14px] text-text-light-primary dark:text-text-dark-primary">
-            {getTitle(item)}
+          <span className="min-w-0">
+            <span className="block truncate font-medium text-[14px] text-text-light-primary dark:text-text-dark-primary">
+              {getTitle(item)}
+            </span>
+            {subtitle && (
+              <span className="block truncate text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                {subtitle}
+              </span>
+            )}
           </span>
         </span>
       );
@@ -178,6 +212,15 @@ const COLUMNS: DataTableColumn<HistoryItem>[] = [
     hideOnMobile: true,
     render: (item) => (
       <span className="text-[13px] text-text-light-secondary dark:text-text-dark-secondary">{formatShortDate(item.transactionDate)}</span>
+    ),
+  },
+  {
+    key: "tipo",
+    header: "Tipo",
+    width: "110px",
+    hideOnMobile: true,
+    render: (item) => (
+      <span className="text-[13px] text-text-light-secondary dark:text-text-dark-secondary">{TYPE_META[item.operationType].typeLabel}</span>
     ),
   },
   {
@@ -206,9 +249,8 @@ function renderDetail(item: HistoryItem) {
         <div key={row.label}>
           <p className="text-[11.5px] text-text-light-tertiary dark:text-text-dark-tertiary mb-0.5">{row.label}</p>
           <p
-            className={`text-[13.5px] font-medium ${
-              row.accent ? "text-text-light-primary dark:text-text-dark-primary" : "text-text-light-secondary dark:text-text-dark-secondary"
-            }`}
+            className={`text-[13.5px] font-medium ${row.accent ? "text-text-light-primary dark:text-text-dark-primary" : "text-text-light-secondary dark:text-text-dark-secondary"
+              }`}
           >
             {row.value}
           </p>
@@ -222,23 +264,8 @@ function groupByDay(item: HistoryItem) {
   return { key: new Date(item.transactionDate).toDateString(), label: formatDayHeader(item.transactionDate) };
 }
 
-/**
- * Historial de transacciones — GET /history (real, ya conectado). Toda la
- * lógica (fetch, filtros, paginado, resumen) vive en useHistory(); acá solo
- * queda el mapeo de HistoryItem a columnas/detalle y el layout. La
- * tabla/lista en sí es <DataTable> (components/ui/DataTable.tsx), genérica
- * y reusable — pensada para el panel de administrador más adelante.
- *
- * `counterparty` (quién envió/recibió) y `fee` (comisión — 0 en
- * transferencias, ~0.5% en cambios) son opcionales en HistoryItem: el back
- * los tiene disponibles pero GET /history todavía no los manda. Mientras no
- * lleguen, el título cae al genérico y esas filas del detalle no se
- * muestran — apenas el back los sume, aparecen solos sin tocar nada acá.
- */
+
 export default function History() {
-  // Moneda favorita del usuario (la que ya usa para marcar isPrimary en
-  // Wallet/Config) — el panel de Resumen arranca mostrando esa, y desde
-  // ahí el usuario puede cambiar con los filtros USD/ARS/BRL de la card.
   const { wallet } = useWallet();
   const favoriteCurrency = wallet.balances.find((b) => b.isPrimary)?.currency.code ?? "USD";
 
@@ -290,60 +317,86 @@ export default function History() {
     </div>
   );
 
+  const paginationFooter =
+    !loading && !error && hasResults ? (
+      <div className="flex items-center justify-between">
+        <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+          Mostrando {pageItems.length} de {totalFilteredCount} movimientos
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            aria-label="Página anterior"
+            className="icon-btn disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <IconChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            aria-label="Página siguiente"
+            className="icon-btn disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <IconChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    ) : null;
+
   return (
     <div className="px-5 pt-8 pb-8 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto">
       <Header title="Historial de transacciones" subtitle="Todos tus movimientos" />
+      <div className="flex flex-col lg:flex-row lg:flex-nowrap lg:items-center lg:justify-between gap-3 w-full">
+        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto scrollbar-app pb-1 lg:pb-0 lg:min-w-0 lg:flex-nowrap">
+          {HISTORY_TYPE_FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setTypeFilter(f.key)}
+              className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-medium transition-colors ${typeFilter === f.key
+                  ? "bg-violet-500 text-white"
+                  : "bg-black/5 dark:bg-white/8 text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary"
+                }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
-      <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
-        <div className="lg:col-span-2 flex flex-col gap-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-app pb-1 lg:pb-0">
-              {HISTORY_TYPE_FILTERS.map((f) => (
-                <button
-                  key={f.key}
-                  type="button"
-                  onClick={() => setTypeFilter(f.key)}
-                  className={`shrink-0 px-3.5 py-1.5 rounded-full text-[12.5px] font-medium transition-colors ${
-                    typeFilter === f.key
-                      ? "bg-violet-500 text-white"
-                      : "bg-black/5 dark:bg-white/8 text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary"
-                  }`}
-                >
-                  {f.label}
-                </button>
+        <div className="flex flex-wrap items-center gap-2 lg:shrink-0">
+          {availableMonths.length > 0 && (
+            <select
+              value={monthFilter}
+              onChange={(e) => setMonthFilter(e.target.value)}
+              aria-label="Filtrar por mes"
+              className="rounded-control border border-border-light dark:border-border-dark bg-transparent px-3 py-2 text-[12.5px] text-text-light-primary dark:text-text-dark-primary"
+            >
+              <option value="todos">Todos los meses</option>
+              {availableMonths.map((m) => (
+                <option key={m} value={m}>
+                  {monthLabel(m)}
+                </option>
               ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {availableMonths.length > 0 && (
-                <select
-                  value={monthFilter}
-                  onChange={(e) => setMonthFilter(e.target.value)}
-                  aria-label="Filtrar por mes"
-                  className="rounded-control border border-border-light dark:border-border-dark bg-transparent px-3 py-2 text-[12.5px] text-text-light-primary dark:text-text-dark-primary"
-                >
-                  <option value="todos">Todos los meses</option>
-                  {availableMonths.map((m) => (
-                    <option key={m} value={m}>
-                      {monthLabel(m)}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <div className="relative flex-1 lg:flex-none">
-                <IconSearch className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-light-tertiary dark:text-text-dark-tertiary" />
-                <input
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Buscar"
-                  aria-label="Buscar en el historial"
-                  className="w-full lg:w-44 rounded-control border border-border-light dark:border-border-dark bg-transparent pl-9 pr-3 py-2 text-[12.5px] text-text-light-primary dark:text-text-dark-primary placeholder:text-text-light-tertiary dark:placeholder:text-text-dark-tertiary"
-                />
-              </div>
-            </div>
+            </select>
+          )}
+          <div className="relative flex-1 lg:flex-none">
+            <IconSearch className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-light-tertiary dark:text-text-dark-tertiary" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar"
+              aria-label="Buscar en el historial"
+              className="w-full lg:w-44 rounded-control border border-border-light dark:border-border-dark bg-transparent pl-9 pr-3 py-2 text-[12.5px] text-text-light-primary dark:text-text-dark-primary placeholder:text-text-light-tertiary dark:placeholder:text-text-dark-tertiary"
+            />
           </div>
-
+        </div>
+      </div>
+      <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
+        <div className="lg:col-span-2 flex flex-col gap-4 mt-6">
           <DataTable
             items={pageItems}
             columns={COLUMNS}
@@ -355,40 +408,13 @@ export default function History() {
             loading={loading}
             error={error}
             emptyState={emptyState}
+            footer={paginationFooter}
           />
-
-          {!loading && !error && hasResults && totalPages > 1 && (
-            <div className="flex items-center justify-between px-1">
-              <p className="text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
-                Mostrando {pageItems.length} de {totalFilteredCount} movimientos
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  aria-label="Página anterior"
-                  className="icon-btn disabled:opacity-40 disabled:pointer-events-none"
-                >
-                  <IconChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  aria-label="Página siguiente"
-                  className="icon-btn disabled:opacity-40 disabled:pointer-events-none"
-                >
-                  <IconChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* ---------- Sidebar desktop ---------- */}
         {!loading && !error && hasResults && (
-          <div className="hidden lg:flex flex-col gap-6 mt-13">
+          <div className="hidden lg:flex flex-col gap-4 mt-6">
             <Card>
               <div className="flex items-center justify-between gap-2 mb-3">
                 <p className="card__title">Resumen del período</p>
@@ -398,11 +424,10 @@ export default function History() {
                       key={code}
                       type="button"
                       onClick={() => setSummaryCurrency(code)}
-                      className={`px-2 py-1 rounded-full text-[11.5px] font-medium transition-colors ${
-                        summaryCurrency === code
+                      className={`px-2 py-1 rounded-full text-[11.5px] font-medium transition-colors ${summaryCurrency === code
                           ? "bg-violet-500 text-white"
                           : "bg-black/5 dark:bg-white/8 text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary"
-                      }`}
+                        }`}
                     >
                       {code}
                     </button>
