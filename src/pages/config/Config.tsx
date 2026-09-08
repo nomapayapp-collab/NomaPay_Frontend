@@ -11,7 +11,7 @@ import { Input } from "../../components/ui/Input";
 import { Avatar } from "../../components/ui/Avatar";
 import { Select } from "../../components/ui/Select";
 import { ConfirmActionModal } from "../../components/ui/ConfirmActionModal";
-import { Sidebar } from "../../components/layout/Sidebar";
+import { Header } from "../../components/layout/Header";
 import { EditAliasModal } from "./EditAliasModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
 
@@ -19,7 +19,6 @@ import {
   IconCheck,
   IconChevronRight,
   IconCopy,
-  IconBack,
   IconEdit,
   IconAlertTriangle,
 } from "../../assets/icons/Icons";
@@ -30,10 +29,7 @@ import * as authService from "../../services/authService";
 
 import type { CurrencyCode } from "../../types/wallet";
 import { COUNTRIES } from "../../constants/countries";
-import {
-  CURRENCY_CODES,
-  CURRENCY_NAMES,
-} from "../../constants/currencies";
+import { CURRENCY_CODES } from "../../constants/currencies";
 
 function extractErrorMessage(
   error: unknown,
@@ -246,40 +242,42 @@ export default function Config() {
     .filter(Boolean)
     .join(" ");
 
-  return (
-    <div className="flex min-h-screen bg-surface-light dark:bg-surface-dark">
-      <Sidebar />
+  // Mismo picker de moneda favorita en las dos posiciones donde aparece
+  // (mobile, dentro del form; desktop, en la columna derecha) — se define acá
+  // en vez de duplicar el JSX en los dos lugares.
+  function renderCurrencyPicker() {
+    return (
+      <div>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
+          Moneda favorita
+        </p>
 
-      <div className="flex-1 px-6 py-8 lg:px-10">
-        <div className="mx-auto max-w-sm lg:mx-0 lg:max-w-none">
-          {/* Header mobile */}
-          <div className="mb-6 flex items-center gap-3 lg:hidden">
+        <div className="flex flex-wrap gap-2">
+          {CURRENCY_CODES.map((currencyCode) => (
             <button
+              key={currencyCode}
               type="button"
-              onClick={() => navigate(-1)}
-              className="icon-btn"
-              aria-label="Volver"
+              onClick={() => setPreferredCurrency(currencyCode)}
+              className={[
+                "rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors",
+                preferredCurrency === currencyCode
+                  ? "border-violet-500 bg-violet-500/10 text-violet-500"
+                  : "border-border-light bg-surface-light-input text-text-light-secondary dark:border-border-dark dark:bg-surface-dark-elevated dark:text-text-dark-secondary",
+              ].join(" ")}
             >
-              <IconBack className="h-5 w-5" />
+              {currencyCode}
             </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-            <h1 className="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">
-              Mi perfil
-            </h1>
-          </div>
+  return (
+    <div className="px-5 pt-8 pb-8 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto">
+      <Header title="Mi perfil" subtitle="Datos, cuenta y seguridad" />
 
-          {/* Header desktop */}
-          <div className="mb-8 hidden lg:block">
-            <p className="mb-1 text-xs uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
-              Datos, cuenta y seguridad
-            </p>
-
-            <h1 className="text-2xl font-bold text-text-light-primary dark:text-text-dark-primary">
-              Mi perfil
-            </h1>
-          </div>
-
-          {error && (
+      {error && (
             <div
               role="alert"
               className="alert-note alert-note--error mb-4"
@@ -294,7 +292,7 @@ export default function Config() {
             {/* Columna principal */}
             <div className="flex flex-col gap-6 lg:col-span-2">
               {/* Perfil */}
-              <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-light lg:p-5 dark:lg:border-border-dark">
+              <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-light lg:bg-surface-light lg:p-5 dark:lg:border-border-dark dark:lg:bg-surface-dark-elevated">
                 <Avatar user={user} size="lg" />
 
                 <div className="min-w-0 flex-1">
@@ -327,7 +325,7 @@ export default function Config() {
                       id="name"
                       value={name}
                       disabled
-                      hint="Por ahora no se puede editar desde acá."
+                      className="cursor-not-allowed opacity-60"
                     />
 
                     <Input
@@ -335,6 +333,7 @@ export default function Config() {
                       id="surname"
                       value={surname}
                       disabled
+                      className="cursor-not-allowed opacity-60"
                     />
                   </div>
 
@@ -381,7 +380,7 @@ export default function Config() {
                     Cuenta
                   </p>
 
-                  <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light dark:divide-border-dark dark:border-border-dark">
+                  <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light bg-surface-light dark:divide-border-dark dark:border-border-dark dark:bg-surface-dark-elevated">
                     {/* Alias */}
                     <div className="flex items-center justify-between px-4 py-3.5">
                       <div className="min-w-0 flex-1">
@@ -474,37 +473,10 @@ export default function Config() {
                   </div>
                 </div>
 
-                {/* Moneda favorita */}
-                <div>
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
-                    Moneda favorita
-                  </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    {CURRENCY_CODES.map(
-                      (currencyCode) => (
-                        <button
-                          key={currencyCode}
-                          type="button"
-                          onClick={() =>
-                            setPreferredCurrency(
-                              currencyCode,
-                            )
-                          }
-                          className={[
-                            "rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors",
-                            preferredCurrency ===
-                            currencyCode
-                              ? "border-violet-500 bg-violet-500/10 text-violet-500"
-                              : "border-border-light bg-surface-light-input text-text-light-secondary dark:border-border-dark dark:bg-surface-dark-elevated dark:text-text-dark-secondary",
-                          ].join(" ")}
-                        >
-                          {currencyCode}
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </div>
+                {/* Moneda favorita — en desktop esta sección se muestra en la
+                    columna derecha, debajo de "Tu cuenta" y arriba de
+                    Guardar cambios; acá solo queda para mobile. */}
+                <div className="lg:hidden">{renderCurrencyPicker()}</div>
 
                 {/* Acciones mobile */}
                 <div className="flex flex-col gap-3 lg:hidden">
@@ -519,11 +491,10 @@ export default function Config() {
 
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="destructive"
                     fullWidth
                     disabled={deletingAccount}
                     onClick={openDeleteModal}
-                    className="border-magenta-500 text-magenta-500 hover:bg-magenta-500/10"
                   >
                     Eliminar cuenta
                   </Button>
@@ -545,7 +516,7 @@ export default function Config() {
             {/* Columna derecha desktop */}
             <div className="hidden flex-col gap-4 lg:flex">
               {/* Datos de la cuenta */}
-              <div className="rounded-card border border-border-light p-5 dark:border-border-dark">
+              <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
                 <p className="mb-4 text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
                   Tu cuenta
                 </p>
@@ -570,23 +541,11 @@ export default function Config() {
                       {user?.cbu ?? ""}
                     </p>
                   </div>
-
-                  <div>
-                    <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
-                      Moneda favorita
-                    </p>
-
-                    <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
-                      {preferredCurrency} ·{" "}
-                      {
-                        CURRENCY_NAMES[
-                          preferredCurrency
-                        ]
-                      }
-                    </p>
-                  </div>
                 </div>
               </div>
+
+              {/* Moneda favorita — abajo de Tu cuenta, arriba de Guardar cambios */}
+              {renderCurrencyPicker()}
 
               {/* Guardar debajo de los datos */}
               <Button
@@ -602,11 +561,10 @@ export default function Config() {
               {/* Eliminar debajo de guardar */}
               <Button
                 type="button"
-                variant="outline"
+                variant="destructive"
                 fullWidth
                 disabled={deletingAccount}
                 onClick={openDeleteModal}
-                className="border-magenta-500 text-magenta-500 hover:bg-magenta-500/10"
               >
                 Eliminar cuenta
               </Button>
@@ -623,8 +581,6 @@ export default function Config() {
               )}
             </div>
           </div>
-        </div>
-      </div>
 
       {/* Modal para editar alias */}
       <EditAliasModal
@@ -655,8 +611,9 @@ export default function Config() {
         onConfirm={handleDeleteAccount}
         confirming={deletingAccount}
         icon={IconAlertTriangle}
+        variant="danger"
         title="¿Eliminar tu cuenta?"
-        description="Esta acción es permanente y no se puede deshacer. Tu email y alias quedarán disponibles para un nuevo registro."
+        description="Esta acción es permanente y no se puede deshacer."
         rows={[
           {
             label: "Cuenta",
@@ -669,6 +626,15 @@ export default function Config() {
             accent: true,
           },
         ]}
+        confirmationInput={
+          user?.email
+            ? {
+                label: `Para confirmar, escribí tu email: ${user.email}`,
+                expectedValue: user.email,
+                placeholder: user.email,
+              }
+            : undefined
+        }
         confirmLabel="Sí, eliminar cuenta"
       />
     </div>

@@ -2,7 +2,9 @@ import { Card } from "../../components/ui/Card";
 import { useWallet } from "../../hooks/useWallet";
 
 /**
- * "Cotizaciones de hoy". Usa las tasas mockeadas de WalletContext.
+ * "Cotizaciones de hoy". Usa las tasas en vivo de WalletContext
+ * (getCurrentExchangeRates en services/exchangeRates.ts) — solo cae a
+ * FALLBACK_RATES si la API externa de cotizaciones falla.
  */
 export function ExchangeRatesList() {
   const { wallet } = useWallet();
@@ -18,7 +20,10 @@ export function ExchangeRatesList() {
 
       <ul className="divide-y divide-border-light dark:divide-border-dark">
         {wallet.exchangeRates.map(({ from, to, rate }) => (
-          <li key={`${from}-${to}`} className="flex items-center justify-between py-3 text-[14px]">
+          <li
+            key={`${from}-${to}`}
+            className="flex flex-col gap-0.5 py-3 text-[14px] lg:flex-row lg:items-center lg:justify-between"
+          >
             <span className="text-text-light-secondary dark:text-text-dark-secondary">Cambio {from} → {to}</span>
             <span className="tabular font-medium text-text-light-primary dark:text-text-dark-primary">
               1 {from} = {rate.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {to}

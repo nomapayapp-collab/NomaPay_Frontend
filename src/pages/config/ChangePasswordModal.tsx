@@ -41,6 +41,14 @@ export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps)
   };
   const valid = checklist.length && checklist.upperAndNumber && checklist.matches;
 
+  // Igual que en EditAliasModal: solo se listan los requisitos pendientes,
+  // así van desapareciendo a medida que se cumplen en vez de quedar fijos.
+  const pendingChecklist = [
+    { key: "length", label: "Mínimo 8 caracteres", met: checklist.length },
+    { key: "upperAndNumber", label: "Al menos una mayúscula y un número", met: checklist.upperAndNumber },
+    { key: "matches", label: "Coincide con la confirmación", met: checklist.matches },
+  ].filter((item) => !item.met);
+
   let strengthScore = 0;
   if (checklist.length) strengthScore++;
   if (checklist.upperAndNumber) strengthScore++;
@@ -102,17 +110,18 @@ export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps)
           </div>
         )}
 
-        <ul className="flex flex-col gap-1.5">
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.length ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
-            <IconCheck className="w-3.5 h-3.5" /> Mínimo 8 caracteres
-          </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.upperAndNumber ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
-            <IconCheck className="w-3.5 h-3.5" /> Al menos una mayúscula y un número
-          </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.matches ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
-            <IconCheck className="w-3.5 h-3.5" /> Coincide con la confirmación
-          </li>
-        </ul>
+        {pendingChecklist.length > 0 && (
+          <ul className="flex flex-col gap-1.5">
+            {pendingChecklist.map((item) => (
+              <li
+                key={item.key}
+                className="text-[12.5px] flex items-center gap-1.5 text-text-light-tertiary dark:text-text-dark-tertiary"
+              >
+                <IconCheck className="w-3.5 h-3.5" /> {item.label}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {error && (
           <div className="alert-note alert-note--error">
@@ -132,7 +141,7 @@ export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps)
             disabled={!valid || !currentPassword}
             onClick={handleSave}
           >
-            Guardar nueva contraseña
+            Guardar contraseña
           </Button>
         </div>
       </div>

@@ -102,13 +102,13 @@ export function ChatAssistant() {
           aria-label="Asistente de NomaPay"
         >
           {/* Encabezado */}
-          <header className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-[#343c61]">
+          <header className="flex items-center justify-between border-b border-border-light px-4 py-3 dark:border-border-dark">
             <div>
-              <h2 className="font-bold text-slate-900 dark:text-white">
+              <h2 className="font-bold text-text-light-primary dark:text-text-dark-primary">
                 Asistente NomaPay
               </h2>
 
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
                 Ayuda sobre el uso de la aplicación
               </p>
             </div>
@@ -117,7 +117,7 @@ export function ChatAssistant() {
               type="button"
               onClick={() => setIsOpen(false)}
               aria-label="Cerrar asistente"
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-text-light-tertiary transition hover:bg-black/5 dark:text-text-dark-tertiary dark:hover:bg-white/10"
             >
               <CloseIcon />
             </button>
@@ -125,7 +125,7 @@ export function ChatAssistant() {
 
           {/* Conversación */}
           <div
-            className="flex-1 space-y-3 overflow-y-auto p-4"
+            className="flex-1 space-y-3 overflow-y-auto scrollbar-app p-4"
             aria-live="polite"
           >
             {messages.map((chatMessage) => (
@@ -141,7 +141,7 @@ export function ChatAssistant() {
                   className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     chatMessage.sender === "user"
                       ? "rounded-br-sm bg-violet-600 text-white"
-                      : "rounded-bl-sm bg-slate-100 text-slate-800 dark:bg-[#252b49] dark:text-slate-100"
+                      : "rounded-bl-sm bg-black/5 text-text-light-primary dark:bg-white/8 dark:text-text-dark-primary"
                   }`}
                 >
                   {chatMessage.text}
@@ -151,7 +151,7 @@ export function ChatAssistant() {
 
             {loading && (
               <div className="flex justify-start">
-                <p className="rounded-2xl rounded-bl-sm bg-slate-100 px-4 py-2.5 text-sm text-slate-600 dark:bg-[#252b49] dark:text-slate-300">
+                <p className="rounded-2xl rounded-bl-sm bg-black/5 px-4 py-2.5 text-sm text-text-light-tertiary dark:bg-white/8 dark:text-text-dark-tertiary">
                   Escribiendo...
                 </p>
               </div>
@@ -160,7 +160,7 @@ export function ChatAssistant() {
             {error && (
               <p
                 role="alert"
-                className="rounded-xl bg-red-100 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300"
+                className="rounded-xl border border-magenta-500/30 bg-magenta-100/10 px-3 py-2 text-sm text-magenta-500"
               >
                 {error}
               </p>
@@ -170,7 +170,7 @@ export function ChatAssistant() {
           {/* Formulario */}
           <form
             onSubmit={handleSubmit}
-            className="border-t border-slate-200 p-3 dark:border-[#343c61]"
+            className="border-t border-border-light p-3 dark:border-border-dark"
           >
             <div className="flex gap-2">
               <label
@@ -192,7 +192,7 @@ export function ChatAssistant() {
                 autoComplete="off"
                 maxLength={1000}
                 disabled={loading}
-                className="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-violet-500 disabled:opacity-60 dark:border-[#444d75] dark:bg-[#171b36] dark:text-white"
+                className="min-w-0 flex-1 rounded-xl border border-border-light bg-surface-light-input px-3 py-2 text-sm text-text-light-primary outline-none focus:border-violet-500 disabled:opacity-60 dark:border-border-dark dark:bg-surface-dark-elevated dark:text-text-dark-primary"
               />
 
               <Button
@@ -207,12 +207,12 @@ export function ChatAssistant() {
               <button
                 type="button"
                 onClick={clearConversation}
-                className="text-xs font-medium text-slate-500 hover:text-violet-600 dark:text-slate-400 dark:hover:text-violet-300"
+                className="text-xs font-medium text-text-light-tertiary hover:text-violet-600 dark:text-text-dark-tertiary dark:hover:text-violet-300"
               >
                 Limpiar conversación
               </button>
 
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
                 {message.length}/1000
               </span>
             </div>

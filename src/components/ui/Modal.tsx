@@ -12,9 +12,12 @@ type ModalProps = {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  /** Reemplaza el borde default (border-border-light/dark) — ej. un borde
+   *  rojo para confirmaciones destructivas. Si no se pasa, usa el de siempre. */
+  borderClassName?: string;
 };
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, borderClassName }: ModalProps) {
   useEffect(() => {
     if (!open) return;
 
@@ -45,7 +48,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-sm bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-card shadow-elevation-lg p-6 max-h-[85vh] overflow-y-auto"
+        className={`w-full max-w-sm bg-surface-light dark:bg-surface-dark ${
+          borderClassName ?? "border border-border-light dark:border-border-dark"
+        } rounded-card shadow-elevation-lg p-6 max-h-[85vh] overflow-y-auto scrollbar-app`}
       >
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">{title}</h2>

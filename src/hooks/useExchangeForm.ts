@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "./useWallet";
+import { useToast } from "./useToast";
 import { exchangeCurrency } from "../services/walletService";
 import { CURRENCY_CODES } from "../constants/currencies";
 import type { CurrencyCode } from "../types/wallet";
@@ -28,13 +29,12 @@ const formatRate = (value: number) =>
  */
 export function useExchangeForm() {
   const { wallet, loading: walletLoading, error: walletError, refetch } = useWallet();
+  const { showToast } = useToast();
 
   const [fromCurrency, setFromCurrency] = useState<CurrencyCode>("ARS");
   const [toCurrency, setToCurrency] = useState<CurrencyCode>("USD");
   const [amount, setAmount] = useState("0,00");
   const [exchangeLoading, setExchangeLoading] = useState(false);
-  const [exchangeError, setExchangeError] = useState("");
-  const [exchangeSuccess, setExchangeSuccess] = useState("");
 
   /*
    * Convierte los balances del WalletContext en un objeto fácil de
@@ -108,14 +108,8 @@ export function useExchangeForm() {
 
   const rateError = !walletLoading && exchangeRate <= 0 ? "No pudimos obtener la tasa de cambio" : "";
 
-  const clearMessages = () => {
-    setExchangeError("");
-    setExchangeSuccess("");
-  };
-
   const changeFromCurrency = (newCurrency: CurrencyCode) => {
     setFromCurrency(newCurrency);
-    clearMessages();
 
     if (newCurrency === toCurrency) {
       const alternativeCurrency = CURRENCY_CODES.find((currency) => currency !== newCurrency);
@@ -126,45 +120,41 @@ export function useExchangeForm() {
   const changeToCurrency = (newCurrency: CurrencyCode) => {
     if (newCurrency === fromCurrency) return;
     setToCurrency(newCurrency);
-    clearMessages();
   };
 
   const swapCurrencies = () => {
     setFromCurrency(toCurrency);
     setToCurrency(fromCurrency);
-    clearMessages();
   };
 
   const selectPercentage = (percentage: number) => {
     setAmount(formatMoney(balances[fromCurrency] * percentage));
-    clearMessages();
   };
 
   const selectMaximum = () => {
     setAmount(formatMoney(balances[fromCurrency]));
-    clearMessages();
   };
 
   const updateAmount = (value: string) => {
     setAmount(value);
-    clearMessages();
   };
 
+  // Errores/confirmación de la conversión van por toast (mismo criterio
+  // que el resto de la app) en vez de un mensaje inline — así no hace
+  // falta ir limpiando estado a mano en cada interacción del form.
   const handleExchange = async () => {
-    clearMessages();
-
     if (numericAmount <= 0) {
-      setExchangeError("Ingresá un monto mayor que cero");
+      showToast("Ingresá un monto mayor que cero", "error");
       return;
     }
 
     if (numericAmount > balances[fromCurrency]) {
-      setExchangeError("No tenés saldo suficiente");
+      showToast("No tenés saldo suficiente", "error");
       return;
     }
 
     if (exchangeRate <= 0) {
-      setExchangeError("La tasa de cambio no está disponible");
+      showToast("La tasa de cambio no está disponible", "error");
       return;
     }
 
@@ -174,15 +164,16 @@ export function useExchangeForm() {
       const result = await exchangeCurrency({ fromCurrency, toCurrency, amount: numericAmount });
 
       setAmount("0,00");
-      setExchangeSuccess(
+      showToast(
         `Conversión aprobada: recibiste ${formatMoney(Number(result.transaction.finalAmount))} ${toCurrency}`,
+        "success",
       );
 
       // Vuelve a consultar la billetera para actualizar también Dashboard,
       // Billetera y Exchange.
       refetch();
     } catch {
-      setExchangeError("No pudimos realizar la conversión");
+      showToast("No pudimos realizar la conversión", "error");
     } finally {
       setExchangeLoading(false);
     }
@@ -205,8 +196,6 @@ export function useExchangeForm() {
     rateError,
 
     exchangeLoading,
-    exchangeError,
-    exchangeSuccess,
 
     updateAmount,
     changeFromCurrency,

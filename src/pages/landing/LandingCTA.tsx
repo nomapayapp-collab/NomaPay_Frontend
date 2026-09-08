@@ -24,7 +24,7 @@ export function LandingCTA() {
           <Link to="/register" className="btn bg-ink text-white hover:opacity-90 transition-transform hover:-translate-y-0.5 active:translate-y-0">
             Crear mi cuenta gratis
           </Link>
-          <p className="text-xs text-white/70">Creá tu cuenta gratis y ya podés recibir cobros.</p>
+          <p className="text-xs text-white/70">Creá tu cuenta gratis y ya podés recibir ingresos.</p>
         </div>
       </Reveal>
     </section>

@@ -148,7 +148,7 @@ export function TopTabBar() {
           aria-modal="true"
           aria-label="Menú"
           className={[
-            "relative flex flex-col w-64 max-w-[80%] h-full bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark px-4 py-4 gap-1 shadow-elevation-lg overflow-y-auto transition-transform duration-300 ease-out",
+            "relative flex flex-col w-64 max-w-[80%] h-full bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark px-4 py-4 gap-1 shadow-elevation-lg overflow-y-auto scrollbar-app transition-transform duration-300 ease-out",
             open ? "translate-x-0" : "-translate-x-full",
           ].join(" ")}
         >

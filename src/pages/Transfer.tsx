@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../components/layout/Header";
 import { Input } from "../components/ui/Input";
@@ -9,10 +9,12 @@ import {
   IconBack,
   IconSearch,
   IconCheck,
+  IconAlertTriangle,
 } from "../assets/icons/Icons";
 import { useWallet } from "../hooks/useWallet";
 import { formatCurrency } from "../utils/formatCurrency";
-import { MOCK_CONTACTS } from "../constants/mockContacts";
+import { getFrequentContacts, lookupAlias } from "../services/contactService";
+import type { FrequentContact } from "../types/contact";
 import { CURRENCY_NAMES } from "../constants/currencies";
 import type { CurrencyCode } from "../types/wallet";
 
@@ -39,6 +41,19 @@ function initials(name: string) {
     .toUpperCase();
 }
 
+// Un contacto frecuente sin alias ni CBU no se puede usar como destinatario
+// (no hay con qué identificarlo en /transfers) — no debería pasar, pero
+// por las dudas lo filtramos en vez de romper.
+function contactIdentifier(contact: FrequentContact): string | null {
+  return contact.alias ?? contact.cbu ?? null;
+}
+
+function contactToRecipient(contact: FrequentContact): Recipient | null {
+  const alias = contactIdentifier(contact);
+  if (!alias) return null;
+  return { alias, name: `${contact.name} ${contact.surname}`.trim() };
+}
+
 export default function Transfer() {
   const navigate = useNavigate();
   const { wallet } = useWallet();
@@ -51,6 +66,34 @@ export default function Transfer() {
   const [message, setMessage] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sending, setSending] = useState(false);
+
+  // Contactos frecuentes reales (GET /contacts) — los 3 destinatarios con
+  // más transferencias completadas. Si falla, no rompemos la pantalla:
+  // el usuario igual puede escribir un alias/CBU a mano.
+  const [contacts, setContacts] = useState<FrequentContact[]>([]);
+  const [contactsLoading, setContactsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    getFrequentContacts()
+      .then((data) => {
+        if (!cancelled) setContacts(data);
+      })
+      .catch(() => {
+        if (!cancelled) setContacts([]);
+      })
+      .finally(() => {
+        if (!cancelled) setContactsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const usableContacts: (Recipient & { id: number })[] = contacts.flatMap((contact) => {
+    const recipient = contactToRecipient(contact);
+    return recipient ? [{ ...recipient, id: contact.id }] : [];
+  });
 
   const transferableBalances = wallet.balances.filter(
     (balance) => balance.amount > 0,
@@ -78,9 +121,9 @@ export default function Transfer() {
   const amountValid =
     numericAmount > 0 && numericAmount <= available;
 
-  const filteredContacts = MOCK_CONTACTS.filter(
+  const filteredContacts = usableContacts.filter(
     (contact) =>
-      contact.name
+      (contact.name ?? "")
         .toLowerCase()
         .includes(query.toLowerCase()) ||
       contact.alias
@@ -88,11 +131,65 @@ export default function Transfer() {
         .includes(query.toLowerCase()),
   );
 
-  const exactMatch = MOCK_CONTACTS.some(
+  const exactMatch = usableContacts.some(
     (contact) =>
       contact.alias.toLowerCase() ===
       query.trim().toLowerCase(),
   );
+
+  // Verificación en vivo contra GET /contacts/lookup — mismo criterio que
+  // usan las apps bancarias: mientras escribís un alias/CBU que no es de
+  // un contacto frecuente, lo chequeamos contra el back (con debounce)
+  // para avisar acá mismo si no existe, en vez de recién enterarte al
+  // confirmar. Ese endpoint todavía no está armado en el back
+  // (avisado a Gastón/Gisella) — hasta que exista, lookupAlias() rechaza
+  // con cualquier error que no sea el 404 puntual de "alias inexistente",
+  // así que este efecto cae siempre a "idle" y el flujo se comporta
+  // exactamente igual que antes (el botón manual de "Usar como
+  // destinatario" sigue ahí).
+  const [aliasCheck, setAliasCheck] = useState<
+    "idle" | "checking" | "found" | "not_found"
+  >("idle");
+  const [verifiedRecipient, setVerifiedRecipient] = useState<{
+    alias: string;
+    name: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (recipient || query.trim().length === 0 || exactMatch) {
+      setAliasCheck("idle");
+      setVerifiedRecipient(null);
+      return;
+    }
+
+    let cancelled = false;
+    setAliasCheck("checking");
+    setVerifiedRecipient(null);
+
+    const timer = setTimeout(() => {
+      lookupAlias(query.trim())
+        .then((result) => {
+          if (cancelled) return;
+          if (result.found) {
+            setAliasCheck("found");
+            setVerifiedRecipient({
+              alias: result.alias,
+              name: `${result.name} ${result.surname}`.trim(),
+            });
+          } else {
+            setAliasCheck("not_found");
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setAliasCheck("idle");
+        });
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query, recipient, exactMatch]);
 
   function selectRecipient(selectedRecipient: Recipient) {
     setRecipient(selectedRecipient);
@@ -286,23 +383,69 @@ export default function Transfer() {
               {!recipient &&
                 query.trim().length > 0 &&
                 !exactMatch && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      selectRecipient({
-                        alias: query.trim(),
-                      })
-                    }
-                    className="rounded-card border border-dashed border-border-light p-4 text-left hover:border-violet-500/40 dark:border-border-dark"
-                  >
-                    <p className="mb-1 text-[13px] text-text-light-tertiary dark:text-text-dark-tertiary">
-                      Usar como destinatario
-                    </p>
+                  <>
+                    {aliasCheck === "checking" && (
+                      <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                        Buscando ese alias o CBU...
+                      </p>
+                    )}
 
-                    <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
-                      {query.trim()}
-                    </p>
-                  </button>
+                    {aliasCheck === "found" && verifiedRecipient && (
+                      <button
+                        type="button"
+                        onClick={() => selectRecipient(verifiedRecipient)}
+                        className="flex items-center gap-3 rounded-card border border-turquoise-500/40 bg-turquoise-500/5 p-4 text-left hover:border-turquoise-500"
+                      >
+                        <span
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white"
+                          style={{
+                            backgroundImage:
+                              "var(--gradient-swoosh)",
+                          }}
+                        >
+                          {initials(verifiedRecipient.name)}
+                        </span>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
+                            {verifiedRecipient.name}
+                          </p>
+
+                          <p className="truncate text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                            {verifiedRecipient.alias}
+                          </p>
+                        </div>
+
+                        <IconCheck className="h-4 w-4 shrink-0 text-turquoise-500" />
+                      </button>
+                    )}
+
+                    {aliasCheck === "not_found" && (
+                      <p className="text-[13.5px] text-magenta-500">
+                        No encontramos ningún usuario con ese alias o CBU.
+                      </p>
+                    )}
+
+                    {aliasCheck === "idle" && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          selectRecipient({
+                            alias: query.trim(),
+                          })
+                        }
+                        className="rounded-card border border-dashed border-border-light p-4 text-left hover:border-violet-500/40 dark:border-border-dark"
+                      >
+                        <p className="mb-1 text-[13px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                          Usar como destinatario
+                        </p>
+
+                        <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
+                          {query.trim()}
+                        </p>
+                      </button>
+                    )}
+                  </>
                 )}
 
               {!recipient && (
@@ -311,10 +454,15 @@ export default function Transfer() {
                     Frecuentes
                   </p>
 
-                  {filteredContacts.length === 0 ? (
+                  {contactsLoading ? (
+                    <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                      Buscando tus contactos frecuentes...
+                    </p>
+                  ) : filteredContacts.length === 0 ? (
                     <p className="text-[13.5px] text-magenta-500">
-                      No encontramos contactos con ese
-                      nombre o alias.
+                      {query.trim().length > 0
+                        ? "No encontramos contactos con ese nombre o alias."
+                        : "Todavía no tenés contactos frecuentes."}
                     </p>
                   ) : (
                     <ul className="flex flex-col gap-1">
@@ -334,12 +482,12 @@ export default function Transfer() {
                                   "var(--gradient-swoosh)",
                               }}
                             >
-                              {initials(contact.name)}
+                              {initials(contact.name ?? contact.alias)}
                             </span>
 
                             <div className="min-w-0 flex-1">
                               <p className="truncate font-medium text-text-light-primary dark:text-text-dark-primary">
-                                {contact.name}
+                                {contact.name ?? contact.alias}
                               </p>
 
                               <p className="truncate text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
@@ -500,7 +648,7 @@ export default function Transfer() {
                 onSubmit={handleSubmitStep3}
                 className="flex flex-col gap-6"
               >
-                <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light dark:divide-border-dark dark:border-border-dark">
+                <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light bg-surface-light dark:divide-border-dark dark:border-border-dark dark:bg-surface-dark-elevated">
                   <div className="flex items-center justify-between gap-4 px-4 py-3.5">
                     <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
                       Destinatario
@@ -560,14 +708,15 @@ export default function Transfer() {
                   )}
                 </div>
 
-                <div className="alert-note alert-note--info">
-                  <p className="alert-note__title">
-                    Verificá el alias antes de enviar
-                  </p>
-
+                <div className="alert-note alert-note--warning-solid">
+                  <div className="flex items-center gap-2">
+                     <IconAlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                    <p className="alert-note__title text-amber-500">
+                      Esta transferencia no se puede deshacer
+                    </p>
+                  </div>
                   <p className="alert-note__description">
-                    Las transferencias no se pueden
-                    deshacer una vez confirmadas.
+                   Verificá que el nombre y el alias del destinatario sean correctos.
                   </p>
                 </div>
 
@@ -622,57 +771,77 @@ export default function Transfer() {
 
         {/* Columna lateral */}
         <div className="hidden lg:flex lg:flex-col lg:gap-6">
-          <div className="rounded-card border border-border-light p-5 dark:border-border-dark">
+          <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
             <p className="card__title mb-3">
               Frecuentes
             </p>
 
-            <ul className="flex flex-col gap-1">
-              {MOCK_CONTACTS.map((contact) => (
-                <li key={contact.id}>
-                  <button
-                    type="button"
-                    disabled={sending}
-                    onClick={() => {
-                      selectRecipient(contact);
-                      setStep(1);
-                    }}
-                    className="flex w-full items-center gap-3 rounded-control px-2 py-2 text-left hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/5"
-                  >
-                    <span
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
-                      style={{
-                        backgroundImage:
-                          "var(--gradient-swoosh)",
+            {contactsLoading ? (
+              <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                Buscando tus contactos frecuentes...
+              </p>
+            ) : usableContacts.length === 0 ? (
+              <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                Todavía no tenés contactos frecuentes.
+              </p>
+            ) : (
+              <ul className="flex flex-col gap-1">
+                {usableContacts.map((contact) => (
+                  <li key={contact.id}>
+                    <button
+                      type="button"
+                      disabled={sending}
+                      onClick={() => {
+                        selectRecipient(contact);
+                        setStep(1);
                       }}
+                      className="flex w-full items-center gap-3 rounded-control px-2 py-2 text-left hover:bg-black/5 disabled:opacity-50 dark:hover:bg-white/5"
                     >
-                      {initials(contact.name)}
-                    </span>
+                      <span
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white"
+                        style={{
+                          backgroundImage:
+                            "var(--gradient-swoosh)",
+                        }}
+                      >
+                        {initials(contact.name ?? contact.alias)}
+                      </span>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13.5px] font-medium text-text-light-primary dark:text-text-dark-primary">
-                        {contact.name}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13.5px] font-medium text-text-light-primary dark:text-text-dark-primary">
+                          {contact.name ?? contact.alias}
+                        </p>
 
-                      <p className="truncate text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary">
-                        {contact.alias}
-                      </p>
-                    </div>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                        <p className="truncate text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                          {contact.alias}
+                        </p>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
-          <div className="alert-note alert-note--info">
-            <p className="alert-note__title">
-              Verificá el alias antes de enviar
-            </p>
+          <div className="alert-note alert-note--warning">
+            <div className="flex items-center gap-2">
+              <IconAlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+              <p className="alert-note__title text-amber-500">
+                ANTES DE TRANSFERIR
+              </p>
+            </div>
 
-            <p className="alert-note__description">
-              Fijate que el nombre coincida antes de
-              confirmar la transferencia.
-            </p>
+            <ul className="alert-note__description">
+              <li>
+                - Verificá que el nombre coincida con el alias.
+              </li>
+              <li>
+                - Revisá que el monto sea el correcto.
+              </li>
+              <li>
+                - Si todo coincide, podés confirmar tu transferencia.
+              </li>
+            </ul>
           </div>
         </div>
       </div>

@@ -80,7 +80,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           >
             <span className="toast__content">
               <toast.icon className="toast__icon w-4 h-4" />
-              <span className="truncate">{toast.message}</span>
+              <span>{toast.message}</span>
             </span>
             <button
               type="button"

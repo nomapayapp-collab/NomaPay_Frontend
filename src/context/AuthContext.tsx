@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, type ReactNode } from "react";
 import * as authService from "../services/authService";
 import type { AuthUser, LoginPayload } from "../types/auth";
 import { SPLASH_SEEN_KEY } from "../hooks/useSplash";
+import { onSessionExpired } from "../services/authEvents";
 /**
  * context/AuthContext.tsx — estado global de sesión.
  * No se usa directo: los componentes consumen esto a través del hook useAuth().
@@ -35,6 +36,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(setUser)
       .catch(() => setUser(null)) // sin cookie válida = sin sesión, no es un error real
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    // api.ts avisa por acá cuando el refresh token también venció/fue
+    // revocado (ya intentó renovar la sesión sola y no pudo). Limpiamos el
+    // usuario en memoria; <ProtectedRoute> hace el resto y redirige a
+    // /login solo. No llamamos a logoutRequest() de nuevo: si llegamos
+    // hasta acá, el back ya no tiene una sesión válida que revocar.
+    return onSessionExpired(() => setUser(null));
   }, []);
 
   function persistSession(loggedUser: AuthUser) {

@@ -1,18 +1,18 @@
 import { Route, Routes } from "react-router-dom";
 import { AppLayout } from "../components/layout/AppLayout";
-import ComingSoon from "../pages/ComingSoon";
 import Exchange from "../pages/Exchange";
 import Login from "../pages/Login";
 import NotFound from "../pages/NotFound";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
+import History from "../pages/History";
+import Wallet from "../pages/Wallet";
+import Transfer from "../pages/Transfer";
 import Receipt from "../pages/Receipt";
 import Register from "../pages/Register";
-import Transfer from "../pages/Transfer";
-import Wallet from "../pages/Wallet";
 import Config from "../pages/config/Config";
 import RecoverPassword from "../pages/password/RecoverPassword";
 import ResetPassword from "../pages/password/ResetPassword";
-import Summary from "../pages/summary/Summary";
+import Summary from "../pages/Summary";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { Root } from "./Root";
 
@@ -24,38 +24,19 @@ export default function AppRoutes() {
       <Route path="/register" element={<Register />} />
       <Route path="/recover-password" element={<RecoverPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <AppLayout>
             <Config />
-          </ProtectedRoute>
-        }
+          </AppLayout>
+        </ProtectedRoute>} />
+      <Route path="/wallet" element={
+        <ProtectedRoute>
+          <AppLayout>
+            <Wallet />
+          </AppLayout>
+        </ProtectedRoute>} 
       />
-
-      <Route
-        path="/wallet"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <Wallet />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/comprar-vender"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ComingSoon title="Comprar / Vender" />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-
       <Route
         path="/exchange"
         element={
@@ -83,7 +64,7 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <AppLayout>
-              <ComingSoon title="Historial" />
+              <History />
             </AppLayout>
           </ProtectedRoute>
         }
