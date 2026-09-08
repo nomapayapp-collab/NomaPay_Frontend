@@ -9,10 +9,11 @@ import {
   IconBack,
   IconSearch,
   IconCheck,
+  IconAlertTriangle,
 } from "../assets/icons/Icons";
 import { useWallet } from "../hooks/useWallet";
 import { formatCurrency } from "../utils/formatCurrency";
-import { getFrequentContacts } from "../services/contactService";
+import { getFrequentContacts, lookupAlias } from "../services/contactService";
 import type { FrequentContact } from "../types/contact";
 import { CURRENCY_NAMES } from "../constants/currencies";
 import type { CurrencyCode } from "../types/wallet";
@@ -135,6 +136,60 @@ export default function Transfer() {
       contact.alias.toLowerCase() ===
       query.trim().toLowerCase(),
   );
+
+  // Verificación en vivo contra GET /contacts/lookup — mismo criterio que
+  // usan las apps bancarias: mientras escribís un alias/CBU que no es de
+  // un contacto frecuente, lo chequeamos contra el back (con debounce)
+  // para avisar acá mismo si no existe, en vez de recién enterarte al
+  // confirmar. Ese endpoint todavía no está armado en el back
+  // (avisado a Gastón/Gisella) — hasta que exista, lookupAlias() rechaza
+  // con cualquier error que no sea el 404 puntual de "alias inexistente",
+  // así que este efecto cae siempre a "idle" y el flujo se comporta
+  // exactamente igual que antes (el botón manual de "Usar como
+  // destinatario" sigue ahí).
+  const [aliasCheck, setAliasCheck] = useState<
+    "idle" | "checking" | "found" | "not_found"
+  >("idle");
+  const [verifiedRecipient, setVerifiedRecipient] = useState<{
+    alias: string;
+    name: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (recipient || query.trim().length === 0 || exactMatch) {
+      setAliasCheck("idle");
+      setVerifiedRecipient(null);
+      return;
+    }
+
+    let cancelled = false;
+    setAliasCheck("checking");
+    setVerifiedRecipient(null);
+
+    const timer = setTimeout(() => {
+      lookupAlias(query.trim())
+        .then((result) => {
+          if (cancelled) return;
+          if (result.found) {
+            setAliasCheck("found");
+            setVerifiedRecipient({
+              alias: result.alias,
+              name: `${result.name} ${result.surname}`.trim(),
+            });
+          } else {
+            setAliasCheck("not_found");
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setAliasCheck("idle");
+        });
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query, recipient, exactMatch]);
 
   function selectRecipient(selectedRecipient: Recipient) {
     setRecipient(selectedRecipient);
@@ -328,23 +383,69 @@ export default function Transfer() {
               {!recipient &&
                 query.trim().length > 0 &&
                 !exactMatch && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      selectRecipient({
-                        alias: query.trim(),
-                      })
-                    }
-                    className="rounded-card border border-dashed border-border-light p-4 text-left hover:border-violet-500/40 dark:border-border-dark"
-                  >
-                    <p className="mb-1 text-[13px] text-text-light-tertiary dark:text-text-dark-tertiary">
-                      Usar como destinatario
-                    </p>
+                  <>
+                    {aliasCheck === "checking" && (
+                      <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                        Buscando ese alias o CBU...
+                      </p>
+                    )}
 
-                    <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
-                      {query.trim()}
-                    </p>
-                  </button>
+                    {aliasCheck === "found" && verifiedRecipient && (
+                      <button
+                        type="button"
+                        onClick={() => selectRecipient(verifiedRecipient)}
+                        className="flex items-center gap-3 rounded-card border border-turquoise-500/40 bg-turquoise-500/5 p-4 text-left hover:border-turquoise-500"
+                      >
+                        <span
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white"
+                          style={{
+                            backgroundImage:
+                              "var(--gradient-swoosh)",
+                          }}
+                        >
+                          {initials(verifiedRecipient.name)}
+                        </span>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
+                            {verifiedRecipient.name}
+                          </p>
+
+                          <p className="truncate text-[12.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                            {verifiedRecipient.alias}
+                          </p>
+                        </div>
+
+                        <IconCheck className="h-4 w-4 shrink-0 text-turquoise-500" />
+                      </button>
+                    )}
+
+                    {aliasCheck === "not_found" && (
+                      <p className="text-[13.5px] text-magenta-500">
+                        No encontramos ningún usuario con ese alias o CBU.
+                      </p>
+                    )}
+
+                    {aliasCheck === "idle" && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          selectRecipient({
+                            alias: query.trim(),
+                          })
+                        }
+                        className="rounded-card border border-dashed border-border-light p-4 text-left hover:border-violet-500/40 dark:border-border-dark"
+                      >
+                        <p className="mb-1 text-[13px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                          Usar como destinatario
+                        </p>
+
+                        <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
+                          {query.trim()}
+                        </p>
+                      </button>
+                    )}
+                  </>
                 )}
 
               {!recipient && (
@@ -607,14 +708,15 @@ export default function Transfer() {
                   )}
                 </div>
 
-                <div className="alert-note alert-note--info">
-                  <p className="alert-note__title">
-                    Verificá el alias antes de enviar
-                  </p>
-
+                <div className="alert-note alert-note--warning-solid">
+                  <div className="flex items-center gap-2">
+                     <IconAlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                    <p className="alert-note__title text-amber-500">
+                      Esta transferencia no se puede deshacer
+                    </p>
+                  </div>
                   <p className="alert-note__description">
-                    Las transferencias no se pueden
-                    deshacer una vez confirmadas.
+                   Verificá que el nombre y el alias del destinatario sean correctos.
                   </p>
                 </div>
 
@@ -721,15 +823,25 @@ export default function Transfer() {
             )}
           </div>
 
-          <div className="alert-note alert-note--info">
-            <p className="alert-note__title">
-              Verificá el alias antes de enviar
-            </p>
+          <div className="alert-note alert-note--warning">
+            <div className="flex items-center gap-2">
+              <IconAlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+              <p className="alert-note__title text-amber-500">
+                ANTES DE TRANSFERIR
+              </p>
+            </div>
 
-            <p className="alert-note__description">
-              Fijate que el nombre coincida antes de
-              confirmar la transferencia.
-            </p>
+            <ul className="alert-note__description">
+              <li>
+                - Verificá que el nombre coincida con el alias.
+              </li>
+              <li>
+                - Revisá que el monto sea el correcto.
+              </li>
+              <li>
+                - Si todo coincide, podés confirmar tu transferencia.
+              </li>
+            </ul>
           </div>
         </div>
       </div>

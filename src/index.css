@@ -244,7 +244,7 @@
     @apply rounded-control border p-4;
   }
   .alert-note__title {
-    @apply text-[11px] font-semibold tracking-[0.14em] uppercase mb-1;
+    @apply text-[11px] font-semibold tracking-[0.14em] uppercase mb-0;
   }
   .alert-note__description {
     @apply text-[13px] text-text-dark-secondary;
@@ -258,6 +258,11 @@
   .alert-note--error .alert-note__title { @apply text-magenta-500; }
   .alert-note--warning { @apply border-amber-500/30 bg-amber-100/10; }
   .alert-note--warning .alert-note__title { @apply text-amber-700; }
+  /* mismo tono que --warning pero con el borde a full color (no /30) —
+     para el aviso de "no se puede deshacer" en Transferir paso 3, donde
+     el borde tiene que matchear exacto con el ícono amarillo. */
+  .alert-note--warning-solid { @apply border-amber-500 bg-amber-100/10; }
+  .alert-note--warning-solid .alert-note__title { @apply text-amber-700; }
   .alert-note--info    { @apply border-violet-500 bg-violet-100/10; }
   .alert-note--info .alert-note__title { @apply text-violet-500; }
 
