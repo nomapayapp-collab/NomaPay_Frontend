@@ -14,6 +14,7 @@ import {
   IconLogout,
 } from "../../assets/icons/Icons";
 import { Logo } from "../ui/Logo";
+import { Button } from "../ui/Button";
 import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -92,10 +93,10 @@ export function Sidebar() {
           <div className="rounded-control border border-dashed border-border-light dark:border-border-dark p-3">
             <p className="text-[13.5px] font-semibold text-text-light-primary dark:text-text-dark-primary truncate mb-2">
               {user.alias}</p>
-            <button type="button" onClick={handleCopyAlias} className="btn btn--outline btn--sm w-full">
+            <Button type="button" variant="outline" size="sm" fullWidth onClick={handleCopyAlias}>
               {copied ? <IconCheck className="w-4 h-4" /> : <IconCopy className="w-4 h-4" />}
               {copied ? "Copiado" : "Copiar"}
-            </button>
+            </Button>
           </div>
         </div>
       )}

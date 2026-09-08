@@ -292,7 +292,7 @@ export default function Config() {
             {/* Columna principal */}
             <div className="flex flex-col gap-6 lg:col-span-2">
               {/* Perfil */}
-              <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-light lg:p-5 dark:lg:border-border-dark">
+              <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-light lg:bg-surface-light lg:p-5 dark:lg:border-border-dark dark:lg:bg-surface-dark-elevated">
                 <Avatar user={user} size="lg" />
 
                 <div className="min-w-0 flex-1">
@@ -380,7 +380,7 @@ export default function Config() {
                     Cuenta
                   </p>
 
-                  <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light dark:divide-border-dark dark:border-border-dark">
+                  <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light bg-surface-light dark:divide-border-dark dark:border-border-dark dark:bg-surface-dark-elevated">
                     {/* Alias */}
                     <div className="flex items-center justify-between px-4 py-3.5">
                       <div className="min-w-0 flex-1">
@@ -491,11 +491,10 @@ export default function Config() {
 
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="destructive"
                     fullWidth
                     disabled={deletingAccount}
                     onClick={openDeleteModal}
-                    className="border-magenta-500 text-magenta-500 hover:bg-magenta-500/10"
                   >
                     Eliminar cuenta
                   </Button>
@@ -517,7 +516,7 @@ export default function Config() {
             {/* Columna derecha desktop */}
             <div className="hidden flex-col gap-4 lg:flex">
               {/* Datos de la cuenta */}
-              <div className="rounded-card border border-border-light p-5 dark:border-border-dark">
+              <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
                 <p className="mb-4 text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
                   Tu cuenta
                 </p>
@@ -562,11 +561,10 @@ export default function Config() {
               {/* Eliminar debajo de guardar */}
               <Button
                 type="button"
-                variant="outline"
+                variant="destructive"
                 fullWidth
                 disabled={deletingAccount}
                 onClick={openDeleteModal}
-                className="border-magenta-500 text-magenta-500 hover:bg-magenta-500/10"
               >
                 Eliminar cuenta
               </Button>

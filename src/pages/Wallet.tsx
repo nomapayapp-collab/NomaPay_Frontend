@@ -64,7 +64,7 @@ export default function Wallet() {
 
   function renderFavoriteCurrency() {
     return (
-      <div className="rounded-card border border-border-light dark:border-border-dark p-5">
+      <div className="rounded-card border border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark-elevated p-5">
         <p className="font-semibold text-text-light-primary dark:text-text-dark-primary mb-1">Moneda favorita</p>
         <p className="text-[13px] text-text-light-tertiary dark:text-text-dark-tertiary mb-4">
           Es la moneda en la que ves tu saldo total y la que se propone por defecto al convertir.
@@ -121,10 +121,10 @@ export default function Wallet() {
         <p className="card__title mb-2">Recibir dinero</p>
         <div className="flex items-center justify-between gap-3">
           <p className="font-semibold text-text-light-primary dark:text-text-dark-primary truncate">{user.alias}</p>
-          <button type="button" onClick={handleCopyAlias} className="btn btn--outline btn--sm shrink-0">
+          <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={handleCopyAlias}>
             {copied ? <IconCheck className="w-4 h-4" /> : <IconCopy className="w-4 h-4" />}
             {copied ? "Copiado" : "Copiar"}
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -150,7 +150,7 @@ export default function Wallet() {
 
             <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
               <div className="lg:col-span-2">
-                <div className="rounded-card border border-border-light dark:border-border-dark p-6">
+                <div className="rounded-card border border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark-elevated p-6">
                   <p className="card__title mb-3">Movimientos en {selected.currency.code}</p>
                   {movements.length === 0 ? (
                     <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary py-4 text-center">

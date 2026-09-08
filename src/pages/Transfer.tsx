@@ -648,7 +648,7 @@ export default function Transfer() {
                 onSubmit={handleSubmitStep3}
                 className="flex flex-col gap-6"
               >
-                <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light dark:divide-border-dark dark:border-border-dark">
+                <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light bg-surface-light dark:divide-border-dark dark:border-border-dark dark:bg-surface-dark-elevated">
                   <div className="flex items-center justify-between gap-4 px-4 py-3.5">
                     <span className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
                       Destinatario
@@ -771,7 +771,7 @@ export default function Transfer() {
 
         {/* Columna lateral */}
         <div className="hidden lg:flex lg:flex-col lg:gap-6">
-          <div className="rounded-card border border-border-light p-5 dark:border-border-dark">
+          <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
             <p className="card__title mb-3">
               Frecuentes
             </p>
