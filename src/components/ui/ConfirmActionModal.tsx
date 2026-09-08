@@ -1,5 +1,7 @@
 import {
+  useEffect,
   useRef,
+  useState,
   type ComponentType,
   type SVGProps,
 } from "react";
@@ -13,15 +15,30 @@ type ConfirmRow = {
   accent?: boolean;
 };
 
+/**
+ * Confirmación "a lo GitHub": el usuario tiene que volver a escribir un
+ * valor exacto (ej. su email) para que el botón de confirmar se habilite.
+ * Se resetea cada vez que el modal se abre.
+ */
+type ConfirmationInput = {
+  label: string;
+  expectedValue: string;
+  placeholder?: string;
+};
+
 type ConfirmActionModalProps = {
   open: boolean;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
   confirming?: boolean;
   icon?: ComponentType<SVGProps<SVGSVGElement>>;
+  /** "danger" es para acciones destructivas (ej. eliminar cuenta): ícono en
+   *  rojo y descripción en negrita/color fuerte en vez del gris habitual. */
+  variant?: "default" | "danger";
   title: string;
   description: string;
   rows: ConfirmRow[];
+  confirmationInput?: ConfirmationInput;
   confirmLabel?: string;
 };
 
@@ -31,12 +48,24 @@ export function ConfirmActionModal({
   onConfirm,
   confirming = false,
   icon: Icon = IconSend,
+  variant = "default",
   title,
   description,
   rows,
+  confirmationInput,
   confirmLabel = "Confirmar",
 }: ConfirmActionModalProps) {
   const confirmationLock = useRef(false);
+  const [typedConfirmation, setTypedConfirmation] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setTypedConfirmation("");
+    }
+  }, [open]);
+
+  const confirmationMismatch =
+    !!confirmationInput && typedConfirmation !== confirmationInput.expectedValue;
 
   async function handleConfirm() {
     if (confirming || confirmationLock.current) {
@@ -65,13 +94,24 @@ export function ConfirmActionModal({
       open={open}
       onClose={handleCancel}
       title={title}
+      borderClassName={variant === "danger" ? "border border-magenta-500" : undefined}
     >
       <div className="flex flex-col gap-5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-control bg-violet-500/15 text-violet-300">
+        <div
+          className={`flex h-11 w-11 items-center justify-center rounded-control ${
+            variant === "danger" ? "bg-magenta-500/15 text-magenta-500" : "bg-violet-500/15 text-violet-300"
+          }`}
+        >
           <Icon className="h-5 w-5" />
         </div>
 
-        <p className="text-[14.5px] text-text-light-secondary dark:text-text-dark-secondary">
+        <p
+          className={
+            variant === "danger"
+              ? "text-[14.5px] font-bold text-text-light-primary dark:text-text-dark-primary"
+              : "text-[14.5px] text-text-light-secondary dark:text-text-dark-secondary"
+          }
+        >
           {description}
         </p>
 
@@ -88,7 +128,9 @@ export function ConfirmActionModal({
               <span
                 className={`text-right text-[13.5px] font-semibold ${
                   row.accent
-                    ? "text-turquoise-500"
+                    ? variant === "danger"
+                      ? "text-magenta-500"
+                      : "text-turquoise-500"
                     : "text-text-light-primary dark:text-text-dark-primary"
                 }`}
               >
@@ -97,6 +139,26 @@ export function ConfirmActionModal({
             </div>
           ))}
         </div>
+
+        {confirmationInput && (
+          <div>
+            <label htmlFor="confirm-action-input" className="input__label">
+              {confirmationInput.label}
+            </label>
+            <input
+              id="confirm-action-input"
+              type="text"
+              className={`input ${variant === "danger" ? "input--error" : ""}`}
+              value={typedConfirmation}
+              onChange={(e) => setTypedConfirmation(e.target.value)}
+              placeholder={confirmationInput.placeholder}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck={false}
+            />
+          </div>
+        )}
 
         <div className="flex gap-3">
           <Button
@@ -114,7 +176,7 @@ export function ConfirmActionModal({
             variant="primary"
             fullWidth
             loading={confirming}
-            disabled={confirming}
+            disabled={confirming || confirmationMismatch}
             onClick={handleConfirm}
           >
             {confirmLabel}

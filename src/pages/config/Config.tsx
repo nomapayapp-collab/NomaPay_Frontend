@@ -613,8 +613,9 @@ export default function Config() {
         onConfirm={handleDeleteAccount}
         confirming={deletingAccount}
         icon={IconAlertTriangle}
+        variant="danger"
         title="¿Eliminar tu cuenta?"
-        description="Esta acción es permanente y no se puede deshacer. Tu email y alias quedarán disponibles para un nuevo registro."
+        description="Esta acción es permanente y no se puede deshacer."
         rows={[
           {
             label: "Cuenta",
@@ -627,6 +628,15 @@ export default function Config() {
             accent: true,
           },
         ]}
+        confirmationInput={
+          user?.email
+            ? {
+                label: `Para confirmar, escribí tu email: ${user.email}`,
+                expectedValue: user.email,
+                placeholder: user.email,
+              }
+            : undefined
+        }
         confirmLabel="Sí, eliminar cuenta"
       />
     </div>
