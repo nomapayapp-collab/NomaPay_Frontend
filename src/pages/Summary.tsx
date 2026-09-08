@@ -52,13 +52,10 @@ export default function Summary() {
   const maxCategoryTotal = Math.max(1, thisWeek.entradas.total, thisWeek.salidas.total, thisWeek.cambios.total);
 
   return (
-    <main
-      className="
-        w-full px-4 py-5 text-text-light-primary dark:text-text-dark-primary
-        sm:px-6
-        lg:px-8
-        xl:grid xl:h-dvh xl:grid-rows-[auto_auto_minmax(0,1fr)]
-        xl:gap-4 xl:overflow-hidden xl:py-4
+    <main className=" px-5 pt-8 pb-8 sm:px-6 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto
+        text-text-light-primary dark:text-text-dark-primary
+        xl:grid xl:min-h-dvh xl:grid-rows-[auto_auto_minmax(0,1fr)]
+        xl:gap-4
       "
     >
       {/* Encabezado */}
@@ -68,7 +65,7 @@ export default function Summary() {
 
       {/* Balance general */}
       <Card variant="aura" className="mb-5 overflow-hidden p-0 xl:mb-0">
-        <div className="grid grid-cols-1 xl:h-33.5 xl:grid-cols-[1.1fr_3fr]">
+        <div className="grid grid-cols-1 xl:h-33.5 xl:grid-cols-[1.1fr_2fr]">
           <div className="flex flex-col justify-center p-5 xl:border-r xl:border-white/10 xl:px-8 xl:py-4">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-200">
               Balance total
@@ -85,9 +82,8 @@ export default function Summary() {
                 ) : (
                   <>
                     <span
-                      className={`font-bold ${
-                        formatPct(balancePct).positive ? "text-cyan-300" : "text-magenta-500"
-                      }`}
+                      className={`font-bold ${formatPct(balancePct).positive ? "text-cyan-300" : "text-magenta-500"
+                        }`}
                     >
                       {formatPct(balancePct).positive ? "↗" : "↘"} {formatPct(balancePct).label}
                     </span>
@@ -138,12 +134,12 @@ export default function Summary() {
       <div
         className="
           grid min-h-0 grid-cols-1 gap-5
-          xl:grid-cols-[minmax(0,4.4fr)_minmax(240px,1fr)]
-          xl:grid-rows-[minmax(0,1fr)_150px]
+          xl:grid-cols-[minmax(0,4.2fr)_minmax(240px,1fr)]
+          xl:grid-rows-[minmax(0,1fr)_auto]
         "
       >
         {/* Gráfico */}
-        <Card variant="elevated" className="min-h-0 min-w-0 p-5 xl:overflow-hidden xl:p-6">
+        <Card variant="elevated" className="min-h-0 min-w-0 p-5 xl:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-base font-bold">Entradas, salidas y cambios por día</h2>
 
@@ -237,7 +233,7 @@ export default function Summary() {
         </div>
 
         {/* Desglose */}
-        <Card variant="elevated" className="min-h-0 p-4 xl:overflow-hidden">
+        <Card variant="elevated" className="min-h-0 p-4">
           <h2 className="text-sm font-bold text-text-light-primary dark:text-text-dark-primary">Desglose por tipo</h2>
 
           <div className="mt-3 space-y-2.5">
@@ -268,7 +264,7 @@ export default function Summary() {
         </Card>
 
         {/* Comparación */}
-        <Card variant="elevated" className="min-h-0 p-4 xl:overflow-hidden">
+        <Card variant="elevated" className="min-h-0 p-4">
           <h2 className="text-sm font-bold text-text-light-primary dark:text-text-dark-primary">Comparado con la semana pasada</h2>
 
           <div className="mt-2 divide-y divide-border-light dark:divide-border-dark">
@@ -290,10 +286,10 @@ export default function Summary() {
                 comparison.cambiosDelta === 0
                   ? "Sin cambios"
                   : `${comparison.cambiosDelta > 0 ? "+" : "−"}${Math.abs(comparison.cambiosDelta)} ${pluralize(
-                      Math.abs(comparison.cambiosDelta),
-                      "operación",
-                      "operaciones",
-                    )}`
+                    Math.abs(comparison.cambiosDelta),
+                    "operación",
+                    "operaciones",
+                  )}`
               }
               color="#cba7ff"
             />
@@ -342,11 +338,13 @@ function DayColumn({ day, maxValue }: DayColumnProps) {
       </div>
 
       <div
-        className={`mt-3 border-t border-border-light dark:border-border-dark pt-2 text-center text-xs font-semibold ${
-          isToday ? "text-text-light-primary dark:text-text-dark-primary" : "text-text-light-tertiary dark:text-text-dark-tertiary"
-        }`}
+        className={`mt-3 border-t border-border-light dark:border-border-dark pt-2 text-center text-xs font-semibold ${isToday ? "text-text-light-primary dark:text-text-dark-primary" : "text-text-light-tertiary dark:text-text-dark-tertiary"
+          }`}
       >
-        {day.label}
+        {/* Mobile: solo la inicial (L, M, M, J...) para que las 7 columnas
+            entren sin apretarse. Desktop (sm+): abreviatura completa. */}
+        <span className="sm:hidden">{day.label.charAt(0)}</span>
+        <span className="hidden sm:inline">{day.label}</span>
       </div>
     </div>
   );
