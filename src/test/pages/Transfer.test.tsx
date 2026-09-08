@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   useAuth: vi.fn(),
   navigate: vi.fn(),
   getFrequentContacts: vi.fn(),
+  lookupAlias: vi.fn(),
 }));
 
 vi.mock("../../hooks/useWallet", () => ({
@@ -20,6 +21,7 @@ vi.mock("../../hooks/useAuth", () => ({
 
 vi.mock("../../services/contactService", () => ({
   getFrequentContacts: mocks.getFrequentContacts,
+  lookupAlias: mocks.lookupAlias,
 }));
 
 vi.mock("react-router-dom", async () => {
@@ -60,6 +62,7 @@ describe("Transfer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.getFrequentContacts.mockResolvedValue(FREQUENT_CONTACTS);
+    mocks.lookupAlias.mockRejectedValue(new Error("network error"));
   });
 
   it("no deja continuar del paso 1 sin elegir destinatario", () => {
@@ -103,22 +106,46 @@ describe("Transfer", () => {
     expect(screen.getByRole("button", { name: "Continuar" })).toBeDisabled();
   });
 
-  it("permite usar un alias tipeado a mano como destinatario", async () => {
+  // GET /contacts/lookup ya está conectado (contactService.lookupAlias):
+  // mientras se tipea un alias que no es un contacto frecuente, se verifica
+  // en vivo contra el back con debounce (ver el useEffect en Transfer.tsx).
+
+  it("permite usar un alias tipeado a mano como destinatario cuando no se puede verificar", async () => {
+    // Simula que lookupAlias no pudo confirmar nada (sin conexión, 500,
+    // etc.) — el efecto cae a "idle" y el botón manual sigue de respaldo,
+    // igual que antes de que existiera el endpoint.
+    mocks.lookupAlias.mockRejectedValue(new Error("network error"));
     const user = userEvent.setup();
     setup();
 
     await user.type(screen.getByPlaceholderText("Buscar alias, CBU o contacto"), "un.alias.cualquiera");
-    await user.click(screen.getByRole("button", { name: /Usar como destinatario/ }));
+
+    const useButton = await screen.findByRole(
+      "button",
+      { name: /Usar como destinatario/ },
+      { timeout: 2000 },
+    );
+    await user.click(useButton);
 
     expect(screen.getByRole("button", { name: "Continuar" })).toBeEnabled();
   });
 
-  it("usa el texto tipeado como aliasOrCbu cuando no es un contacto conocido", async () => {
+  it("usa un alias verificado por el back que no es un contacto frecuente", async () => {
+    // El back sí conoce este alias aunque no sea un contacto frecuente de
+    // Cande: lookupAlias() lo confirma y el efecto pasa a "found".
+    mocks.lookupAlias.mockResolvedValue({
+      found: true,
+      name: "Nueva",
+      surname: "Persona",
+      alias: "nueva.persona",
+    });
     const user = userEvent.setup();
     setup();
 
-    await user.type(screen.getByPlaceholderText("Buscar alias, CBU o contacto"), "no.existe.nomapay");
-    await user.click(screen.getByRole("button", { name: /Usar como destinatario/ }));
+    await user.type(screen.getByPlaceholderText("Buscar alias, CBU o contacto"), "nueva.persona");
+
+    const foundOption = await screen.findByRole("button", { name: /Nueva/ }, { timeout: 2000 });
+    await user.click(foundOption);
     await user.click(screen.getByRole("button", { name: "Continuar" }));
 
     await user.type(screen.getByPlaceholderText("0,00"), "100");
@@ -130,9 +157,28 @@ describe("Transfer", () => {
     await waitFor(() => {
       expect(mocks.navigate).toHaveBeenCalledWith(
         "/comprobante",
-        expect.objectContaining({ state: expect.objectContaining({ aliasOrCbu: "no.existe.nomapay" }) }),
+        expect.objectContaining({ state: expect.objectContaining({ aliasOrCbu: "nueva.persona" }) }),
       );
     });
+  });
+
+  it("no deja usar un alias que el back confirma que no existe", async () => {
+    mocks.lookupAlias.mockResolvedValue({ found: false });
+    const user = userEvent.setup();
+    setup();
+
+    await user.type(screen.getByPlaceholderText("Buscar alias, CBU o contacto"), "no.existe.nomapay");
+
+    await screen.findByText(
+      "No encontramos ningún usuario con ese alias o CBU.",
+      undefined,
+      { timeout: 2000 },
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /Usar como destinatario/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Continuar" })).toBeDisabled();
   });
 
   it("muestra un estado vacío si el usuario no tiene contactos frecuentes", async () => {

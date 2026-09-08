@@ -11,8 +11,7 @@ export type FrequentContact = {
   interactionCount: number;
 };
 
-// Resultado de GET /contacts/lookup?alias=X — endpoint todavía no armado
-// en el back (pendiente para Gastón/Gisella), pensado para verificar un
+// Resultado de GET /contacts/lookup?alias=X, usado para verificar un
 // alias/CBU en el momento en que se busca en Transferir, antes de llegar
 // a confirmar. found:false = el back respondió 404 con el mismo mensaje
 // que ya usa POST /transfers ("No se encontró ningún usuario con ese

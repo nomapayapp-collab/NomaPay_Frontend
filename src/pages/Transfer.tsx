@@ -105,8 +105,8 @@ export default function Transfer() {
         (balance) =>
           balance.isPrimary && balance.amount > 0,
       )?.currency.code ??
-        transferableBalances[0]?.currency.code ??
-        "ARS",
+      transferableBalances[0]?.currency.code ??
+      "ARS",
     );
 
   const balance = wallet.balances.find(
@@ -137,16 +137,6 @@ export default function Transfer() {
       query.trim().toLowerCase(),
   );
 
-  // Verificación en vivo contra GET /contacts/lookup — mismo criterio que
-  // usan las apps bancarias: mientras escribís un alias/CBU que no es de
-  // un contacto frecuente, lo chequeamos contra el back (con debounce)
-  // para avisar acá mismo si no existe, en vez de recién enterarte al
-  // confirmar. Ese endpoint todavía no está armado en el back
-  // (avisado a Gastón/Gisella) — hasta que exista, lookupAlias() rechaza
-  // con cualquier error que no sea el 404 puntual de "alias inexistente",
-  // así que este efecto cae siempre a "idle" y el flujo se comporta
-  // exactamente igual que antes (el botón manual de "Usar como
-  // destinatario" sigue ahí).
   const [aliasCheck, setAliasCheck] = useState<
     "idle" | "checking" | "found" | "not_found"
   >("idle");
@@ -262,11 +252,10 @@ export default function Transfer() {
           {STEP_LABELS.map((label, index) => (
             <div
               key={label}
-              className={`h-1.5 flex-1 rounded-full ${
-                index < step
+              className={`h-1.5 flex-1 rounded-full ${index < step
                   ? "bg-violet-500"
                   : "bg-black/8 dark:bg-white/10"
-              }`}
+                }`}
             />
           ))}
         </div>
@@ -303,11 +292,10 @@ export default function Transfer() {
                 </span>
 
                 <span
-                  className={`text-[13.5px] font-medium ${
-                    active || done
+                  className={`text-[13.5px] font-medium ${active || done
                       ? "text-text-light-primary dark:text-text-dark-primary"
                       : "text-text-light-tertiary dark:text-text-dark-tertiary"
-                  }`}
+                    }`}
                 >
                   {label}
                 </span>
@@ -315,11 +303,10 @@ export default function Transfer() {
 
               {number < 3 && (
                 <div
-                  className={`h-px flex-1 ${
-                    done
+                  className={`h-px flex-1 ${done
                       ? "bg-violet-500"
                       : "bg-border-light dark:bg-border-dark"
-                  }`}
+                    }`}
                 />
               )}
             </div>
@@ -383,7 +370,7 @@ export default function Transfer() {
               {!recipient &&
                 query.trim().length > 0 &&
                 !exactMatch && (
-                  <>
+                  <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
                     {aliasCheck === "checking" && (
                       <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
                         Buscando ese alias o CBU...
@@ -445,7 +432,7 @@ export default function Transfer() {
                         </p>
                       </button>
                     )}
-                  </>
+                  </div>
                 )}
 
               {!recipient && (
@@ -458,13 +445,8 @@ export default function Transfer() {
                     <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
                       Buscando tus contactos frecuentes...
                     </p>
-                  ) : filteredContacts.length === 0 ? (
-                    <p className="text-[13.5px] text-magenta-500">
-                      {query.trim().length > 0
-                        ? "No encontramos contactos con ese nombre o alias."
-                        : "Todavía no tenés contactos frecuentes."}
-                    </p>
                   ) : (
+                  <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
                     <ul className="flex flex-col gap-1">
                       {filteredContacts.map((contact) => (
                         <li key={contact.id}>
@@ -498,6 +480,7 @@ export default function Transfer() {
                         </li>
                       ))}
                     </ul>
+                  </div>
                   )}
                 </div>
               )}
@@ -549,11 +532,10 @@ export default function Transfer() {
                   options={transferableBalances.map(
                     (item) => ({
                       value: item.currency.code,
-                      label: `${item.currency.code} · ${
-                        CURRENCY_NAMES[
-                          item.currency.code
+                      label: `${item.currency.code} · ${CURRENCY_NAMES[
+                        item.currency.code
                         ]
-                      }`,
+                        }`,
                     }),
                   )}
                 />
@@ -586,11 +568,10 @@ export default function Transfer() {
                 </div>
 
                 <p
-                  className={`mt-2 text-[12.5px] ${
-                    numericAmount > available
+                  className={`mt-2 text-[12.5px] ${numericAmount > available
                       ? "text-magenta-500"
                       : "text-text-light-tertiary dark:text-text-dark-tertiary"
-                  }`}
+                    }`}
                 >
                   Disponible:{" "}
                   {formatCurrency(
@@ -710,13 +691,13 @@ export default function Transfer() {
 
                 <div className="alert-note alert-note--warning-solid">
                   <div className="flex items-center gap-2">
-                     <IconAlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                    <IconAlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
                     <p className="alert-note__title text-amber-500">
                       Esta transferencia no se puede deshacer
                     </p>
                   </div>
                   <p className="alert-note__description">
-                   Verificá que el nombre y el alias del destinatario sean correctos.
+                    Verificá que el nombre y el alias del destinatario sean correctos.
                   </p>
                 </div>
 
@@ -742,9 +723,8 @@ export default function Transfer() {
                 description={`Vas a enviar ${formatCurrency(
                   numericAmount,
                   currencyCode,
-                )} a ${
-                  recipient.name ?? recipient.alias
-                }. Esta acción no se puede deshacer.`}
+                )} a ${recipient.name ?? recipient.alias
+                  }. Esta acción no se puede deshacer.`}
                 rows={[
                   {
                     label: "Alias",
@@ -771,7 +751,7 @@ export default function Transfer() {
 
         {/* Columna lateral */}
         <div className="hidden lg:flex lg:flex-col lg:gap-6">
-          <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
+          {/* <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
             <p className="card__title mb-3">
               Frecuentes
             </p>
@@ -821,7 +801,7 @@ export default function Transfer() {
                 ))}
               </ul>
             )}
-          </div>
+          </div> */}
 
           <div className="alert-note alert-note--warning">
             <div className="flex items-center gap-2">

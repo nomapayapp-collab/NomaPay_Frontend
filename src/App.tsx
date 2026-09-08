@@ -1,5 +1,5 @@
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, useLocation } from "react-router-dom";
 import { ChatAssistant } from "./components/chat/ChatAssistant";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AuthProvider } from "./context/AuthContext";
@@ -9,10 +9,28 @@ import { useAuth } from "./hooks/useAuth";
 import AppRoutes from "./routes/AppRoutes";
 import { ThemeInit } from "../.flowbite-react/init";
 
+// El asistente flotante solo debe verse en las pantallas "core" de la app
+// (dashboard, billetera, convertir, transferir, historial, resumen y config),
+// no en comprobante, landing, login/registro, recuperar contraseña, etc.
+const CHAT_ASSISTANT_PATHS = new Set([
+  "/",
+  "/wallet",
+  "/exchange",
+  "/transfer",
+  "/history",
+  "/summary",
+  "/profile",
+]);
+
 function AuthenticatedChatAssistant() {
   const { isAuthenticated, loading } = useAuth();
+  const { pathname } = useLocation();
 
   if (loading || !isAuthenticated) {
+    return null;
+  }
+
+  if (!CHAT_ASSISTANT_PATHS.has(pathname)) {
     return null;
   }
 
