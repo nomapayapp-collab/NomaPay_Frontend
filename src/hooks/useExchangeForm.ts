@@ -17,11 +17,14 @@ const formatMoney = (value: number) =>
     maximumFractionDigits: 2,
   }).format(value);
 
-const formatRate = (value: number) =>
-  new Intl.NumberFormat("es-AR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+const formatRate = (value: number) => {
+  const isSmallRate = Math.abs(value) < 1;
+
+  return new Intl.NumberFormat("es-AR", {
+    minimumFractionDigits: isSmallRate ? 4 : 2,
+    maximumFractionDigits: isSmallRate ? 6 : 2,
   }).format(value);
+};
 
 export function useExchangeForm() {
   const { wallet, loading: walletLoading, error: walletError, refetch } = useWallet();
