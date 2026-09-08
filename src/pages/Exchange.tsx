@@ -216,34 +216,36 @@ export default function Exchange() {
                     No tenés saldo suficiente
                   </p>
                 )}
-
-
-
                 <div className="mt-3 flex justify-between flex-wrap gap-2">
-                  <span className="flex flex-wrap gap-2">
-                    {[10, 25, 50, 80].map((percentage) => (
+                  <div >
+                    <span className="flex flex-wrap gap-2">
+                      {[10, 25, 50, 80].map((percentage) => (
+                        <button
+                          key={percentage}
+                          type="button"
+                          disabled={exchangeLoading}
+                          onClick={() =>
+                            selectPercentage(percentage / 100)
+                          }
+                          className="rounded-full border border-gray-400 px-4 py-1.5 text-xs disabled:opacity-50 dark:border-[#596080]"
+                        >
+                          {percentage}%
+                        </button>
+                      ))}
+
                       <button
-                        key={percentage}
                         type="button"
                         disabled={exchangeLoading}
-                        onClick={() =>
-                          selectPercentage(percentage / 100)
-                        }
+                        onClick={selectMaximum}
                         className="rounded-full border border-gray-400 px-4 py-1.5 text-xs disabled:opacity-50 dark:border-[#596080]"
                       >
-                        {percentage}%
+                        Máximo
                       </button>
-                    ))}
-
-                    <button
-                      type="button"
-                      disabled={exchangeLoading}
-                      onClick={selectMaximum}
-                      className="rounded-full border border-[#793aff] bg-[#ede9ff] px-4 py-1.5 text-xs text-[#5526c9] disabled:opacity-50 dark:bg-[#2c1765] dark:text-white"
-                    >
-                      Máximo
-                    </button>
-                  </span>
+                    </span>
+                    <p className="text-xs text-gray-500 py-2 dark:text-[#9da5c8]">
+                      Los porcentajes se calculan sobre tu saldo disponible
+                    </p>
+                  </div>
                   <p className="mt-2 text-right text-xs font-semibold text-emerald-500">
                     Comisión +0,5%
                   </p>
