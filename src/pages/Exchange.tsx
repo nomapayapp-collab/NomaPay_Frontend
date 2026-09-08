@@ -59,7 +59,7 @@ export default function Exchange() {
   }
 
   return (
-    <main className="w-full text-gray-900 dark:text-white">
+    <main className="w-full text-text-light-primary dark:text-text-dark-primary">
       <section className="w-full px-4 pb-8 pt-6 sm:px-6 lg:px-10">
         <Header
           title="Convertir monedas"
@@ -67,13 +67,13 @@ export default function Exchange() {
         />
 
         {walletLoading && (
-          <p className="mb-4 text-sm text-gray-500 dark:text-[#a9afca]">
+          <p className="mb-4 text-sm text-text-light-tertiary dark:text-text-dark-tertiary">
             Cargando saldos y cotizaciones...
           </p>
         )}
 
         {walletError && (
-          <p className="mb-4 rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+          <p className="mb-4 rounded-lg border border-magenta-500/30 bg-magenta-100/10 px-4 py-3 text-sm text-magenta-500">
             {walletError}
           </p>
         )}
@@ -85,11 +85,11 @@ export default function Exchange() {
               {/* Moneda de origen */}
               <article className="rounded-card border border-border-light bg-surface-light-input p-4 dark:border-border-dark dark:bg-surface-dark-elevated">
                 <div className="mb-2 flex items-center justify-between gap-4">
-                  <p className="text-xs font-bold tracking-widest text-gray-500 dark:text-[#9da5c8]">
+                  <p className="text-xs font-bold tracking-widest text-text-light-tertiary dark:text-text-dark-tertiary">
                     DE
                   </p>
 
-                  <p className="text-xs text-gray-500 dark:text-[#9da5c8]">
+                  <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
                     Disponible:
                   </p>
                 </div>
@@ -113,7 +113,7 @@ export default function Exchange() {
                         value: code,
                         label: CURRENCIES[code].name,
                       }))}
-                      className="w-auto border-0 bg-transparent p-0 font-bold text-gray-900 dark:text-white"
+                      className="w-auto border-0 bg-transparent p-0 font-bold text-text-light-primary dark:text-text-dark-primary"
                     />
                   </div>
 
@@ -139,11 +139,11 @@ export default function Exchange() {
               {/* Moneda de destino */}
               <article className="rounded-card border border-border-light bg-surface-light-input p-4 dark:border-border-dark dark:bg-surface-dark-elevated">
                 <div className="mb-2 flex items-center justify-between gap-4">
-                  <p className="text-xs font-bold tracking-widest text-gray-500 dark:text-[#9da5c8]">
+                  <p className="text-xs font-bold tracking-widest text-text-light-tertiary dark:text-text-dark-tertiary">
                     A
                   </p>
 
-                  <p className="text-xs text-gray-500 dark:text-[#9da5c8]">
+                  <p className="text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
                     Disponible:
                   </p>
                 </div>
@@ -169,7 +169,7 @@ export default function Exchange() {
                         value: code,
                         label: CURRENCIES[code].name,
                       }))}
-                      className="w-auto border-0 bg-transparent p-0 font-bold text-gray-900 dark:text-white"
+                      className="w-auto border-0 bg-transparent p-0 font-bold text-text-light-primary dark:text-text-dark-primary"
                     />
                   </div>
 
@@ -184,12 +184,12 @@ export default function Exchange() {
               <section className="mt-5">
                 <label
                   htmlFor="exchange-amount"
-                  className="mb-2 block text-xs font-bold tracking-widest text-gray-500 dark:text-[#9da5c8]"
+                  className="mb-2 block text-xs font-bold tracking-widest text-text-light-tertiary dark:text-text-dark-tertiary"
                 >
                   MONTO A CONVERTIR
                 </label>
 
-                <div className="flex items-center rounded-card border border-[#7737f2] bg-white px-4 focus-within:border-violet-300 dark:bg-[#161936]">
+                <div className="flex items-center rounded-card border border-violet-500 bg-surface-light-input px-4 focus-within:border-violet-300 dark:bg-surface-dark-elevated">
                   <input
                     id="exchange-amount"
                     type="text"
@@ -199,17 +199,17 @@ export default function Exchange() {
                       updateAmount(event.target.value)
                     }
                     disabled={exchangeLoading}
-                    className="w-full border-0 bg-transparent py-4 font-bold text-gray-900 outline-none ring-0 ring-offset-0 focus:ring-0 focus:ring-offset-0 disabled:opacity-60 dark:text-white"
+                    className="w-full border-0 bg-transparent py-4 font-bold text-text-light-primary outline-none ring-0 ring-offset-0 focus:ring-0 focus:ring-offset-0 disabled:opacity-60 dark:text-text-dark-primary"
                   />
 
-                  <span className="text-sm text-gray-500 dark:text-[#9da5c8]">
+                  <span className="text-sm text-text-light-tertiary dark:text-text-dark-tertiary">
                     {fromCurrency}
                   </span>
                 </div>
                 {numericAmount > balances[fromCurrency] && (
                   <p
                     role="alert"
-                    className="mt-2 text-sm font-medium text-red-600 dark:text-red-300"
+                    className="mt-2 text-sm font-medium text-magenta-500"
                   >
                     No tenés saldo suficiente
                   </p>
@@ -225,7 +225,7 @@ export default function Exchange() {
                           onClick={() =>
                             selectPercentage(percentage / 100)
                           }
-                          className="rounded-full border border-gray-400 px-4 py-1.5 text-xs disabled:opacity-50 dark:border-[#596080]"
+                          className="rounded-full border border-border-light px-4 py-1.5 text-xs disabled:opacity-50 dark:border-border-dark"
                         >
                           {percentage}%
                         </button>
@@ -235,16 +235,16 @@ export default function Exchange() {
                         type="button"
                         disabled={exchangeLoading}
                         onClick={selectMaximum}
-                        className="rounded-full border border-gray-400 px-4 py-1.5 text-xs disabled:opacity-50 dark:border-[#596080]"
+                        className="rounded-full border border-border-light px-4 py-1.5 text-xs disabled:opacity-50 dark:border-border-dark"
                       >
                         Máximo
                       </button>
                     </span>
-                    <p className="text-xs text-gray-500 py-2 dark:text-[#9da5c8]">
+                    <p className="text-xs text-text-light-tertiary py-2 dark:text-text-dark-tertiary">
                       Los porcentajes se calculan sobre tu saldo disponible
                     </p>
                   </div>
-                  <p className="mt-2 text-right text-xs font-semibold text-emerald-500">
+                  <p className="mt-2 text-right text-xs font-semibold text-turquoise-500">
                     Comisión +0,5%
                   </p>
                 </div>
@@ -268,7 +268,7 @@ export default function Exchange() {
                     Actualizando tasa...
                   </p>
                 ) : rateError ? (
-                  <p className="mt-2 text-xs text-red-300">
+                  <p className="mt-2 text-xs text-magenta-300">
                     {rateError}
                   </p>
                 ) : (
