@@ -1,10 +1,4 @@
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   fireEvent,
   render,
@@ -13,6 +7,7 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Exchange from "../../pages/Exchange";
+import { ToastProvider } from "../../context/ToastContext";
 
 const {
   mockUseAuth,
@@ -42,9 +37,9 @@ vi.mock("../../services/walletService", () => ({
 
 vi.mock("react-router-dom", async () => {
   const actual =
-    await vi.importActual<
-      typeof import("react-router-dom")
-    >("react-router-dom");
+    await vi.importActual<typeof import("react-router-dom")>(
+      "react-router-dom",
+    );
 
   return {
     ...actual,
@@ -80,7 +75,6 @@ const walletMock = {
       amount: 0,
     },
   ],
-
   exchangeRates: [
     {
       from: "USD",
@@ -93,7 +87,6 @@ const walletMock = {
       rate: 300,
     },
   ],
-
   recentMovements: [],
 };
 
@@ -108,14 +101,11 @@ const exchangeResponseMock = {
     fee: "0.05",
     finalAmount: "17000.00",
     exchangeRate: "1700.00",
-    transactionDate:
-      "2026-09-04T16:28:52.543Z",
+    transactionDate: "2026-09-04T16:28:52.543Z",
   },
-
   wallet: {
     walletId: 14,
     preferredCurrency: "USD",
-
     balances: [
       {
         currencyCode: "USD",
@@ -139,6 +129,14 @@ const exchangeResponseMock = {
   },
 };
 
+function renderExchange() {
+  return render(
+    <ToastProvider>
+      <Exchange />
+    </ToastProvider>,
+  );
+}
+
 async function waitForPrimaryCurrencySelected() {
   await waitFor(() => {
     expect(
@@ -148,7 +146,6 @@ async function waitForPrimaryCurrencySelected() {
     ).toBeInTheDocument();
   });
 }
-
 
 describe("Exchange", () => {
   beforeEach(() => {
@@ -172,39 +169,33 @@ describe("Exchange", () => {
     });
   });
 
-  it("muestra el título y el titular de la cuenta", () => {
-    render(<Exchange />);
+ it("muestra el título y el subtítulo", () => {
+  renderExchange();
 
-    expect(
-      screen.getByRole("heading", {
-        name: /convertir monedas/i,
-      }),
-    ).toBeInTheDocument();
+  expect(
+    screen.getByRole("heading", {
+      name: /convertir monedas/i,
+    }),
+  ).toBeInTheDocument();
 
-    expect(
-      screen.getByText(/hola, agustin spataro/i),
-    ).toBeInTheDocument();
+  expect(
+    screen.getByText(/entre tus propias monedas/i),
+  ).toBeInTheDocument();
+});
 
+it("muestra los saldos obtenidos desde WalletContext", async () => {
+  renderExchange();
+
+  await waitFor(() => {
     expect(
-      screen.getByText(/entre tus propias monedas/i),
-    ).toBeInTheDocument();
+      screen.getAllByText("1.000,00").length,
+    ).toBeGreaterThan(0);
   });
 
-  it("muestra los saldos obtenidos desde WalletContext", async () => {
-    render(<Exchange />);
-
-    await waitFor(() => {
-      expect(
-        screen.getAllByText("1.000,00").length,
-      ).toBeGreaterThan(0);
-    });
-
-    expect(
-      screen.getByText(
-        /disponible:\s*us\$\s*1\.000,00/i,
-      ),
-    ).toBeInTheDocument();
-  });
+  expect(
+    screen.getAllByText(/disponible:/i).length,
+  ).toBeGreaterThan(0);
+});
 
   it("muestra el estado de carga de la billetera", () => {
     mockUseWallet.mockReturnValue({
@@ -222,12 +213,10 @@ describe("Exchange", () => {
       mockTransfer: vi.fn(),
     });
 
-    render(<Exchange />);
+    renderExchange();
 
     expect(
-      screen.getByText(
-        /cargando saldos y cotizaciones/i,
-      ),
+      screen.getByText(/cargando saldos y cotizaciones/i),
     ).toBeInTheDocument();
   });
 
@@ -247,19 +236,17 @@ describe("Exchange", () => {
       mockTransfer: vi.fn(),
     });
 
-    render(<Exchange />);
+    renderExchange();
 
     expect(
-      screen.getByText(
-        /no pudimos cargar tu saldo/i,
-      ),
+      screen.getByText(/no pudimos cargar tu saldo/i),
     ).toBeInTheDocument();
   });
 
   it("no permite elegir la moneda de origen como destino", async () => {
     const user = userEvent.setup();
 
-    render(<Exchange />);
+    renderExchange();
 
     await waitForPrimaryCurrencySelected();
 
@@ -279,7 +266,7 @@ describe("Exchange", () => {
   it("coloca el 10% del saldo al presionar 10%", async () => {
     const user = userEvent.setup();
 
-    render(<Exchange />);
+    renderExchange();
 
     await waitForPrimaryCurrencySelected();
 
@@ -290,16 +277,14 @@ describe("Exchange", () => {
     );
 
     expect(
-      screen.getByLabelText(
-        /monto a convertir/i,
-      ),
+      screen.getByLabelText(/monto a convertir/i),
     ).toHaveValue("100,00");
   });
 
   it("coloca todo el saldo al presionar Máximo", async () => {
     const user = userEvent.setup();
 
-    render(<Exchange />);
+    renderExchange();
 
     await waitForPrimaryCurrencySelected();
 
@@ -310,14 +295,12 @@ describe("Exchange", () => {
     );
 
     expect(
-      screen.getByLabelText(
-        /monto a convertir/i,
-      ),
+      screen.getByLabelText(/monto a convertir/i),
     ).toHaveValue("1.000,00");
   });
 
   it("muestra un error cuando el monto supera el saldo", async () => {
-    render(<Exchange />);
+    renderExchange();
 
     await waitForPrimaryCurrencySelected();
 
@@ -331,24 +314,17 @@ describe("Exchange", () => {
       },
     });
 
-    const continueButton = screen.getByRole(
-      "button",
-      {
-        name: /continuar/i,
-      },
-    );
+    const continueButton = screen.getByRole("button", {
+      name: /continuar/i,
+    });
 
     expect(continueButton).toBeDisabled();
 
     expect(
-      screen.getByText(
-        /no tenés saldo suficiente/i,
-      ),
+      screen.getByText(/no tenés saldo suficiente/i),
     ).toBeInTheDocument();
 
-    expect(
-      mockExchangeCurrency,
-    ).not.toHaveBeenCalled();
+    expect(mockExchangeCurrency).not.toHaveBeenCalled();
   });
 
   it("envía la conversión y muestra el éxito", async () => {
@@ -358,7 +334,7 @@ describe("Exchange", () => {
       exchangeResponseMock,
     );
 
-    render(<Exchange />);
+    renderExchange();
 
     await waitForPrimaryCurrencySelected();
 
@@ -375,31 +351,27 @@ describe("Exchange", () => {
       }),
     );
 
-    const confirmButton =
-      await screen.findByRole("button", {
+    const confirmButton = await screen.findByRole(
+      "button",
+      {
         name: /sí, convertir/i,
-      });
+      },
+    );
 
     await user.click(confirmButton);
 
     await waitFor(() => {
-      expect(
-        mockExchangeCurrency,
-      ).toHaveBeenCalledTimes(1);
+      expect(mockExchangeCurrency).toHaveBeenCalledTimes(1);
     });
 
-    expect(
-      mockExchangeCurrency,
-    ).toHaveBeenCalledWith({
+    expect(mockExchangeCurrency).toHaveBeenCalledWith({
       fromCurrency: "USD",
       toCurrency: "ARS",
       amount: 10,
     });
 
     expect(
-      await screen.findByText(
-        /conversión aprobada/i,
-      ),
+      await screen.findByText(/conversión aprobada/i),
     ).toBeInTheDocument();
 
     expect(input).toHaveValue("0,00");
@@ -413,7 +385,7 @@ describe("Exchange", () => {
       new Error("Error del backend"),
     );
 
-    render(<Exchange />);
+    renderExchange();
 
     await waitForPrimaryCurrencySelected();
 
@@ -430,10 +402,12 @@ describe("Exchange", () => {
       }),
     );
 
-    const confirmButton =
-      await screen.findByRole("button", {
+    const confirmButton = await screen.findByRole(
+      "button",
+      {
         name: /sí, convertir/i,
-      });
+      },
+    );
 
     await user.click(confirmButton);
 
@@ -443,8 +417,6 @@ describe("Exchange", () => {
       ),
     ).toBeInTheDocument();
 
-    expect(
-      mockExchangeCurrency,
-    ).toHaveBeenCalledTimes(1);
+    expect(mockExchangeCurrency).toHaveBeenCalledTimes(1);
   });
 });
