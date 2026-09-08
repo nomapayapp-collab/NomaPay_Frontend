@@ -227,6 +227,19 @@
   body.light .chip {
     @apply bg-black/6 text-text-light-primary;
   }
+  /* .card--aura mantiene un fondo oscuro fijo (permanente, no cambia en modo
+     claro — ver comentario en Card.tsx), asi que el texto/chips que van
+     encima no deben invertirse con el toggle de body.light: quedarian
+     oscuros sobre un fondo tambien oscuro. */
+  body.light .card--aura .card__title {
+    @apply text-text-dark-tertiary;
+  }
+  body.light .card--aura .card__amount {
+    @apply text-text-dark-primary;
+  }
+  body.light .card--aura .chip {
+    @apply bg-white/8 text-text-dark-primary;
+  }
   body.light .input__label {
     @apply text-text-light-secondary;
   }

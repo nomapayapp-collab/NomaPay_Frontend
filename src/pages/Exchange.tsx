@@ -60,7 +60,7 @@ export default function Exchange() {
 
   return (
     <main className="w-full text-text-light-primary dark:text-text-dark-primary">
-      <section className="w-full px-4 pb-8 pt-6 sm:px-6 lg:px-10">
+      <section className="px-5 pt-8 pb-8 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto">
         <Header
           title="Convertir monedas"
           subtitle="Entre tus propias monedas"
