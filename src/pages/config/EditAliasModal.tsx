@@ -21,11 +21,6 @@ type EditAliasModalProps = {
   onSaved: (updatedUser: AuthUser) => void;
 };
 
-/**
- * Modal "Editar alias" — se abre desde el lápiz en Config. Vive acá adentro
- * (no en Config.tsx) para no ensuciar esa pantalla con su propio estado de
- * formulario; Config solo le pasa open/onClose/onSaved.
- */
 export function EditAliasModal({ open, currentAlias, onClose, onSaved }: EditAliasModalProps) {
   const [newAlias, setNewAlias] = useState(currentAlias);
   const [saving, setSaving] = useState(false);
@@ -45,6 +40,12 @@ export function EditAliasModal({ open, currentAlias, onClose, onSaved }: EditAli
   };
   const formatValid = rules.length && rules.charset && rules.noSpaces;
   const changed = newAlias.trim() !== "" && newAlias !== currentAlias;
+
+  const pendingRules = [
+    { key: "length", label: "Entre 6 y 20 caracteres", met: rules.length },
+    { key: "charset", label: "Solo letras, números y puntos", met: rules.charset },
+    { key: "noSpaces", label: "Sin espacios ni caracteres especiales", met: rules.noSpaces },
+  ].filter((rule) => !rule.met);
 
   async function handleSave() {
     if (!formatValid || !changed) return;
@@ -77,17 +78,18 @@ export function EditAliasModal({ open, currentAlias, onClose, onSaved }: EditAli
           </p>
         )}
 
-        <ul className="flex flex-col gap-1.5">
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${rules.length ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
-            <IconCheck className="w-3.5 h-3.5" /> Entre 6 y 20 caracteres
-          </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${rules.charset ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
-            <IconCheck className="w-3.5 h-3.5" /> Solo letras, números y puntos
-          </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${rules.noSpaces ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
-            <IconCheck className="w-3.5 h-3.5" /> Sin espacios ni caracteres especiales
-          </li>
-        </ul>
+        {pendingRules.length > 0 && (
+          <ul className="flex flex-col gap-1.5">
+            {pendingRules.map((rule) => (
+              <li
+                key={rule.key}
+                className="text-[12.5px] flex items-center gap-1.5 text-text-light-tertiary dark:text-text-dark-tertiary"
+              >
+                <IconCheck className="w-3.5 h-3.5" /> {rule.label}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {error && (
           <div className="alert-note alert-note--error">

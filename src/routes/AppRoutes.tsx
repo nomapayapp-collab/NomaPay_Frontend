@@ -27,7 +27,9 @@ export default function AppRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/profile" element={
         <ProtectedRoute>
-          <Config />
+          <AppLayout>
+            <Config />
+          </AppLayout>
         </ProtectedRoute>} />
       <Route path="/wallet" element={
         <ProtectedRoute>

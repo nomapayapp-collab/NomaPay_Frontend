@@ -11,7 +11,7 @@ import { Input } from "../../components/ui/Input";
 import { Avatar } from "../../components/ui/Avatar";
 import { Select } from "../../components/ui/Select";
 import { ConfirmActionModal } from "../../components/ui/ConfirmActionModal";
-import { Sidebar } from "../../components/layout/Sidebar";
+import { Header } from "../../components/layout/Header";
 import { EditAliasModal } from "./EditAliasModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
 
@@ -19,7 +19,6 @@ import {
   IconCheck,
   IconChevronRight,
   IconCopy,
-  IconBack,
   IconEdit,
   IconAlertTriangle,
 } from "../../assets/icons/Icons";
@@ -30,10 +29,7 @@ import * as authService from "../../services/authService";
 
 import type { CurrencyCode } from "../../types/wallet";
 import { COUNTRIES } from "../../constants/countries";
-import {
-  CURRENCY_CODES,
-  CURRENCY_NAMES,
-} from "../../constants/currencies";
+import { CURRENCY_CODES } from "../../constants/currencies";
 
 function extractErrorMessage(
   error: unknown,
@@ -246,40 +242,42 @@ export default function Config() {
     .filter(Boolean)
     .join(" ");
 
-  return (
-    <div className="flex min-h-screen bg-surface-light dark:bg-surface-dark">
-      <Sidebar />
+  // Mismo picker de moneda favorita en las dos posiciones donde aparece
+  // (mobile, dentro del form; desktop, en la columna derecha) — se define acá
+  // en vez de duplicar el JSX en los dos lugares.
+  function renderCurrencyPicker() {
+    return (
+      <div>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
+          Moneda favorita
+        </p>
 
-      <div className="flex-1 px-6 py-8 lg:px-10">
-        <div className="mx-auto max-w-sm lg:mx-0 lg:max-w-none">
-          {/* Header mobile */}
-          <div className="mb-6 flex items-center gap-3 lg:hidden">
+        <div className="flex flex-wrap gap-2">
+          {CURRENCY_CODES.map((currencyCode) => (
             <button
+              key={currencyCode}
               type="button"
-              onClick={() => navigate(-1)}
-              className="icon-btn"
-              aria-label="Volver"
+              onClick={() => setPreferredCurrency(currencyCode)}
+              className={[
+                "rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors",
+                preferredCurrency === currencyCode
+                  ? "border-violet-500 bg-violet-500/10 text-violet-500"
+                  : "border-border-light bg-surface-light-input text-text-light-secondary dark:border-border-dark dark:bg-surface-dark-elevated dark:text-text-dark-secondary",
+              ].join(" ")}
             >
-              <IconBack className="h-5 w-5" />
+              {currencyCode}
             </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
-            <h1 className="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">
-              Mi perfil
-            </h1>
-          </div>
+  return (
+    <div className="px-5 pt-8 pb-8 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto">
+      <Header title="Mi perfil" subtitle="Datos, cuenta y seguridad" />
 
-          {/* Header desktop */}
-          <div className="mb-8 hidden lg:block">
-            <p className="mb-1 text-xs uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
-              Datos, cuenta y seguridad
-            </p>
-
-            <h1 className="text-2xl font-bold text-text-light-primary dark:text-text-dark-primary">
-              Mi perfil
-            </h1>
-          </div>
-
-          {error && (
+      {error && (
             <div
               role="alert"
               className="alert-note alert-note--error mb-4"
@@ -327,7 +325,7 @@ export default function Config() {
                       id="name"
                       value={name}
                       disabled
-                      hint="Por ahora no se puede editar desde acá."
+                      className="cursor-not-allowed opacity-60"
                     />
 
                     <Input
@@ -335,6 +333,7 @@ export default function Config() {
                       id="surname"
                       value={surname}
                       disabled
+                      className="cursor-not-allowed opacity-60"
                     />
                   </div>
 
@@ -474,37 +473,10 @@ export default function Config() {
                   </div>
                 </div>
 
-                {/* Moneda favorita */}
-                <div>
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
-                    Moneda favorita
-                  </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    {CURRENCY_CODES.map(
-                      (currencyCode) => (
-                        <button
-                          key={currencyCode}
-                          type="button"
-                          onClick={() =>
-                            setPreferredCurrency(
-                              currencyCode,
-                            )
-                          }
-                          className={[
-                            "rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors",
-                            preferredCurrency ===
-                            currencyCode
-                              ? "border-violet-500 bg-violet-500/10 text-violet-500"
-                              : "border-border-light bg-surface-light-input text-text-light-secondary dark:border-border-dark dark:bg-surface-dark-elevated dark:text-text-dark-secondary",
-                          ].join(" ")}
-                        >
-                          {currencyCode}
-                        </button>
-                      ),
-                    )}
-                  </div>
-                </div>
+                {/* Moneda favorita — en desktop esta sección se muestra en la
+                    columna derecha, debajo de "Tu cuenta" y arriba de
+                    Guardar cambios; acá solo queda para mobile. */}
+                <div className="lg:hidden">{renderCurrencyPicker()}</div>
 
                 {/* Acciones mobile */}
                 <div className="flex flex-col gap-3 lg:hidden">
@@ -570,23 +542,11 @@ export default function Config() {
                       {user?.cbu ?? ""}
                     </p>
                   </div>
-
-                  <div>
-                    <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
-                      Moneda favorita
-                    </p>
-
-                    <p className="text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
-                      {preferredCurrency} ·{" "}
-                      {
-                        CURRENCY_NAMES[
-                          preferredCurrency
-                        ]
-                      }
-                    </p>
-                  </div>
                 </div>
               </div>
+
+              {/* Moneda favorita — abajo de Tu cuenta, arriba de Guardar cambios */}
+              {renderCurrencyPicker()}
 
               {/* Guardar debajo de los datos */}
               <Button
@@ -623,8 +583,6 @@ export default function Config() {
               )}
             </div>
           </div>
-        </div>
-      </div>
 
       {/* Modal para editar alias */}
       <EditAliasModal
