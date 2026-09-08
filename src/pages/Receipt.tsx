@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ComponentType, type SVGProps } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { IconBack, IconCheck, IconX, IconClock, IconMail } from "../assets/icons/Icons";
+import { IconBack, IconCheck, IconX, IconClock } from "../assets/icons/Icons";
 import { useWallet } from "../hooks/useWallet";
 import { formatCurrency } from "../utils/formatCurrency";
 import { ReceiptPanel } from "../components/ReceiptPanel";
@@ -17,7 +17,7 @@ type ReceiptState = {
 type Phase = "en_proceso" | "aprobada" | "rechazada" | "cancelada";
 
 /** tiempo mínimo que se muestra "en proceso", aunque el backend conteste antes */
-const MIN_PROCESSING_MS = 1400;
+const MIN_PROCESSING_MS = 6400;
 
 const PHASE_META: Record<
   Phase,
@@ -69,15 +69,6 @@ function formatDateTime(date: Date) {
     .replace(".", "");
 }
 
-/**
- * Comprobante — pantalla de resultado de una transferencia. Arranca en
- * "en_proceso" y ahí mismo dispara el POST /transfers real; como el
- * backend responde todo junto (no hay un estado intermedio del lado del
- * server), sostenemos el "en proceso" un mínimo de tiempo aunque la
- * respuesta llegue antes, y recién ahí resolvemos a aprobada/rechazada
- * con los datos/errores reales — o a cancelada si el usuario corta antes
- * (la request sigue en curso, pero su resultado se ignora).
- */
 export default function Receipt() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -88,15 +79,17 @@ export default function Receipt() {
   const [transaction, setTransaction] = useState<TransferTransaction | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [date] = useState(() => new Date());
-  const [sendingEmail, setSendingEmail] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
   const settledRef = useRef(false);
+  const requestSentRef = useRef(false);  // Guarda que la request a POST /transfers ya se disparó. asi no se dispara dos veces
 
   useEffect(() => {
     if (!state) {
       navigate("/", { replace: true });
       return;
     }
+
+    if (requestSentRef.current) return;
+    requestSentRef.current = true;
 
     const startedAt = Date.now();
 
@@ -112,7 +105,7 @@ export default function Receipt() {
         settledRef.current = true;
         setTransaction(result.transaction);
         setPhase("aprobada");
-        refetch(); // el saldo cambió del lado del server, traemos el wallet actualizado
+        refetch(); 
       })
       .catch(async (err) => {
         await waitMinimum();
@@ -130,23 +123,6 @@ export default function Receipt() {
 
   if (!state) return null;
 
-  function handleCancel() {
-    if (settledRef.current) return;
-    settledRef.current = true;
-    setPhase("cancelada");
-  }
-
-  function handleSendEmail() {
-    if (sendingEmail || emailSent) return;
-    // no hay backend de envío de comprobantes por mail — es una
-    // simulación, mismo criterio que antes.
-    setSendingEmail(true);
-    setTimeout(() => {
-      setSendingEmail(false);
-      setEmailSent(true);
-      setTimeout(() => setEmailSent(false), 5000);
-    }, 600);
-  }
 
   const meta = PHASE_META[phase];
   const amountLabel = formatCurrency(state.amount, state.currency);
@@ -169,7 +145,7 @@ export default function Receipt() {
               variant: "warning",
               description: "Suele demorar hasta 5 minutos. Te avisamos por notificación cuando se acredite.",
             }}
-            actions={[{ label: "Cancelar operación", variant: "outline", onClick: handleCancel }]}
+            actions={[]}
           />
         );
 
@@ -184,16 +160,11 @@ export default function Receipt() {
               { label: "Desde", value: `Saldo en ${transaction.currencyCode}` },
               { label: "Fecha", value: formatDateTime(new Date(transaction.transactionDate)) },
             ]}
-            actions={[
-              {
-                label: emailSent ? "Enviado" : "Enviar por mail",
-                variant: "outline",
-                onClick: handleSendEmail,
-                loading: sendingEmail,
-                icon: emailSent ? IconCheck : IconMail,
-              },
-              { label: "Volver al inicio", variant: "primary", onClick: () => navigate("/") },
-            ]}
+            note={{
+              variant: "info",
+              description: "Te enviamos el comprobante a tu email.",
+            }}
+            actions={[{ label: "Volver al inicio", variant: "primary", onClick: () => navigate("/") }]}
           />
         );
 
