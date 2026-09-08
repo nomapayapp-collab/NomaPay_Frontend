@@ -126,7 +126,7 @@ export function LandingCalculator() {
             <p className="text-sm font-medium text-text-dark-primary">
               Tulum, 9:41.{" "}
               <span className="text-text-dark-tertiary">
-                El cobro entró desde EE.UU.
+                El ingreso entró desde EE.UU.
               </span>
             </p>
           </div>

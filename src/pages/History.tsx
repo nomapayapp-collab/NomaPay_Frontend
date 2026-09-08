@@ -39,7 +39,7 @@ const TYPE_META: Record<
     iconClass: "bg-turquoise-500/20 text-turquoise-500",
     barClass: "bg-turquoise-500",
     title: "Transferencia recibida",
-    labelPlural: "Cobros",
+    labelPlural: "Ingresos",
   },
   pago: {
     icon: IconSend,
@@ -297,7 +297,7 @@ export default function History() {
       <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
         <div className="lg:col-span-2 flex flex-col gap-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-app pb-1 lg:pb-0">
               {HISTORY_TYPE_FILTERS.map((f) => (
                 <button
                   key={f.key}

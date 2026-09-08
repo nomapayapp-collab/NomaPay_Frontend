@@ -4,12 +4,13 @@ import { monthKey } from "../utils/formatDate";
 import type { HistoryItem, HistoryOperationType } from "../types/history";
 import type { CurrencyCode } from "../types/wallet";
 
-export type HistoryTypeFilterKey = "todos" | "cargas" | "transferencias" | "cambios";
+export type HistoryTypeFilterKey = "todos" | "cargas" | "ingresos" | "transferencias" | "cambios";
 
 export const HISTORY_TYPE_FILTERS: { key: HistoryTypeFilterKey; label: string; types?: HistoryOperationType[] }[] = [
   { key: "todos", label: "Todos" },
   { key: "cargas", label: "Cargas", types: ["carga"] },
-  { key: "transferencias", label: "Transferencias", types: ["pago", "cobro"] },
+  { key: "ingresos", label: "Ingresos", types: ["cobro"] },
+  { key: "transferencias", label: "Transferencias", types: ["pago"] },
   { key: "cambios", label: "Cambios", types: ["cambio"] },
 ];
 
