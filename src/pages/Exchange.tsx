@@ -22,6 +22,8 @@ export default function Exchange() {
     rateError,
     numericAmount,
     exchangeLoading,
+    feePercentage,
+    feeAmount,
     updateAmount,
     changeFromCurrency,
     changeToCurrency,
@@ -245,7 +247,7 @@ export default function Exchange() {
                     </p>
                   </div>
                   <p className="mt-2 text-right text-xs font-semibold text-turquoise-500">
-                    Comisión +0,5%
+                    Comisión 0,5%
                   </p>
                 </div>
               </section>
@@ -318,7 +320,7 @@ export default function Exchange() {
           },
           {
             label: "Comisión",
-            value: "0,5%",
+            value: `${feePercentage.toString().replace(".", ",")}% · ${formatMoney(feeAmount)} ${fromCurrency}`,
           },
           {
             label: "Recibís",
