@@ -196,7 +196,7 @@
   }
 
 .card__amount {
-  @apply text-[28px] sm:text-[38px] font-bold leading-none tracking-tight text-text-dark-primary;
+  @apply text-[28px] sm:text-[28px] font-bold leading-none tracking-tight text-text-dark-primary;
   font-variant-numeric: tabular-nums;
 }
   body.light .card__amount {
@@ -368,6 +368,7 @@
   }
   .scrollbar-app::-webkit-scrollbar {
     height: 6px;
+    width: 6px;
   }
   .scrollbar-app::-webkit-scrollbar-track {
     background: transparent;

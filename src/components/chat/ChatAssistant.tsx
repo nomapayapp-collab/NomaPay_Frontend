@@ -125,7 +125,7 @@ export function ChatAssistant() {
 
           {/* Conversación */}
           <div
-            className="flex-1 space-y-3 overflow-y-auto p-4"
+            className="flex-1 space-y-3 overflow-y-auto scrollbar-app p-4"
             aria-live="polite"
           >
             {messages.map((chatMessage) => (
