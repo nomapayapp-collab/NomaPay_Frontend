@@ -13,7 +13,7 @@ import Register from "../pages/Register";
 import Config from "../pages/config/Config";
 import RecoverPassword from "../pages/password/RecoverPassword";
 import ResetPassword from "../pages/password/ResetPassword";
-import Summary from "../pages/summary/Summary";
+import Summary from "../pages/Summary";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { Root } from "./Root";
 
