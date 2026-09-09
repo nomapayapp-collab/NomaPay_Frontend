@@ -34,10 +34,10 @@ const TABS: Tab[] = [
 ];
 
 const NAV_LINK_CLASS_RAIL =
-  "relative flex items-center justify-center w-full h-10 rounded-control transition-colors border-l-[3px]";
+  "relative flex items-center justify-center w-full h-10 transition-colors border-l-[3px]";
 const NAV_LINK_CLASS_DRAWER =
-  "flex items-center gap-3 px-3 py-2.5 rounded-control text-[14px] font-medium transition-colors border-l-[3px]";
-const NAV_LINK_ACTIVE = "bg-violet-500/15 text-violet-300 border-violet-500";
+  "flex items-center gap-3 px-3 py-2.5 text-[14px] font-medium transition-colors border-l-[3px]";
+const NAV_LINK_ACTIVE = "bg-violet-500/15 text-violet-500 border-violet-500";
 const NAV_LINK_INACTIVE =
   "border-transparent text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary hover:bg-black/5 dark:hover:bg-white/5 hover:border-violet-500/40";
 
@@ -83,7 +83,7 @@ export function TopTabBar() {
           <IconChevronRight className="w-4 h-4" />
         </button>
 
-        <nav className="flex flex-col gap-1 w-full px-2">
+        <nav className="flex flex-col gap-1 w-full">
           {TABS.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -157,20 +157,22 @@ export function TopTabBar() {
             </button>
           </div>
 
-          {TABS.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                [NAV_LINK_CLASS_DRAWER, isActive ? NAV_LINK_ACTIVE : NAV_LINK_INACTIVE].join(" ")
-              }
-            >
-              <Icon className="w-5 h-5 shrink-0" />
-              {label}
-            </NavLink>
-          ))}
+          <div className="-mx-4 flex flex-col gap-1">
+            {TABS.map(({ to, label, icon: Icon, end }) => (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                onClick={() => setOpen(false)}
+                className={({ isActive }) =>
+                  [NAV_LINK_CLASS_DRAWER, isActive ? NAV_LINK_ACTIVE : NAV_LINK_INACTIVE].join(" ")
+                }
+              >
+                <Icon className="w-5 h-5 shrink-0" />
+                {label}
+              </NavLink>
+            ))}
+          </div>
 
           <div className="mt-auto pt-4 flex flex-col gap-1">
             <button

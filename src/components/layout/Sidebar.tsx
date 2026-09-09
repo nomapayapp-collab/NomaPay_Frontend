@@ -70,7 +70,7 @@ export function Sidebar() {
               [
                 "flex items-center gap-3 pl-4 pr-5 py-2.5 text-[14px] font-medium transition-colors border-l-4",
                 isActive
-                  ? "bg-violet-500/15 text-violet-300 border-violet-500"
+                  ? "bg-violet-500/15 text-violet-500 border-violet-500"
                   : "border-transparent text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary hover:bg-black/5 dark:hover:bg-white/5 hover:border-violet-500/40",
               ].join(" ")
             }

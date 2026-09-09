@@ -67,33 +67,33 @@ export default function Summary() {
       <Card variant="aura" className="mb-5 overflow-hidden p-0 xl:mb-0">
         <div className="grid grid-cols-1 xl:h-33.5 xl:grid-cols-[1.1fr_2fr]">
           <div className="flex flex-col justify-center p-5 xl:border-r xl:border-white/10 xl:px-8 xl:py-4">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-violet-200">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-text-light-tertiary dark:text-violet-200">
               Balance total
             </p>
 
-            <p aria-live="polite" className="mt-2 text-3xl font-extrabold tracking-tight text-white">
+            <p aria-live="polite" className="mt-2 text-3xl font-extrabold tracking-tight">
               {loading ? "Cargando..." : `${balanceCode} ${balanceFormatter.format(currentBalance)}`}
             </p>
 
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
               {!loading &&
                 (balancePct === null ? (
-                  <span className="text-slate-300">Sin datos de la semana pasada</span>
+                  <span className="text-text-light-tertiary dark:text-slate-300">Sin datos de la semana pasada</span>
                 ) : (
                   <>
                     <span
-                      className={`font-bold ${formatPct(balancePct).positive ? "text-cyan-300" : "text-magenta-500"
+                      className={`font-bold ${formatPct(balancePct).positive ? "text-cyan-500 dark:text-cyan-300" : "text-magenta-500"
                         }`}
                     >
                       {formatPct(balancePct).positive ? "↗" : "↘"} {formatPct(balancePct).label}
                     </span>
-                    <span className="text-slate-300">vs semana pasada</span>
+                    <span className="text-text-light-tertiary dark:text-slate-300">vs semana pasada</span>
                   </>
                 ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 bg-[#0d122e]/75 sm:grid-cols-3">
+          <div className="grid grid-cols-1 bg-white/20 dark:bg-[#0d122e]/75 sm:grid-cols-3">
             <BalanceDetail
               title="Entradas"
               value={loading ? "—" : `+${balanceFormatter.format(thisWeek.entradas.total)}`}
@@ -359,14 +359,14 @@ type BalanceDetailProps = {
 
 function BalanceDetail({ title, value, detail, color }: BalanceDetailProps) {
   return (
-    <div className="flex flex-col justify-center border-t border-white/10 p-5 sm:border-l sm:border-t-0 xl:px-6 xl:py-4">
+    <div className="flex flex-col justify-center border-t border-border-light dark:border-white/10 p-5 sm:border-l sm:border-t-0 xl:px-6 xl:py-4">
       <p className="text-xs font-bold uppercase tracking-[0.14em]" style={{ color }}>
         {title}
       </p>
 
-      <p className="mt-1 text-2xl font-bold text-white">{value}</p>
+      <p className="mt-1 text-2xl font-bold">{value}</p>
 
-      <p className="mt-1 text-xs text-slate-400">{detail}</p>
+      <p className="mt-1 text-xs text-text-light-tertiary dark:text-slate-400">{detail}</p>
     </div>
   );
 }
