@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import type { CurrencyCode } from "../../types/wallet";
-import { MOCK_WALLET } from "../../constants/mockWallet";
+import { useEffect, useMemo, useState } from "react";
+import type { CurrencyCode, ExchangeRate } from "../../types/wallet";
+import { FALLBACK_RATES, getCurrentExchangeRates } from "../../services/exchangeRates";
 import { formatCurrency } from "../../utils/formatCurrency";
 import chica from "../../assets/img/chica.png";
 
@@ -16,12 +16,25 @@ export function LandingCalculator() {
   const [amount, setAmount] = useState(1000);
   const [senderCurrency, setSenderCurrency] = useState<CurrencyCode>("USD");
 
+  
+  const [exchangeRates, setExchangeRates] = useState<ExchangeRate[]>(FALLBACK_RATES);
+
+  useEffect(() => {
+    let cancelled = false;
+    getCurrentExchangeRates().then((rates) => {
+      if (!cancelled) setExchangeRates(rates);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const isLocal = senderCurrency === "ARS";
 
   const rate = useMemo(() => {
     if (isLocal) return 1; // ARS → ARS: transferencia local, sin conversión
-    return MOCK_WALLET.exchangeRates.find((r) => r.from === "ARS" && r.to === senderCurrency)?.rate ?? 0;
-  }, [senderCurrency, isLocal]);
+    return exchangeRates.find((r) => r.from === senderCurrency && r.to === "ARS")?.rate ?? 0;
+  }, [exchangeRates, senderCurrency, isLocal]);
 
   const commission = amount * COMMISSION_RATE;
   const net = amount - commission;
@@ -110,7 +123,7 @@ export function LandingCalculator() {
             <p className="text-sm font-medium text-text-dark-primary">
               Tulum, 9:41.{" "}
               <span className="text-text-dark-tertiary">
-                El cobro entró desde EE.UU.
+                El ingreso entró desde EE.UU.
               </span>
             </p>
           </div>

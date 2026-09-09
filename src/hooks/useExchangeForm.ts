@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWallet } from "./useWallet";
+import { useToast } from "./useToast";
 import { exchangeCurrency } from "../services/walletService";
 import { CURRENCY_CODES } from "../constants/currencies";
 import type { CurrencyCode } from "../types/wallet";
@@ -8,38 +9,32 @@ const emptyBalances: Record<CurrencyCode, number> = Object.fromEntries(
   CURRENCY_CODES.map((code) => [code, 0]),
 ) as Record<CurrencyCode, number>;
 
+const EXCHANGE_FEE_PERCENTAGE = 0.5;
+
 const formatMoney = (value: number) =>
   new Intl.NumberFormat("es-AR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
 
-const formatRate = (value: number) =>
-  new Intl.NumberFormat("es-AR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+const formatRate = (value: number) => {
+  const isSmallRate = Math.abs(value) < 1;
 
-/**
- * Toda la lógica del formulario de "Convertir monedas": estado, cálculo de
- * tasas, validaciones y el submit contra el back. Exchange.tsx se queda
- * solo con el JSX que consume esto — separado así porque era la mitad del
- * archivo y no tenía nada que ver con el render.
- */
+  return new Intl.NumberFormat("es-AR", {
+    minimumFractionDigits: isSmallRate ? 4 : 2,
+    maximumFractionDigits: isSmallRate ? 6 : 2,
+  }).format(value);
+};
+
 export function useExchangeForm() {
   const { wallet, loading: walletLoading, error: walletError, refetch } = useWallet();
+  const { showToast } = useToast();
 
   const [fromCurrency, setFromCurrency] = useState<CurrencyCode>("ARS");
   const [toCurrency, setToCurrency] = useState<CurrencyCode>("USD");
   const [amount, setAmount] = useState("0,00");
   const [exchangeLoading, setExchangeLoading] = useState(false);
-  const [exchangeError, setExchangeError] = useState("");
-  const [exchangeSuccess, setExchangeSuccess] = useState("");
 
-  /*
-   * Convierte los balances del WalletContext en un objeto fácil de
-   * consultar: balances.USD, balances.ARS, etc.
-   */
   const balances = useMemo(() => {
     const updatedBalances = { ...emptyBalances };
 
@@ -71,11 +66,6 @@ export function useExchangeForm() {
     });
   }, [wallet.balances]);
 
-  /*
-   * Busca el valor de una moneda expresado en ARS. WalletContext guarda:
-   * 1 USD = X ARS
-   * 1 BRL = X ARS
-   */
   const getValueInArs = (currencyCode: CurrencyCode) => {
     if (currencyCode === "ARS") return 1;
 
@@ -104,18 +94,16 @@ export function useExchangeForm() {
   const brlToArs = getValueInArs("BRL");
 
   const numericAmount = Number(amount.replace(/\./g, "").replace(",", ".")) || 0;
-  const convertedAmount = numericAmount * exchangeRate;
+
+  // Misma cuenta que calculateConversion() en el back
+  const feeAmount = numericAmount * (EXCHANGE_FEE_PERCENTAGE / 100);
+  const amountAfterFee = numericAmount - feeAmount;
+  const convertedAmount = amountAfterFee * exchangeRate;
 
   const rateError = !walletLoading && exchangeRate <= 0 ? "No pudimos obtener la tasa de cambio" : "";
 
-  const clearMessages = () => {
-    setExchangeError("");
-    setExchangeSuccess("");
-  };
-
   const changeFromCurrency = (newCurrency: CurrencyCode) => {
     setFromCurrency(newCurrency);
-    clearMessages();
 
     if (newCurrency === toCurrency) {
       const alternativeCurrency = CURRENCY_CODES.find((currency) => currency !== newCurrency);
@@ -126,45 +114,39 @@ export function useExchangeForm() {
   const changeToCurrency = (newCurrency: CurrencyCode) => {
     if (newCurrency === fromCurrency) return;
     setToCurrency(newCurrency);
-    clearMessages();
   };
 
   const swapCurrencies = () => {
     setFromCurrency(toCurrency);
     setToCurrency(fromCurrency);
-    clearMessages();
   };
 
   const selectPercentage = (percentage: number) => {
     setAmount(formatMoney(balances[fromCurrency] * percentage));
-    clearMessages();
   };
 
   const selectMaximum = () => {
     setAmount(formatMoney(balances[fromCurrency]));
-    clearMessages();
   };
 
   const updateAmount = (value: string) => {
     setAmount(value);
-    clearMessages();
   };
 
+  
   const handleExchange = async () => {
-    clearMessages();
-
     if (numericAmount <= 0) {
-      setExchangeError("Ingresá un monto mayor que cero");
+      showToast("Ingresá un monto mayor que cero", "error");
       return;
     }
 
     if (numericAmount > balances[fromCurrency]) {
-      setExchangeError("No tenés saldo suficiente");
+      showToast("No tenés saldo suficiente", "error");
       return;
     }
 
     if (exchangeRate <= 0) {
-      setExchangeError("La tasa de cambio no está disponible");
+      showToast("La tasa de cambio no está disponible", "error");
       return;
     }
 
@@ -174,15 +156,16 @@ export function useExchangeForm() {
       const result = await exchangeCurrency({ fromCurrency, toCurrency, amount: numericAmount });
 
       setAmount("0,00");
-      setExchangeSuccess(
+      showToast(
         `Conversión aprobada: recibiste ${formatMoney(Number(result.transaction.finalAmount))} ${toCurrency}`,
+        "success",
       );
 
       // Vuelve a consultar la billetera para actualizar también Dashboard,
       // Billetera y Exchange.
       refetch();
     } catch {
-      setExchangeError("No pudimos realizar la conversión");
+      showToast("No pudimos realizar la conversión", "error");
     } finally {
       setExchangeLoading(false);
     }
@@ -204,9 +187,10 @@ export function useExchangeForm() {
     convertedAmount,
     rateError,
 
+    feePercentage: EXCHANGE_FEE_PERCENTAGE,
+    feeAmount,
+
     exchangeLoading,
-    exchangeError,
-    exchangeSuccess,
 
     updateAmount,
     changeFromCurrency,

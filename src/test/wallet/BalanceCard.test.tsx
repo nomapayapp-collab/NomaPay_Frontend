@@ -1,29 +1,47 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { BalanceCard } from "../../../components/wallet/BalanceCard";
-import type { Wallet } from "../../../types/wallet";
+import { BalanceCard } from "../../components/wallet/BalanceCard";
+import type { Wallet } from "../../types/wallet";
 
 const mocks = vi.hoisted(() => ({
   useWallet: vi.fn(),
 }));
 
-vi.mock("../../../hooks/useWallet", () => ({
+vi.mock("../../hooks/useWallet", () => ({
   useWallet: mocks.useWallet,
 }));
 
-const ARS = { code: "ARS" as const, name: "Peso argentino", symbol: "$" };
-const USD = { code: "USD" as const, name: "Dólar estadounidense", symbol: "US$" };
-const BRL = { code: "BRL" as const, name: "Real brasileño", symbol: "R$" };
+const ARS = {
+  code: "ARS" as const,
+  name: "Peso argentino",
+  symbol: "$",
+};
+
+const USD = {
+  code: "USD" as const,
+  name: "Dólar estadounidense",
+  symbol: "US$",
+};
+
+const BRL = {
+  code: "BRL" as const,
+  name: "Real brasileño",
+  symbol: "R$",
+};
 
 function makeWallet(balances: Wallet["balances"]): Wallet {
-  return { balances, exchangeRates: [], recentMovements: [] };
+  return {
+    balances,
+    exchangeRates: [],
+    recentMovements: [],
+  };
 }
 
-function mockWallet(wallet: Wallet, loading = false) {
+function mockWallet(wallet: Wallet) {
   mocks.useWallet.mockReturnValue({
     wallet,
-    loading,
+    loading: false,
     error: null,
     refetch: vi.fn(),
     mockDeposit: vi.fn(),
@@ -36,7 +54,7 @@ describe("BalanceCard", () => {
     vi.clearAllMocks();
   });
 
-  it("no muestra las monedas en 0, salvo la moneda por defecto", () => {
+  it("muestra todas las monedas, incluso las que tienen saldo en 0", () => {
     mockWallet(
       makeWallet([
         { currency: ARS, amount: 0, isPrimary: true },
@@ -49,10 +67,10 @@ describe("BalanceCard", () => {
 
     expect(screen.getAllByText("ARS 0,00").length).toBeGreaterThan(0);
     expect(screen.getAllByText("USD 100,00").length).toBeGreaterThan(0);
-    expect(screen.queryByText(/BRL/)).not.toBeInTheDocument();
+    expect(screen.getAllByText("BRL 0,00").length).toBeGreaterThan(0);
   });
 
-  it("con 2 monedas no arma el carrusel con scroll a partir de sm (se reparten el ancho)", () => {
+  it("reparte el ancho disponible entre las tarjetas", () => {
     mockWallet(
       makeWallet([
         { currency: ARS, amount: 100, isPrimary: true },
@@ -62,15 +80,18 @@ describe("BalanceCard", () => {
 
     const { container } = render(<BalanceCard />);
     const wrapper = container.firstElementChild as HTMLElement;
+    const cards = Array.from(wrapper.children) as HTMLElement[];
 
-    // en mobile siempre se ve "casi una tarjeta por vez" con scroll, sin
-    // importar cuántas monedas haya (por eso overflow-x-auto sigue en la
-    // base) — lo que cambia con 2 o menos es que a partir de sm el scroll
-    // se cancela y las cards se reparten el ancho disponible.
-    expect(wrapper.className).toContain("sm:overflow-visible");
+    expect(wrapper.className).toContain("overflow-x-auto");
+    expect(cards).toHaveLength(2);
+
+    cards.forEach((card) => {
+      expect(card.className).toContain("min-w-70");
+      expect(card.className).toContain("flex-1");
+    });
   });
 
-  it("con 3 monedas activa el carrusel con scroll horizontal", () => {
+  it("con 3 monedas permite desplazamiento horizontal", () => {
     mockWallet(
       makeWallet([
         { currency: ARS, amount: 100, isPrimary: true },
@@ -83,35 +104,41 @@ describe("BalanceCard", () => {
     const wrapper = container.firstElementChild as HTMLElement;
 
     expect(wrapper.className).toContain("overflow-x-auto");
+    expect(wrapper.className).toContain("snap-x");
   });
 
   it("el botón del ojo oculta y muestra el saldo", async () => {
     const user = userEvent.setup();
-    mockWallet(makeWallet([{ currency: ARS, amount: 1234.5, isPrimary: true }]));
+
+    mockWallet(
+      makeWallet([
+        { currency: ARS, amount: 1234.5, isPrimary: true },
+      ]),
+    );
 
     render(<BalanceCard />);
 
     expect(screen.getByText("ARS 1.234,50")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Ocultar saldo" }));
+    await user.click(
+      screen.getByRole("button", { name: "Ocultar saldo" }),
+    );
 
     expect(screen.queryByText("ARS 1.234,50")).not.toBeInTheDocument();
     expect(screen.getByText("••••••")).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Mostrar saldo" }),
+    );
+
+    expect(screen.getByText("ARS 1.234,50")).toBeInTheDocument();
   });
 
-  it("no renderiza nada si no hay saldos y ya terminó de cargar", () => {
+  it("no renderiza nada cuando no existen balances", () => {
     mockWallet(makeWallet([]));
 
     const { container } = render(<BalanceCard />);
 
     expect(container).toBeEmptyDOMElement();
-  });
-
-  it("muestra el esqueleto mientras carga", () => {
-    mockWallet(makeWallet([]), true);
-
-    const { container } = render(<BalanceCard />);
-
-    expect(container.querySelector(".animate-pulse")).toBeInTheDocument();
   });
 });

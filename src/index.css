@@ -64,7 +64,7 @@
   --color-text-light-secondary: #4A5070;
   --color-text-light-tertiary: #616A8E;
 
-  --radius-control: 12px;
+  --radius-control: 20px;
   --radius-card: 16px;
 
   --shadow-elevation-sm: 0 2px 8px rgba(15, 19, 48, 0.10);
@@ -99,7 +99,7 @@
    ========================================================================== */
 @layer base {
   body {
-    @apply bg-surface-dark text-text-dark-primary antialiased font-sans;
+    @apply bg-surface-dark-base text-text-dark-primary antialiased font-sans;
   }
   body.light {
     @apply bg-surface-light-base text-text-light-primary;
@@ -146,12 +146,18 @@
   }
   .btn--ghost {
     @apply bg-transparent text-text-dark-secondary hover:text-text-dark-primary;
-  }
+  } 
   body.light .btn--ghost {
     @apply text-text-light-secondary hover:text-text-light-primary;
   }
-  .btn--destructive {
-    @apply bg-destructive text-white hover:opacity-90;
+  /* destructiveOutline: mismo look que .btn--outline (borde + fondo
+     transparente), pero en rojo — para "Eliminar cuenta" y acciones
+     destructivas que no deben leerse como un botón sólido/primario. */
+  .btn--destructive-outline {
+    @apply bg-destructive/10 border border-destructive/40 text-destructive hover:bg-destructive/20;
+  }
+  body.light .btn--destructive-outline {
+    @apply bg-transparent border-destructive/40 text-destructive hover:bg-destructive/10;
   }
   .btn--sm {
     @apply px-3.5 py-2 text-[13px];
@@ -172,8 +178,11 @@
     @apply w-14 h-14;
   }
 
+  /* bg-surface-dark-elevated (no surface-dark, que ahora es el tono del
+     sidebar): body < sidebar < card en oscuridad, así las cards se
+     despegan del fondo en vez de quedar todo plano al mismo color. */
   .card {
-    @apply rounded-card p-6 bg-surface-dark border border-border-dark;
+    @apply rounded-card p-6 bg-surface-dark-elevated border border-border-dark;
   }
   body.light .card {
     @apply bg-surface-light border-border-light shadow-elevation-sm;
@@ -183,7 +192,7 @@
   }
   .card--aura {
     background-image: var(--gradient-aura);
-    @apply bg-surface-dark;
+    @apply bg-surface-dark-elevated;
   }
   .card__title {
     @apply text-[11px] font-semibold tracking-[0.14em] uppercase text-text-dark-tertiary;
@@ -193,7 +202,7 @@
   }
 
 .card__amount {
-  @apply text-[28px] sm:text-[38px] font-bold leading-none tracking-tight text-text-dark-primary;
+  @apply text-[28px] sm:text-[28px] font-bold leading-none tracking-tight text-text-dark-primary;
   font-variant-numeric: tabular-nums;
 }
   body.light .card__amount {
@@ -224,6 +233,19 @@
   body.light .chip {
     @apply bg-black/6 text-text-light-primary;
   }
+  /* .card--aura mantiene un fondo oscuro fijo (permanente, no cambia en modo
+     claro — ver comentario en Card.tsx), asi que el texto/chips que van
+     encima no deben invertirse con el toggle de body.light: quedarian
+     oscuros sobre un fondo tambien oscuro. */
+  body.light .card--aura .card__title {
+    @apply text-text-dark-tertiary;
+  }
+  body.light .card--aura .card__amount {
+    @apply text-text-dark-primary;
+  }
+  body.light .card--aura .chip {
+    @apply bg-white/8 text-text-dark-primary;
+  }
   body.light .input__label {
     @apply text-text-light-secondary;
   }
@@ -235,12 +257,13 @@
   .badge--warning { @apply bg-amber-100 text-amber-700; }
   .badge--error   { @apply bg-magenta-100 text-magenta-700; }
   .badge--info    { @apply bg-violet-100 text-violet-700; }
+  .badge--neutral { @apply bg-black/8 dark:bg-white/10 text-text-light-secondary dark:text-text-dark-secondary; }
 
   .alert-note {
     @apply rounded-control border p-4;
   }
   .alert-note__title {
-    @apply text-[11px] font-semibold tracking-[0.14em] uppercase mb-1;
+    @apply text-[11px] font-semibold tracking-[0.14em] uppercase mb-0;
   }
   .alert-note__description {
     @apply text-[13px] text-text-dark-secondary;
@@ -254,6 +277,11 @@
   .alert-note--error .alert-note__title { @apply text-magenta-500; }
   .alert-note--warning { @apply border-amber-500/30 bg-amber-100/10; }
   .alert-note--warning .alert-note__title { @apply text-amber-700; }
+  /* mismo tono que --warning pero con el borde a full color (no /30) —
+     para el aviso de "no se puede deshacer" en Transferir paso 3, donde
+     el borde tiene que matchear exacto con el ícono amarillo. */
+  .alert-note--warning-solid { @apply border-amber-500 bg-amber-100/10; }
+  .alert-note--warning-solid .alert-note__title { @apply text-amber-700; }
   .alert-note--info    { @apply border-violet-500 bg-violet-100/10; }
   .alert-note--info .alert-note__title { @apply text-violet-500; }
 
@@ -364,6 +392,7 @@
   }
   .scrollbar-app::-webkit-scrollbar {
     height: 6px;
+    width: 6px;
   }
   .scrollbar-app::-webkit-scrollbar-track {
     background: transparent;

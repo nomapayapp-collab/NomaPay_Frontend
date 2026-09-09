@@ -1,176 +1,196 @@
 # NomaPay — Frontend
 
-Frontend de **NomaPay**, una aplicación web de billetera digital orientada a ofrecer una experiencia simple, clara y accesible para la gestión financiera desde distintos dispositivos.
+Frontend de **NomaPay**, una billetera digital pensada para viajeros y nómades digitales: manejar varias monedas, transferir dinero, convertir entre monedas propias y llevar un seguimiento claro de los movimientos, todo desde una sola app.
 
-Este repositorio contiene exclusivamente la aplicación **Frontend**, desarrollada con **React, TypeScript y Vite**, e integrada con la API REST de NomaPay.
+Proyecto Final de la carrera Full Stack de Henry, desarrollado en equipo (frontend + backend) siguiendo una metodología ágil por sprints.
 
-## Desarrolladores Frontend
+Este repositorio contiene **exclusivamente** la aplicación **Frontend**, construida con **React, TypeScript y Vite**, e integrada contra la API REST de NomaPay ([`NomaPay_backend`](https://github.com/nomapayapp-collab/NomaPay_backend)).
 
-El desarrollo del frontend fue realizado por:
+## Índice
 
-- **Candela Ferrari**
-- **Agustin Spataro**
+- [Capturas](#capturas)
+- [Funcionalidades](#funcionalidades)
+- [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Arquitectura del proyecto](#arquitectura-del-proyecto)
+- [Autenticación y sesión](#autenticación-y-sesión)
+- [Rutas principales](#rutas-principales)
+- [Instalación](#instalación)
+- [Variables de entorno](#variables-de-entorno)
+- [Scripts disponibles](#scripts-disponibles)
+- [Testing](#testing)
+- [Diseño y sistema visual](#diseño-y-sistema-visual)
+- [Deploy](#deploy)
+- [Estado del proyecto](#estado-del-proyecto)
+- [Equipo](#equipo)
 
-## Descripción del proyecto
+## Capturas
 
-NomaPay busca centralizar en una única interfaz diferentes funcionalidades relacionadas con la administración de una billetera digital.
+<!--
+  TODO: reemplazar estos placeholders por capturas/gifs reales de la app.
+  Sugerencia de contenido (un archivo por punto, mismo nombre que la ruta):
 
-Desde el frontend, el usuario puede registrarse e iniciar sesión, acceder a su dashboard, consultar información de su billetera y administrar datos de su perfil.
+    docs/screenshots/dashboard.png     -> Dashboard con saldo y accesos rápidos
+    docs/screenshots/wallet.png        -> Billetera con saldos multi-moneda
+    docs/screenshots/exchange.png      -> Convertir monedas (con comisión visible)
+    docs/screenshots/transfer.gif      -> Flujo completo de Transferir (buscar alias -> confirmar)
+    docs/screenshots/summary.png       -> Resumen semanal con gráfico
+    docs/screenshots/chat-assistant.gif -> Asistente conversacional respondiendo una consulta
+    docs/screenshots/dark-light.gif    -> Toggle de tema claro/oscuro
 
-La aplicación fue construida utilizando una arquitectura basada en componentes reutilizables, separación de responsabilidades entre páginas, contextos, hooks y servicios, y una capa centralizada para la comunicación con el backend.
+  Una vez que estén los archivos en docs/screenshots/, descomentar las líneas
+  de abajo (o reemplazar esta sección entera).
 
-## Tecnologías utilizadas
+  ![Dashboard](docs/screenshots/dashboard.png)
+  ![Transferir](docs/screenshots/transfer.gif)
+-->
 
-- **React 19** — construcción de la interfaz de usuario.
-- **TypeScript** — tipado estático y mayor mantenibilidad del código.
-- **Vite** — entorno de desarrollo y proceso de build.
-- **React Router DOM** — navegación y manejo de rutas.
-- **Axios** — comunicación con la API REST.
-- **Tailwind CSS** — estilos y diseño de la interfaz.
-- **Flowbite React** — componentes de interfaz.
-- **Google OAuth** — integración del acceso mediante Google.
-- **ESLint** — análisis estático y control de calidad del código.
-- **Vercel** — despliegue del frontend.
+*(Próximamente: capturas y GIFs de las pantallas principales.)*
 
-## Funcionalidades implementadas
+## Funcionalidades
 
 ### Autenticación
 
-- Registro de usuarios.
-- Inicio de sesión con email y contraseña.
-- Integración de inicio de sesión con Google.
-- Persistencia de sesión mediante `localStorage`.
-- Manejo de access token y refresh token.
-- Cierre de sesión.
-- Limpieza de la sesión ante respuestas `401 Unauthorized`.
-- Protección de rutas privadas.
-
-### Landing Page
-
-La aplicación incluye una landing page pública compuesta por distintas secciones reutilizables:
-
-- Hero principal.
-- Presentación del problema.
-- Estadísticas.
-- Público objetivo.
-- Explicación del funcionamiento.
-- Calculadora.
-- Sección de confianza.
-- Preguntas frecuentes.
-- Call to Action.
-- Footer.
+- Registro e inicio de sesión con email y contraseña.
+- Inicio de sesión con Google (`@react-oauth/google`).
+- Recuperar y restablecer contraseña por email.
+- Sesión basada en cookies `httpOnly` (no en `localStorage`/tokens expuestos al JS) con renovación automática del access token vencido — ver [Autenticación y sesión](#autenticación-y-sesión).
+- Cierre de sesión y protección de rutas privadas (`ProtectedRoute`).
 
 ### Dashboard
 
-Una vez autenticado, el usuario accede al dashboard principal, que incluye:
-
-- Saludo personalizado.
-- Visualización del balance.
-- Acciones rápidas.
-- Tipos de cambio.
-- Movimientos recientes.
-- Navegación inferior para dispositivos móviles.
-
-### Perfil y configuración
-
-El frontend cuenta con una sección protegida de configuración desde la cual se trabaja con:
-
-- Consulta del perfil del usuario.
-- Actualización de datos del perfil.
-- Edición de alias.
-- Cambio de contraseña.
-- Preferencia de moneda.
+- Saludo personalizado y balance general.
+- Accesos rápidos a las operaciones principales.
+- Cotizaciones de referencia y movimientos recientes.
 
 ### Billetera
 
-La capa de servicios incluye integración con el backend para:
+- Saldos en múltiples monedas (ARS, USD, BRL).
+- Carga de saldo simulada (depósito) por moneda, con límites configurables.
+- Selección de moneda principal/preferida.
 
-- Consultar la billetera del usuario.
-- Obtener información financiera asociada.
-- Actualizar la moneda preferida.
+### Convertir monedas (Exchange)
+
+- Conversión entre las monedas propias de la cuenta, usando la cotización vigente.
+- Comisión del 0,5% calculada y mostrada en dinero real antes de confirmar (no solo el porcentaje).
+- Cotizaciones compartidas visibles mientras se arma la operación.
+
+### Transferir dinero
+
+- Búsqueda de destinatario por alias o CBU con **verificación en vivo contra el backend** (mismo criterio que usan las apps bancarias): mientras se escribe, se consulta si el alias/CBU existe antes de dejar continuar.
+- Contactos frecuentes calculados por el backend a partir de transferencias completadas anteriores.
+- Flujo guiado en pasos (destinatario → monto → confirmación) con resumen y modal de confirmación antes de enviar.
+- Comprobante de la transacción al finalizar.
+
+### Historial y Resumen
+
+- Historial completo de movimientos (entradas, salidas, conversiones).
+- Resumen semanal con gráfico de entradas/salidas/cambios por día, mejor día de la semana, desglose por tipo y comparación contra la semana anterior.
+
+### Asistente conversacional
+
+- Chat flotante conectado a un chatbot con Gemini del lado del backend, disponible en las pantallas principales de la app (Dashboard, Billetera, Convertir, Transferir, Historial, Resumen y Configuración).
+
+### Perfil y configuración
+
+- Edición de datos del perfil y de alias.
+- Cambio de contraseña.
+- Preferencia de moneda y tema claro/oscuro (se guarda en la cuenta, viaja entre dispositivos).
+- Eliminar cuenta.
+
+### Emails transaccionales
+
+- Confirmación de transacción exitosa (para quien envía y quien recibe) y de transacción rechazada.
+- Email de recuperación de contraseña.
+- Se envían desde una función serverless de Vercel (`api/send-mail.ts`) usando AWS SES; el backend le pide el envío a esa función en vez de mandar el mail directamente.
 
 ### Manejo de errores
 
-La aplicación incorpora:
-
-- `ErrorBoundary` para controlar errores inesperados de React.
+- `ErrorBoundary` para errores inesperados de React.
 - Página personalizada `404 - Not Found`.
-- Manejo centralizado de errores HTTP mediante Axios.
-- Limpieza automática de credenciales locales cuando la API devuelve un estado `401`.
+- Manejo centralizado de errores HTTP en la instancia de Axios.
+
+## Tecnologías utilizadas
+
+- **React 19** + **TypeScript** — interfaz de usuario tipada.
+- **Vite** — entorno de desarrollo y build.
+- **React Router DOM v7** — ruteo y protección de rutas.
+- **Axios** — comunicación con la API REST, con interceptores para sesión y errores.
+- **Tailwind CSS v4** (configuración CSS-first con `@theme`) — estilos y design tokens.
+- **Flowbite React** — componentes de base.
+- **Google OAuth** (`@react-oauth/google`) — login con Google.
+- **Vitest + Testing Library** — testing de componentes, hooks y servicios.
+- **ESLint** — análisis estático.
+- **AWS SDK (SES)** — envío de emails transaccionales desde una función serverless.
+- **Vercel** — despliegue del frontend y de las funciones serverless de email.
 
 ## Arquitectura del proyecto
 
 ```text
 src/
-├── assets/                 # Imágenes, recursos gráficos e iconos
+├── assets/                 # Iconos e imágenes
 ├── components/
-│   ├── layout/             # Header y navegación general
-│   ├── ui/                 # Componentes visuales reutilizables
-│   └── wallet/             # Componentes relacionados con la billetera
-├── constants/              # Constantes y datos compartidos
-├── context/                # Estado global de autenticación y billetera
-├── hooks/                  # Hooks personalizados
-│   └── animations/         # Hooks relacionados con animaciones
+│   ├── auth/                # Panel de marca en Login/Register
+│   ├── chat/                 # Asistente conversacional (Gemini)
+│   ├── layout/               # Header, Sidebar, barra inferior móvil, AppLayout
+│   ├── ui/                    # Componentes reutilizables (Button, Card, Modal, Select, DataTable...)
+│   └── wallet/                # BalanceCard, ExchangeRatesList, RecentMovements, TopUpModal
+├── constants/               # Monedas, límites de depósito, etc.
+├── context/                 # AuthContext, WalletContext, ToastContext
+├── hooks/                    # Hooks por pantalla/feature (useWallet, useExchangeForm, useHistory, useSummary...)
+│   └── animations/            # useReveal, useCountUp
 ├── pages/
-│   ├── admin/              # Estructura destinada al panel administrativo
-│   ├── config/             # Perfil y configuración
-│   ├── dashboard/          # Dashboard principal
-│   ├── landing/            # Componentes de la Landing Page
-│   ├── register/           # Registro
-│   └── transfer/           # Estructura destinada a transferencias
-├── routes/                 # Rutas y protección de navegación
-├── services/               # Comunicación con la API
-├── types/                  # Interfaces y tipos TypeScript
-├── utils/                  # Funciones auxiliares
+│   ├── config/                # Perfil y configuración
+│   ├── dashboard/              # Dashboard principal
+│   ├── landing/                 # Landing page pública
+│   ├── password/                 # Recuperar / restablecer contraseña
+│   ├── Wallet.tsx, Exchange.tsx, Transfer.tsx, History.tsx, Summary.tsx, Receipt.tsx, ...
+├── routes/                   # AppRoutes, ProtectedRoute, Root
+├── services/                 # api.ts (Axios + refresh automático) y un servicio por dominio
+├── test/                      # Suite de Vitest, organizada como el código que testea
+├── types/                     # Tipos e interfaces compartidos
+├── utils/                      # Funciones auxiliares (formateo de moneda, etc.)
 ├── App.tsx
 ├── main.tsx
-└── index.css
+└── index.css                   # Tokens de diseño (Tailwind v4 @theme) y clases BEM-lite
+
+api/                          # Funciones serverless de Vercel (envío de emails vía AWS SES)
 ```
 
-## Arquitectura de comunicación con el backend
+## Autenticación y sesión
 
-La comunicación con el backend se encuentra centralizada mediante una instancia de Axios ubicada en:
+La sesión **no** se guarda en `localStorage` ni se envía manualmente en un header `Authorization`. El backend emite el access token y el refresh token como cookies `httpOnly`, y el frontend simplemente viaja con `withCredentials: true` (`src/services/api.ts`).
 
-```text
-src/services/api.ts
-```
+Cuando una petición falla con `401` (access token vencido), un interceptor de Axios:
 
-Los servicios relacionados con autenticación, usuario y billetera se encuentran en:
+1. Encola las peticiones que lleguen mientras tanto, para no disparar varios refresh en simultáneo.
+2. Pide un token nuevo contra `POST /auth/refresh`.
+3. Si funciona, reintenta automáticamente la petición original — el usuario no nota nada.
+4. Si el refresh también falla, dispara un evento (`services/authEvents.ts`) que `AuthContext` escucha para cerrar la sesión de forma prolija.
 
-```text
-src/services/authService.ts
-```
-
-La instancia de Axios utiliza la variable de entorno `VITE_API_URL` como URL base.
-
-Además, antes de realizar una petición autenticada, se recupera el token almacenado localmente y se incorpora al header:
-
-```text
-Authorization: Bearer <token>
-```
-
-Esto permite mantener separada la lógica de comunicación HTTP de los componentes visuales.
+Las rutas protegidas usan `ProtectedRoute`, y `AuthContext` expone el usuario actual y el estado de carga al resto de la app.
 
 ## Rutas principales
 
 | Ruta | Descripción | Acceso |
 | --- | --- | --- |
-| `/` | Landing Page o Dashboard según la sesión | Público / autenticado |
+| `/` | Landing Page (sin sesión) o Dashboard (con sesión) | Público / autenticado |
 | `/login` | Inicio de sesión | Público |
 | `/register` | Registro de usuario | Público |
+| `/recover-password` | Solicitar recuperación de contraseña | Público |
+| `/reset-password` | Definir nueva contraseña desde el link del email | Público |
 | `/profile` | Perfil y configuración | Protegido |
+| `/wallet` | Billetera y saldos | Protegido |
+| `/exchange` | Convertir monedas | Protegido |
+| `/transfer` | Transferir dinero | Protegido |
+| `/history` | Historial de movimientos | Protegido |
+| `/summary` | Resumen semanal | Protegido |
+| `/comprobante` | Comprobante de una transacción | Protegido |
+| `/politica-de-privacidad` | Política de privacidad | Público |
 | `*` | Página 404 | Público |
-
-La ruta raíz determina automáticamente qué interfaz mostrar:
-
-- Sin sesión activa → **Landing Page**.
-- Con sesión activa → **Splash de bienvenida** y posteriormente **Dashboard**.
 
 ## Instalación
 
 ### Requisitos previos
-
-Para ejecutar el proyecto es necesario tener instalado:
 
 - **Node.js**
 - **npm**
@@ -180,122 +200,93 @@ Para ejecutar el proyecto es necesario tener instalado:
 
 ```bash
 git clone https://github.com/nomapayapp-collab/NomaPay_Frontend.git
-```
-
-### 2. Ingresar al proyecto
-
-```bash
 cd NomaPay_Frontend
 ```
 
-### 3. Instalar las dependencias
+### 2. Instalar las dependencias
 
 ```bash
 npm install
 ```
 
-Este comando genera nuevamente la carpeta `node_modules` a partir de las dependencias declaradas en `package.json`.
+> `node_modules` no debe subirse al repositorio (ya está en `.gitignore`).
 
-> `node_modules` no debe subirse al repositorio. El proyecto ya la excluye mediante `.gitignore`.
+### 3. Configurar las variables de entorno
 
-### 4. Configurar las variables de entorno
+Crear un archivo `.env` en la raíz tomando como referencia `.env.example` (ver [Variables de entorno](#variables-de-entorno)).
 
-Crear un archivo `.env` en la raíz del proyecto tomando como referencia `.env.example`.
-
-Ejemplo:
-
-```env
-VITE_API_URL=URL_DEL_BACKEND
-VITE_GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID
-```
-
-Las credenciales y claves privadas no deben incluirse directamente en el repositorio.
-
-### 5. Ejecutar el proyecto
+### 4. Ejecutar el proyecto
 
 ```bash
 npm run dev
 ```
 
-Vite iniciará el servidor de desarrollo y mostrará en la terminal la dirección local de la aplicación, normalmente:
-
-```text
-http://localhost:5173/
-```
-
-## Scripts disponibles
-
-```bash
-npm run dev
-```
-
-Inicia el entorno de desarrollo.
-
-```bash
-npm run build
-```
-
-Compila TypeScript y genera la versión optimizada para producción.
-
-```bash
-npm run lint
-```
-
-Ejecuta ESLint sobre el proyecto.
-
-```bash
-npm run preview
-```
-
-Permite visualizar localmente el build de producción.
+Vite levanta el servidor de desarrollo, normalmente en `http://localhost:5173/`.
 
 ## Variables de entorno
 
-El proyecto utiliza variables de entorno para evitar incorporar configuraciones sensibles directamente en el código fuente.
+El archivo `.env` está excluido de Git; `.env.example` sirve de referencia.
 
-El archivo `.env` está excluido de Git mediante `.gitignore`.
+```env
+# Frontend (expuestas al navegador con el prefijo VITE_)
+VITE_API_URL=URL_DEL_BACKEND
+VITE_GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID
 
-El repositorio incluye `.env.example` como referencia para configurar el entorno local.
+# Usadas solo por la función serverless api/send-mail.ts (nunca llegan al navegador)
+AWS_REGION=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+SES_FROM_EMAIL=
+```
 
-## Seguridad y manejo de sesión
+> Las variables con prefijo `VITE_` forman parte del código que llega al navegador. Nunca deben usarse para guardar secretos que tienen que quedarse en el servidor — por eso las credenciales de AWS SES no llevan ese prefijo y solo las usa la función serverless.
 
-La autenticación del frontend se administra mediante `AuthContext`.
+## Scripts disponibles
 
-Al iniciar sesión correctamente, la aplicación almacena la información necesaria para mantener la sesión del usuario.
+| Script | Descripción |
+| --- | --- |
+| `npm run dev` | Levanta el entorno de desarrollo. |
+| `npm run build` | Compila TypeScript (`tsc -b`) y genera el build de producción. |
+| `npm run lint` | Corre ESLint sobre el proyecto. |
+| `npm run test` | Corre toda la suite de Vitest una vez. |
+| `npm run test:watch` | Corre Vitest en modo watch. |
+| `npm run test:coverage` | Corre Vitest con reporte de cobertura. |
+| `npm run preview` | Sirve localmente el build de producción. |
 
-Las peticiones autenticadas incorporan automáticamente el access token mediante un interceptor de Axios.
+## Testing
 
-Si el servidor devuelve un estado HTTP `401`, la aplicación elimina las credenciales locales para evitar mantener una sesión inválida.
+El proyecto usa **Vitest** + **Testing Library** (`src/test/`), con la suite organizada en las mismas carpetas que el código que cubre: páginas (`Login`, `Register`, `Wallet`, `Exchange`, `Transfer`, `History`, `Summary`), contexto de autenticación, hooks, servicios (interceptor de refresh de `api.ts`) y componentes de UI.
 
-Las rutas que requieren autenticación utilizan `ProtectedRoute`.
+```bash
+npm run test
+```
 
-> Las variables expuestas mediante el prefijo `VITE_` forman parte del código entregado al navegador. Nunca deben utilizarse para almacenar secretos que deban permanecer exclusivamente en el servidor.
+## Diseño y sistema visual
 
-## Diseño responsive
-
-La interfaz fue desarrollada con un enfoque adaptable, priorizando una experiencia clara en dispositivos móviles y manteniendo compatibilidad con resoluciones de escritorio.
-
-El proyecto utiliza componentes reutilizables para mantener consistencia visual entre las distintas pantallas.
+- **Tailwind CSS v4** con configuración CSS-first (`@theme`) para los tokens de color, tipografía (Archivo) y espaciados — paleta navy / violeta / magenta / turquesa / ámbar.
+- Tema **claro y oscuro**, persistido en la cuenta del usuario y sincronizado entre dispositivos.
+- Diseño responsive mobile-first, con navegación inferior en mobile y sidebar en desktop.
+- Componentes de UI propios y reutilizables (`src/components/ui/`) siguiendo una convención de clases BEM-lite en `index.css`.
 
 ## Deploy
 
-El proyecto está preparado para desplegarse como una **Single Page Application (SPA)** en Vercel.
-
-El archivo `vercel.json` incorpora una regla de reescritura hacia `index.html`, permitiendo que React Router gestione correctamente las rutas del lado del cliente.
+El frontend está preparado para desplegarse como **Single Page Application** en **Vercel**. `vercel.json` reescribe cualquier ruta que no empiece con `/api` hacia `index.html`, para que React Router maneje la navegación del lado del cliente. Las funciones de `api/` (envío de emails) se despliegan como Vercel Functions.
 
 ## Estado del proyecto
 
-NomaPay continúa en desarrollo. Algunas carpetas del repositorio representan funcionalidades previstas o en proceso de implementación, como determinadas secciones administrativas y de transferencias.
+NomaPay está en desarrollo activo como Proyecto Final de Henry. El alcance obligatorio (multi-moneda, conversión entre monedas propias, transferencias, emails transaccionales, chatbot, testing) está implementado; quedan pendientes mejoras de pulido visual/responsive y ampliar la cobertura de tests.
 
-El README diferencia estas estructuras de las funcionalidades que actualmente cuentan con implementación en el frontend.
+## Equipo
 
-## Autores
+**Frontend**
 
-**Candela Ferrari**  
-Frontend Developer
+- Candela Ferrari
+- Agustín Spataro
 
-**Agustin Spataro**  
-Frontend Developer
+**Backend**
+
+- Gastón
+- Gisella
 
 ---
 

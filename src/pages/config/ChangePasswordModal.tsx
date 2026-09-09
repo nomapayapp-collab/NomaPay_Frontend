@@ -1,15 +1,27 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+
 import { Modal } from "../../components/ui/Modal";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
+import {
+  PasswordRequirements,
+  getPasswordChecks,
+} from "../../components/auth/PasswordRequirements";
 import { IconCheck } from "../../assets/icons/Icons";
 import * as authService from "../../services/authService";
 
-function extractErrorMessage(err: unknown, fallback: string): string {
-  if (axios.isAxiosError(err) && typeof err.response?.data?.error === "string") {
-    return err.response.data.error;
+function extractErrorMessage(
+  error: unknown,
+  fallback: string,
+): string {
+  if (
+    axios.isAxiosError(error) &&
+    typeof error.response?.data?.error === "string"
+  ) {
+    return error.response.data.error;
   }
+
   return fallback;
 }
 
@@ -18,12 +30,24 @@ type ChangePasswordModalProps = {
   onClose: () => void;
 };
 
-export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps) {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+export function ChangePasswordModal({
+  open,
+  onClose,
+}: ChangePasswordModalProps) {
+  const [currentPassword, setCurrentPassword] =
+    useState("");
+
+  const [newPassword, setNewPassword] =
+    useState("");
+
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [error, setError] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     if (open) {
@@ -34,39 +58,48 @@ export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps)
     }
   }, [open]);
 
-  const checklist = {
-    length: newPassword.length >= 8,
-    upperAndNumber: /[A-Z]/.test(newPassword) && /[0-9]/.test(newPassword),
-    matches: newPassword.length > 0 && newPassword === confirmPassword,
-  };
-  const valid = checklist.length && checklist.upperAndNumber && checklist.matches;
+  const passwordChecks = getPasswordChecks(
+    newPassword,
+    confirmPassword,
+  );
 
-  let strengthScore = 0;
-  if (checklist.length) strengthScore++;
-  if (checklist.upperAndNumber) strengthScore++;
-  if (newPassword.length >= 12 || /[^A-Za-z0-9]/.test(newPassword)) strengthScore++;
-
-  const strengthLabel =
-    newPassword.length === 0 ? "" : strengthScore <= 1 ? "Débil" : strengthScore === 2 ? "Media" : "Fuerte";
-  const strengthColor =
-    strengthScore <= 1 ? "bg-magenta-500" : strengthScore === 2 ? "bg-amber-500" : "bg-turquoise-500";
+  const valid =
+    currentPassword.length > 0 &&
+    passwordChecks.allValid;
 
   async function handleSave() {
-    if (!valid || !currentPassword) return;
+    if (!valid || saving) {
+      return;
+    }
+
     setSaving(true);
     setError(null);
+
     try {
-      await authService.changePassword({ currentPassword, newPassword });
+      await authService.changePassword({
+        currentPassword,
+        newPassword,
+      });
+
       onClose();
-    } catch (err) {
-      setError(extractErrorMessage(err, "No pudimos cambiar tu contraseña."));
+    } catch (requestError) {
+      setError(
+        extractErrorMessage(
+          requestError,
+          "No pudimos cambiar tu contraseña.",
+        ),
+      );
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Cambiar contraseña">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Cambiar contraseña"
+    >
       <div className="flex flex-col gap-4">
         <Input
           label="Contraseña actual"
@@ -74,65 +107,79 @@ export function ChangePasswordModal({ open, onClose }: ChangePasswordModalProps)
           type="password"
           autoComplete="current-password"
           value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
+          onChange={(event) =>
+            setCurrentPassword(event.target.value)
+          }
         />
+
         <Input
           label="Contraseña nueva"
           id="newPassword"
           type="password"
+          autoComplete="new-password"
           value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
+          onChange={(event) =>
+            setNewPassword(event.target.value)
+          }
         />
+
         <Input
           label="Confirmar contraseña nueva"
           id="confirmPassword"
           type="password"
+          autoComplete="new-password"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={(event) =>
+            setConfirmPassword(event.target.value)
+          }
         />
 
-        {newPassword.length > 0 && (
-          <div>
-            <div className="flex gap-1.5 mb-1.5">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className={`h-1.5 flex-1 rounded-full ${i < strengthScore ? strengthColor : "bg-white/10"}`} />
-              ))}
-            </div>
-            <p className="text-[12px] text-text-light-tertiary dark:text-text-dark-tertiary">{strengthLabel}</p>
-          </div>
-        )}
+        <PasswordRequirements
+          password={newPassword}
+          confirmPassword={confirmPassword}
+        />
 
-        <ul className="flex flex-col gap-1.5">
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.length ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
-            <IconCheck className="w-3.5 h-3.5" /> Mínimo 8 caracteres
-          </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.upperAndNumber ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
-            <IconCheck className="w-3.5 h-3.5" /> Al menos una mayúscula y un número
-          </li>
-          <li className={`text-[12.5px] flex items-center gap-1.5 ${checklist.matches ? "text-turquoise-500" : "text-text-light-tertiary dark:text-text-dark-tertiary"}`}>
-            <IconCheck className="w-3.5 h-3.5" /> Coincide con la confirmación
-          </li>
-        </ul>
+        {valid && (
+          <p className="flex items-center gap-1.5 text-[13px] font-medium text-turquoise-500">
+            <IconCheck className="h-4 w-4 shrink-0" />
+
+            <span>
+              La contraseña cumple todos los requisitos
+            </span>
+          </p>
+        )}
 
         {error && (
-          <div className="alert-note alert-note--error">
-            <p className="alert-note__description">{error}</p>
+          <div
+            role="alert"
+            className="alert-note alert-note--error"
+          >
+            <p className="alert-note__description">
+              {error}
+            </p>
           </div>
         )}
 
-        <div className="flex gap-3 mt-2">
-          <Button type="button" variant="outline" fullWidth onClick={onClose}>
+        <div className="mt-2 flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            fullWidth
+            disabled={saving}
+            onClick={onClose}
+          >
             Cancelar
           </Button>
+
           <Button
             type="button"
             variant="primary"
             fullWidth
             loading={saving}
-            disabled={!valid || !currentPassword}
+            disabled={!valid || saving}
             onClick={handleSave}
           >
-            Guardar nueva contraseña
+            Guardar contraseña
           </Button>
         </div>
       </div>

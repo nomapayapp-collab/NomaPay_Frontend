@@ -2,23 +2,7 @@ import { useState, forwardRef, useId } from "react";
 import type { InputHTMLAttributes, ReactNode } from "react";
 import { IconEye, IconEyeOff, IconCheck } from "../../assets/icons/Icons";
 
-/**
- * Input — el único campo de texto que debería existir en toda la app.
- *
- * Se usa en Login, Registro, Transferencias, Perfil, modales... siempre el mismo.
- *
- * - label: texto arriba del campo (opcional, pero recomendado siempre)
- * - error: si viene, pinta el borde en magenta y muestra el mensaje abajo
- * - icon: ícono a la izquierda del campo (ej. IconUser, IconMail)
- * - valid: muestra un check verde a la derecha (campos con validación en vivo, ej. email)
- * - type="password": agrega automáticamente el botón de mostrar/ocultar,
- *   no hace falta armar ese toggle de nuevo en cada pantalla
- *
- * Ejemplos:
- *   <Input label="Email" type="email" icon={<IconMail />} valid={emailIsValid} />
- *   <Input label="Contraseña" type="password" icon={<IconLock />} />
- *   <Input label="Alias" error="Ese alias ya está en uso" />
- */
+
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   label?: string;

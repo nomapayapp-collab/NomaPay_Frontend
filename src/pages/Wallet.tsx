@@ -12,7 +12,6 @@ import {
   IconCopy,
   IconCheck,
   IconStar,
-  IconAlertTriangle,
 } from "../assets/icons/Icons";
 import type { CurrencyCode } from "../types/wallet";
 import { CURRENCY_NAMES } from "../constants/currencies";
@@ -26,7 +25,6 @@ export default function Wallet() {
   const [topUpOpen, setTopUpOpen] = useState(false);
 
   const [savingFavorite, setSavingFavorite] = useState<CurrencyCode | null>(null);
-  const [favoriteError, setFavoriteError] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -54,12 +52,11 @@ export default function Wallet() {
   async function handleSetFavorite(code: CurrencyCode) {
     if (code === selected?.currency.code) return;
     setSavingFavorite(code);
-    setFavoriteError(null);
     try {
       await setPreferredCurrency(code);
       showToast(`Tu moneda favorita ahora es ${code}`, "success", { icon: IconStar });
     } catch {
-      setFavoriteError("No pudimos actualizar tu moneda favorita. Probá de nuevo.");
+      showToast("No pudimos actualizar tu moneda favorita. Probá de nuevo.", "error");
     } finally {
       setSavingFavorite(null);
     }
@@ -67,7 +64,7 @@ export default function Wallet() {
 
   function renderFavoriteCurrency() {
     return (
-      <div className="rounded-card border border-border-light dark:border-border-dark p-5">
+      <div className="rounded-card border border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark-elevated p-5">
         <p className="font-semibold text-text-light-primary dark:text-text-dark-primary mb-1">Moneda favorita</p>
         <p className="text-[13px] text-text-light-tertiary dark:text-text-dark-tertiary mb-4">
           Es la moneda en la que ves tu saldo total y la que se propone por defecto al convertir.
@@ -104,26 +101,10 @@ export default function Wallet() {
             );
           })}
         </div>
-        {favoriteError && <p className="text-[12.5px] text-magenta-500 mt-3">{favoriteError}</p>}
       </div>
     );
   }
 
-  function renderWarningNote() {
-    return (
-      <div className="alert-note alert-note--warning flex items-start gap-3">
-        <span className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-amber-500/15 text-amber-500">
-          <IconAlertTriangle className="w-4 h-4" />
-        </span>
-        <div>
-          <p className="alert-note__title text-amber-500">No podés desactivar una moneda con saldo</p>
-          <p className="alert-note__description">
-            Convertí o transferí el saldo a cero y recién ahí vas a poder sacarla de tu billetera.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   function renderCargarSaldoButton() {
     return (
@@ -140,10 +121,10 @@ export default function Wallet() {
         <p className="card__title mb-2">Recibir dinero</p>
         <div className="flex items-center justify-between gap-3">
           <p className="font-semibold text-text-light-primary dark:text-text-dark-primary truncate">{user.alias}</p>
-          <button type="button" onClick={handleCopyAlias} className="btn btn--outline btn--sm shrink-0">
+          <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={handleCopyAlias}>
             {copied ? <IconCheck className="w-4 h-4" /> : <IconCopy className="w-4 h-4" />}
             {copied ? "Copiado" : "Copiar"}
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -158,49 +139,48 @@ export default function Wallet() {
           {/* ---------- Mobile ---------- */}
           <div className="lg:hidden flex flex-col gap-5">
             <BalanceCard />
-            {renderWarningNote()}
             {renderCargarSaldoButton()}
-            {renderRecibirDinero()}
             {renderFavoriteCurrency()}
+            {renderRecibirDinero()}
+
           </div>
 
           {/* ---------- Desktop ---------- */}
-          <div className="hidden lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <BalanceCard />
-              <div className="rounded-card border border-border-light dark:border-border-dark p-6">
-                <p className="card__title mb-3">Movimientos en {selected.currency.code}</p>
-                {movements.length === 0 ? (
-                  <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary py-4 text-center">
-                    Todavía no tenés movimientos en {selected.currency.code}.
-                  </p>
-                ) : (
-                  <ul className="divide-y divide-border-light dark:divide-border-dark">
-                    {movements.map((m) => (
-                      <li key={m.id} className="flex items-center justify-between py-3 text-[14px]">
-                        <span className="text-text-light-primary dark:text-text-dark-primary">{m.description}</span>
-                        <span
-                          className={`tabular font-medium ${
-                            m.amount < 0
-                              ? "text-text-light-secondary dark:text-text-dark-secondary"
-                              : "text-turquoise-500"
-                          }`}
-                        >
-                          {m.amount < 0 ? "-" : "+"}
-                          {formatCurrency(Math.abs(m.amount), m.currency)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
+          <div className="hidden lg:flex lg:flex-col lg:gap-6">
+            <BalanceCard />
 
-            <div className="flex flex-col gap-4">
-              {renderFavoriteCurrency()}
-              {renderWarningNote()}
-              {renderCargarSaldoButton()}
-              {renderRecibirDinero()}
+            <div className="lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
+              <div className="flex flex-col gap-4">
+                {renderFavoriteCurrency()}
+                {renderCargarSaldoButton()}
+              </div>
+              <div className="lg:col-span-2">
+                <div className="rounded-card border border-border-light bg-surface-light dark:border-border-dark dark:bg-surface-dark-elevated p-6">
+                  <p className="card__title mb-3">Movimientos en {selected.currency.code}</p>
+                  {movements.length === 0 ? (
+                    <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary py-4 text-center">
+                      Todavía no tenés movimientos en {selected.currency.code}.
+                    </p>
+                  ) : (
+                    <ul className="divide-y divide-border-light dark:divide-border-dark">
+                      {movements.map((m) => (
+                        <li key={m.id} className="flex items-center justify-between py-3 text-[14px]">
+                          <span className="text-text-light-primary dark:text-text-dark-primary">{m.description}</span>
+                          <span
+                            className={`tabular font-medium ${m.amount < 0
+                                ? "text-text-light-secondary dark:text-text-dark-secondary"
+                                : "text-turquoise-500"
+                              }`}
+                          >
+                            {m.amount < 0 ? "-" : "+"}
+                            {formatCurrency(Math.abs(m.amount), m.currency)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </>

@@ -5,12 +5,7 @@ import { Button } from "./ui/Button";
 type ErrorBoundaryProps = { children: ReactNode };
 type ErrorBoundaryState = { hasError: boolean };
 
-/**
- * ErrorBoundary — ataja errores de render que antes rompían la app entera
- * sin ningún fallback visual (como pasó con BalanceCard). Tiene que ser un
- * componente de clase: React todavía no expone un hook para esto.
- * Se envuelve una sola vez, en App.tsx.
- */
+
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);

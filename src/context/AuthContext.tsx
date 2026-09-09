@@ -2,15 +2,8 @@ import { createContext, useState, useEffect, type ReactNode } from "react";
 import * as authService from "../services/authService";
 import type { AuthUser, LoginPayload } from "../types/auth";
 import { SPLASH_SEEN_KEY } from "../hooks/useSplash";
-/**
- * context/AuthContext.tsx — estado global de sesión.
- * No se usa directo: los componentes consumen esto a través del hook useAuth().
- *
- * La sesión vive en una cookie httpOnly que pone el backend — el front nunca
- * la toca ni la guarda en ningún lado. Para saber si hay sesión activa al
- * montar la app (o al refrescar la página), le preguntamos al backend con
- * /users/me: si la cookie es válida, contesta 200 con el user; si no, 401.
- */
+import { onSessionExpired } from "../services/authEvents";
+
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -35,6 +28,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then(setUser)
       .catch(() => setUser(null)) // sin cookie válida = sin sesión, no es un error real
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    
+    return onSessionExpired(() => setUser(null));
   }, []);
 
   function persistSession(loggedUser: AuthUser) {

@@ -1,20 +1,17 @@
 import { useEffect, type ReactNode } from "react";
 import { IconX } from "../../assets/icons/Icons";
 
-/**
- * el único modal que debería existir en toda la app.
- * - open: controla si se muestra o no
- * - onClose: se dispara al tocar el fondo, la X, o apretar Escape
- * - title: encabezado del modal
- */
+
 type ModalProps = {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  
+  borderClassName?: string;
 };
 
-export function Modal({ open, onClose, title, children }: ModalProps) {
+export function Modal({ open, onClose, title, children, borderClassName }: ModalProps) {
   useEffect(() => {
     if (!open) return;
 
@@ -45,7 +42,9 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="w-full max-w-sm bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-card shadow-elevation-lg p-6 max-h-[85vh] overflow-y-auto"
+        className={`w-full max-w-sm bg-surface-light dark:bg-surface-dark ${
+          borderClassName ?? "border border-border-light dark:border-border-dark"
+        } rounded-card shadow-elevation-lg p-6 max-h-[85vh] overflow-y-auto scrollbar-app`}
       >
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-text-light-primary dark:text-text-dark-primary">{title}</h2>

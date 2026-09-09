@@ -20,14 +20,7 @@ type ReceiptPanelProps = {
   actions: ReceiptAction[];
 };
 
-/**
- * Cuerpo del Comprobante (todo lo que va debajo del ícono/monto/badge).
- * Las 4 fases (pendiente/completada/rechazada/cancelada) tienen la misma
- * forma — opcionalmente un checklist, opcionalmente datos en filas,
- * opcionalmente una nota, siempre acciones — así que en vez de repetir
- * el markup 4 veces, Receipt.tsx arma estos props según la fase y llama
- * a este único componente.
- */
+
 export function ReceiptPanel({ checklist, rows, note, actions }: ReceiptPanelProps) {
   return (
     <div className="flex flex-col gap-5">

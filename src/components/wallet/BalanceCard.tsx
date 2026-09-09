@@ -7,74 +7,31 @@ import { useWallet } from "../../hooks/useWallet";
 const HIDDEN = "••••••";
 
 export function BalanceCard() {
-  const { wallet, loading } = useWallet();
+  const { wallet } = useWallet();
   const [showBalance, setShowBalance] = useState(true);
 
-  const primary = wallet.balances.find((b) => b.isPrimary) ?? wallet.balances[0];
-
-  // se muestran las monedas con saldo > 0, más la moneda por defecto aunque
-  // esté en 0 (es la que ve el usuario recién registrado). El resto en 0 no
-  // suma nada, así que no le ocupamos lugar en el scroll.
-  const balances = wallet.balances
-    .filter((b) => b.amount > 0 || b === primary)
-    .sort((a, b) => Number(b.isPrimary) - Number(a.isPrimary));
-
-  if (loading) {
-    return (
-      <Card variant="aura">
-        <div className="flex items-center justify-between mb-4">
-          <div className="h-4 w-24 rounded-full bg-white/15 animate-pulse" />
-          <span className="brand-mark bg-ink dark:bg-white w-9 h-9 opacity-90 shrink-0" aria-hidden="true" />
-        </div>
-        <div className="h-9 w-40 rounded-lg bg-white/15 animate-pulse mb-4" />
-        <div className="flex gap-2 mb-5">
-          <div className="h-6 w-20 rounded-full bg-white/15 animate-pulse" />
-          <div className="h-6 w-20 rounded-full bg-white/15 animate-pulse" />
-        </div>
-        <div className="brand-rule" />
-      </Card>
-    );
-  }
+  const balances = [...wallet.balances].sort((a, b) => {
+    const aHasBalance = a.amount > 0;
+    const bHasBalance = b.amount > 0;
+    if (aHasBalance !== bHasBalance) return aHasBalance ? -1 : 1;
+    return Number(b.isPrimary) - Number(a.isPrimary);
+  });
 
   if (balances.length === 0) return null;
 
-  // con 1 o 2 monedas entran las dos enteras en pantalla (desde sm en
-  // adelante se reparten el ancho disponible, sin scroll). Recién con 3+
-  // pasamos al carrusel de ancho fijo con scroll horizontal. En mobile,
-  // en cambio, siempre mostramos casi una tarjeta por vez (87% del ancho,
-  // con snap-scroll para pasar a la siguiente) para que el monto nunca
-  // se corte, sin importar cuántas monedas haya — el 13% restante deja
-  // asomar el borde de la próxima tarjeta, así se nota que se puede
-  // deslizar para ver las demás (si no, no hay ninguna pista visual de
-  // que hay más contenido a la derecha).
-  const isCarousel = balances.length > 2;
-
   return (
-    <div
-      className={
-        isCarousel
-          ? "flex gap-4 overflow-x-auto scrollbar-app snap-x snap-mandatory pb-2 -mx-1 px-1"
-          : "flex gap-4 overflow-x-auto scrollbar-app snap-x snap-mandatory pb-2 -mx-1 px-1 sm:overflow-visible sm:snap-none sm:pb-0 sm:mx-0 sm:px-0"
-      }
-    >
+   
+    <div className="flex gap-4 overflow-x-auto scrollbar-app snap-x snap-mandatory pb-2 -mx-1 px-1">
       {balances.map((balance) => {
         const others = balances.filter((b) => b !== balance);
         return (
-          <Card
-            key={balance.currency.code}
-            variant="aura"
-            className={
-              isCarousel
-                ? "w-[95%] sm:w-75 lg:w-90 shrink-0 snap-center"
-                : "w-[95%] shrink-0 snap-center sm:w-auto sm:min-w-0 sm:flex-1 sm:shrink"
-            }
-          >
+          <Card key={balance.currency.code} variant="aura" className="min-w-70 flex-1 snap-center">
             <div className="flex items-center justify-between mb-4">
               <p className="flex items-center gap-1.5 card__title">
                 Saldo total
                 {balance.isPrimary && <IconStar className="w-3.5 h-3.5 text-amber-500" />}
               </p>
-              <span className="brand-mark bg-ink dark:bg-white w-9 h-9 opacity-90 shrink-0" aria-hidden="true" />
+              <span className="brand-mark bg-white w-9 h-9 opacity-90 shrink-0" aria-hidden="true" />
             </div>
             <div className="flex items-center justify-between mb-4">
               <p className="card__amount">
@@ -83,7 +40,7 @@ export function BalanceCard() {
               <button
                 type="button"
                 onClick={() => setShowBalance((v) => !v)}
-                className="text-text-light-primary/80 dark:text-text-dark-primary/80 hover:text-text-light-primary dark:hover:text-text-dark-primary shrink-0 ml-3"
+                className="text-text-dark-primary/80 hover:text-text-dark-primary shrink-0 ml-3"
                 aria-label={showBalance ? "Ocultar saldo" : "Mostrar saldo"}
               >
                 {showBalance ? <IconEye className="w-5 h-5" /> : <IconEyeOff className="w-5 h-5" />}

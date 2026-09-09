@@ -41,14 +41,7 @@ const NAV_LINK_ACTIVE = "bg-violet-500/15 text-violet-300 border-violet-500";
 const NAV_LINK_INACTIVE =
   "border-transparent text-text-light-secondary dark:text-text-dark-secondary hover:text-text-light-primary dark:hover:text-text-dark-primary hover:bg-black/5 dark:hover:bg-white/5 hover:border-violet-500/40";
 
-/**
- * Navegación de mobile (< lg) — reemplaza al viejo topbar horizontal.
- *
- * Es un riel angosto, solo íconos, siempre visible y pegado a la
- * izquierda (ocupa espacio real, como el Sidebar de desktop). Al tocar la
- * flechita se abre un drawer superpuesto (con overlay, no corre el
- * contenido de atrás) con las mismas opciones pero con etiqueta.
- */
+
 export function TopTabBar() {
   const [open, setOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -148,7 +141,7 @@ export function TopTabBar() {
           aria-modal="true"
           aria-label="Menú"
           className={[
-            "relative flex flex-col w-64 max-w-[80%] h-full bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark px-4 py-4 gap-1 shadow-elevation-lg overflow-y-auto transition-transform duration-300 ease-out",
+            "relative flex flex-col w-64 max-w-[80%] h-full bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-border-dark px-4 py-4 gap-1 shadow-elevation-lg overflow-y-auto scrollbar-app transition-transform duration-300 ease-out",
             open ? "translate-x-0" : "-translate-x-full",
           ].join(" ")}
         >

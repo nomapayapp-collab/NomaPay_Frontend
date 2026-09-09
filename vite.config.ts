@@ -13,6 +13,10 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     globals: true,
     setupFiles: "./src/test/setupTests.ts",
-    execArgv: ["--experimental-webstorage", "--localstorage-file=./.vitest-localstorage.json"],
+
+    // Evita problemas de procesos paralelos en Windows.
+    pool: "threads",
+    maxWorkers: 1,
+    fileParallelism: false,
   },
 }));
