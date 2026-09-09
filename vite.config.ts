@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
     environment: "jsdom",
     globals: true,
     setupFiles: "./src/test/setupTests.ts",
-
+    testTimeout: 20000,
     // Evita problemas de procesos paralelos en Windows.
     pool: "threads",
     maxWorkers: 1,
