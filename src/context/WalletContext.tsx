@@ -116,8 +116,7 @@ function movementStatus(item: HistoryItem): MovementStatus {
   }
 }
 
-// GET /history real -> RecentMovement[] (lo que consumen RecentMovements.tsx
-// y Wallet.tsx). Ya viene ordenado por fecha DESC del back.
+
 function mapHistoryToMovements(items: HistoryItem[]): RecentMovement[] {
   return items.map((item) => ({
     id: `history-${item.id}`,
@@ -131,9 +130,7 @@ function mapHistoryToMovements(items: HistoryItem[]): RecentMovement[] {
   }));
 }
 
-// Carga el historial real por separado del saldo: si esto falla no
-// queremos tirar abajo la carga del saldo (que sí es crítica) por un
-// problema en /history — se degrada a "sin movimientos" nomás.
+
 async function fetchRecentMovements(): Promise<RecentMovement[]> {
   try {
     return mapHistoryToMovements(await getHistory());

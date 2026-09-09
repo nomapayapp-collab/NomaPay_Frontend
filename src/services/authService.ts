@@ -71,17 +71,12 @@ export async function updatePreferredCurrency(preferredCurrency: CurrencyCode): 
   return data;
 }
 
-// POST /wallets/deposit real: el back valida el límite máximo por moneda
-// (ver DEPOSIT_LIMITS en deposit.service.ts) y devuelve la transacción
-// creada + el wallet actualizado, todo en una sola respuesta.
+
 export async function depositFunds(currencyCode: CurrencyCode, amount: number): Promise<DepositResult> {
   const { data } = await api.post<DepositResult>("/wallets/deposit", { currencyCode, amount });
   return data;
 }
 
-// ---- Recuperar / restablecer contraseña ----
-// MOCK: todavía no existen /auth/forgot-password ni /auth/reset-password en el
-// backend.
 
 export async function forgotPassword(email: string): Promise<void> {
   // TODO: reemplazar por la llamada real cuando el backend la tenga:

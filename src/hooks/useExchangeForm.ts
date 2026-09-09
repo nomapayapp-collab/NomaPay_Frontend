@@ -133,9 +133,7 @@ export function useExchangeForm() {
     setAmount(value);
   };
 
-  // Errores/confirmación de la conversión van por toast (mismo criterio
-  // que el resto de la app) en vez de un mensaje inline — así no hace
-  // falta ir limpiando estado a mano en cada interacción del form.
+  
   const handleExchange = async () => {
     if (numericAmount <= 0) {
       showToast("Ingresá un monto mayor que cero", "error");

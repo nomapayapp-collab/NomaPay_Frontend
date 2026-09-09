@@ -9,17 +9,6 @@ export async function getFrequentContacts(): Promise<FrequentContact[]> {
   return data;
 }
 
-// GET /contacts/lookup?alias=X — ya armado en el back (contact.service.ts,
-// lookupContactByAliasOrCbu). Devuelve 200 con
-// { alias, cbu, name, surname, profilePictureUrl, isSelf } si el alias/CBU
-// pertenece a un usuario real, o 404 con
-// { error: "No se encontró ningún usuario con ese alias o CBU." } si no.
-//
-// Solo interpretamos como "alias inexistente" un 404 con ESE shape
-// puntual (AppError -> { error: string }). Cualquier otro error —
-// de red, 500, o un 400 si por algún motivo se manda vacío — se
-// propaga: el caller lo trata como "no pudimos verificar" y no bloquea
-// al usuario.
 export async function lookupAlias(aliasOrCbu: string): Promise<AliasLookupResult> {
   try {
     const { data } = await api.get<{ name: string; surname: string; alias: string }>(

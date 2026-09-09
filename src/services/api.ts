@@ -1,13 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { emitSessionExpired } from "./authEvents";
 
-/**
- 
-services/api.ts — instancia única de axios para toda la app.
-Ningún service llama a axios directo: siempre importan "api" desde acá.*
-Requiere en el .env (raíz del proyecto):
-VITE_API_URL=http://localhost:3000/api
-(le pedís a Gastón/Gisella la URL real del backend cuando la tengan)*/
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:3000/api",
@@ -27,20 +20,7 @@ function isAuthEndpoint(url?: string): boolean {
   return !!url && AUTH_ENDPOINTS.some((path) => url.includes(path));
 }
 
-// El access token dura poco (30 min por default) a propósito, y el back
-// expone POST /auth/refresh (rota el refresh token, ambos van por cookie
-// httpOnly) para renovarlo sin pedirle la contraseña de nuevo al usuario.
-// Antes, ningún lado de la app llamaba a ese endpoint: al vencer el access
-// token, la siguiente request cualquiera devolvía 401 y listo. Este
-// interceptor intercepta ESE 401, pide un token nuevo una sola vez, y
-// reintenta la request original con el token fresco.
-//
-// isRefreshing + pendingQueue existen porque si varias requests fallan con
-// 401 al mismo tiempo (ej: WalletContext dispara 3 fetch en paralelo), no
-// queremos disparar 3 refresh en simultáneo — el back rota el refresh token
-// en cada uso, así que el segundo refresh invalidaría el token que ya usó
-// el primero. Solo el primer 401 dispara el refresh; el resto espera en
-// la cola y reintenta cuando ese refresh termina.
+
 let isRefreshing = false;
 let pendingQueue: Array<{
   config: RetriableConfig;

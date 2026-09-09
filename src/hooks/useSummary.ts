@@ -48,10 +48,7 @@ function addDays(date: Date, days: number): Date {
   return d;
 }
 
-// Fecha local (no UTC): weekStart/addDays de arriba ya trabajan en hora
-// local, así que agrupar acá con toISOString() (UTC) desalinearía cualquier
-// movimiento de la noche — en ART, un movimiento de las 22:00 es "01:00 UTC
-// del día siguiente", y terminaría en el día (o hasta la semana) que no es.
+
 function dayKey(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -66,15 +63,7 @@ function pctChange(current: number, previous: number): number | null {
 
 type PrimaryEffect = { category: SummaryCategory; amount: number; balanceDelta: number };
 
-/**
- * Traduce un HistoryItem crudo a su efecto sobre la moneda primaria del
- * usuario. Ojo con "cambio": GET /history solo manda currencyCode/amount
- * del lado ORIGEN (currencyOrigin) — el lado destino vive en
- * exchangeData.currencyDestination/finalAmount. Si no miramos las dos
- * puntas por separado, un cambio que convierte HACIA la moneda primaria
- * (ej. USD → ARS con ARS de primaria) nunca se contaría como entrada, y
- * el "balance de hace una semana" quedaría mal calculado.
- */
+
 function primaryEffect(item: HistoryItem, primary: CurrencyCode): PrimaryEffect | null {
   if (item.status === "rejected" || item.status === "cancelled") return null; // no impactan el saldo real
 
@@ -96,17 +85,7 @@ function primaryEffect(item: HistoryItem, primary: CurrencyCode): PrimaryEffect 
   return { category: "salidas", amount: item.amount, balanceDelta: -item.amount }; // pago
 }
 
-/**
- * Todo el cálculo real de la pantalla de Resumen (balance semanal, entradas/
- * salidas/cambios, gráfico por día, mejor día, comparación con la semana
- * pasada) a partir de GET /history — mismo patrón que useHistory.ts, pero
- * agrupado por semana calendario (lunes a domingo) en vez de por filtros.
- *
- * `primaryCurrency` la pasa Summary.tsx (la moneda favorita del wallet),
- * igual que History.tsx le pasa la suya a useHistory(). Todo se calcula en
- * esa única moneda — no se convierte ni se mezcla con otras, mismo criterio
- * que el resumen de Historial.
- */
+
 export function useSummary(primaryCurrency: CurrencyCode) {
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);

@@ -1,10 +1,7 @@
 import { Logo } from "../components/ui/Logo";
 import { Button } from "../components/ui/Button";
 
-/**
- * 404 — se muestra para cualquier ruta que no exista. Antes no había
- * ninguna, así que entrar a una URL rota dejaba la pantalla en blanco.
- */
+
 export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-surface-light dark:bg-surface-dark px-6 text-center">

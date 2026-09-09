@@ -31,19 +31,7 @@ export type DataTableProps<T> = {
   footer?: ReactNode;
 };
 
-/**
- * Tabla/lista genérica: grilla en desktop, cards en mobile (agrupadas si
- * se pasa `groupBy`), con fila expandible opcional. No sabe nada del
- * dominio que la usa — nace de la pantalla de Historial, pero pensada para
- * reusarse tal cual en el panel de administrador con otras columnas
- * (usuarios, monedas, etc.), solo cambiando `columns` y `items`.
- *
- * El ancho de columnas es dinámico (viene de `columns`), así que va por
- * `style={{ gridTemplateColumns }}` en vez de una clase de Tailwind — una
- * clase armada en runtime (ej. `grid-cols-[${ancho}]`) no la generaría el
- * build de Tailwind, que solo compila las clases que ve literales en el
- * código fuente.
- */
+
 export function DataTable<T>({
   items,
   columns,
@@ -101,7 +89,7 @@ export function DataTable<T>({
             onClick={() => onToggleExpand!(key)}
             aria-expanded={expanded}
             style={gridStyle}
-            className="w-full grid gap-4 items-center px-5 py-4 text-left hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
+            className="w-full grid gap-4 items-center px-5 py-4 text-left hover:bg-black/3 dark:hover:bg-white/3 transition-colors"
           >
             {cells}
           </button>
@@ -131,7 +119,7 @@ export function DataTable<T>({
             type="button"
             onClick={() => onToggleExpand!(key)}
             aria-expanded={expanded}
-            className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-black/[0.03] dark:hover:bg-white/[0.03] transition-colors"
+            className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left hover:bg-black/3 dark:hover:bg-white/3 transition-colors"
           >
             {cells}
           </button>

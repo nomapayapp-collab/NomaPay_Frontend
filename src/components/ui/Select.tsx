@@ -1,17 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { IconCheck, IconChevronRight } from "../../assets/icons/Icons";
 
-/**
- * Dropdown propio para reemplazar el <select> nativo en los casos
- * en los que necesitamos controlar dónde y cómo se abren las opciones 
- * Uso:
- *   <Select
- *     label="País de residencia"
- *     value={country}
- *     onChange={setCountry}
- *     options={COUNTRIES.map((c) => ({ value: c.code, label: c.name }))}
- *   />
- */
+
 type SelectOption = { value: string; label: string };
 
 type SelectProps = {

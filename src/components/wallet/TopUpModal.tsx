@@ -60,10 +60,7 @@ export function TopUpModal({ open, onClose, initialCurrency }: TopUpModalProps) 
       onClose();
       showToast("Transacción creada con éxito", "success");
     } catch (err) {
-      // el back valida el límite máximo por moneda y devuelve el motivo
-      // exacto en el mensaje (ej. "El monto máximo por carga en ARS es
-      // 50000000.00") — lo mostramos tal cual en vez de duplicar el
-      // límite acá, así nunca queda desactualizado.
+      
       const message =
         axios.isAxiosError(err) && typeof err.response?.data?.error === "string"
           ? err.response.data.error

@@ -1,19 +1,13 @@
 import { useEffect, type ReactNode } from "react";
 import { IconX } from "../../assets/icons/Icons";
 
-/**
- * el único modal que debería existir en toda la app.
- * - open: controla si se muestra o no
- * - onClose: se dispara al tocar el fondo, la X, o apretar Escape
- * - title: encabezado del modal
- */
+
 type ModalProps = {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
-  /** Reemplaza el borde default (border-border-light/dark) — ej. un borde
-   *  rojo para confirmaciones destructivas. Si no se pasa, usa el de siempre. */
+  
   borderClassName?: string;
 };
 

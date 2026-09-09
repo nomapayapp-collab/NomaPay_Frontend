@@ -14,10 +14,7 @@ export const HISTORY_TYPE_FILTERS: { key: HistoryTypeFilterKey; label: string; t
   { key: "cambios", label: "Cambios", types: ["cambio"] },
 ];
 
-// Monedas que soporta la cuenta — fijas (no se derivan de los items) porque
-// el usuario tiene que poder elegir "mostrame mi resumen en ARS" en el
-// panel de Resumen aunque no haya tenido ningún movimiento en ARS en el
-// período filtrado (esa moneda simplemente se ve en $0 / 0 mov.).
+
 export const SUMMARY_CURRENCIES: CurrencyCode[] = ["USD", "ARS", "BRL"];
 
 const PAGE_SIZE = 8;
@@ -42,23 +39,7 @@ function addEntry(map: Map<CurrencyCode, CurrencySummaryEntry>, code: CurrencyCo
   map.set(code, { count: current.count + 1, total: current.total + amount });
 }
 
-/**
- * Todo el estado y la lógica de la pantalla de Historial: fetch, filtros
- * (tipo/mes/búsqueda), paginado, expandir/colapsar fila y los cálculos del
- * panel de Resumen. History.tsx se queda solo con el JSX — mismo criterio
- * que useExchangeForm con Exchange.tsx.
- *
- * Es un hook, no un Context: nadie más que la pantalla de Historial
- * necesita este estado — a diferencia de useAuth/useWallet, que sí viven
- * en Context porque Header, Sidebar, TopTabBar, Wallet, Transfer, etc.
- * leen todos el mismo user/wallet al mismo tiempo. Un Context acá sería
- * indirección de más sin ningún consumidor extra que la justifique.
- *
- * `defaultSummaryCurrency` es la moneda con la que arranca seleccionado el
- * panel de Resumen (los filtros USD/ARS/BRL de ahí) — la pantalla le pasa
- * la moneda favorita del usuario (useWallet) para que abra ya mostrando
- * "su" resumen, sin forzar al usuario a elegirla la primera vez.
- */
+
 export function useHistory(defaultSummaryCurrency: CurrencyCode = "USD") {
   const [items, setItems] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,21 +94,13 @@ export function useHistory(defaultSummaryCurrency: CurrencyCode = "USD") {
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
 
-  // Ojo acá: pageItems tiene que estar memoizado (y no ser un simple
-  // .slice() suelto en el render) porque summary/byType más abajo no
-  // dependen de él, pero si alguna otra parte llegara a depender de
-  // pageItems con su propio useMemo, un array nuevo en cada render rompe
-  // esa memoización — siempre "cambió" aunque el contenido sea el mismo.
+  
   const pageItems = useMemo(
     () => filteredItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
     [filteredItems, currentPage],
   );
 
-  // Un Map por moneda (no un total convertido/sumado) en cada sección: cada
-  // moneda de la cuenta se muestra por separado, nunca mezclada ni
-  // convertida con la cotización del día — mostraría un total que no
-  // representa lo que realmente pasó. History.tsx elige qué moneda mostrar
-  // con summaryCurrency (los filtros USD/ARS/BRL de la card).
+  
   const summary = useMemo(() => {
     const entradas = new Map<CurrencyCode, CurrencySummaryEntry>();
     const salidas = new Map<CurrencyCode, CurrencySummaryEntry>();

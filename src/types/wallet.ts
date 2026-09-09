@@ -40,8 +40,7 @@ export type Wallet = {
   recentMovements: RecentMovement[];
 };
 
-// Balance individual tal como lo devuelve el back real (GET /api/wallets/me).
-// amount viene como string porque es una columna DECIMAL en Postgres.
+
 export type WalletBalanceDto = {
   currencyCode: CurrencyCode;
   currencyName: string;

@@ -1,29 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { Link, type LinkProps } from "react-router-dom";
 
-/**
- * Button — el único botón que debería existir en toda la app.
- *
- * Variantes (según Identidad_Visual y el sistema de clases en index.css):
- *   primary      → degradado swoosh (violeta→turquesa). Acción principal de la pantalla.
- *   secondary    → degradado PAY (azul-violeta→rosa). Envíos / progreso.
- *   outline      → borde, fondo transparente. Acción secundaria.
- *   ghost        → sin fondo ni borde, solo texto. Acciones terciarias (ej. "Historial").
- *   destructiveOutline → igual que outline pero en rojo (borde y texto). Acciones
- *                        destructivas (ej. "Eliminar cuenta").
- *
- * Tamaños: "md" (default) | "sm"
- *
- * Modo botón vs. modo link:
- *   <Button onClick={...}>Continuar</Button>          → renderiza <button>
- *   <Button to="/register">Registrate</Button>         → renderiza <Link> de react-router
- *
- * Ejemplos:
- *   <Button variant="primary" fullWidth>Continuar</Button>
- *   <Button variant="outline" size="sm">Cancelar</Button>
- *   <Button variant="ghost" to="/historial">Ver todos</Button>
- *   <Button variant="primary" iconOnly aria-label="Buscar"><IconSearch className="w-5 h-5" /></Button>
- */
+
 
 type Variant = "primary" | "secondary" | "outline" | "ghost" | "destructiveOutline";
 type Size = "sm" | "md";

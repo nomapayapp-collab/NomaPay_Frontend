@@ -9,9 +9,7 @@ import { useAuth } from "./hooks/useAuth";
 import AppRoutes from "./routes/AppRoutes";
 import { ThemeInit } from "../.flowbite-react/init";
 
-// El asistente flotante solo debe verse en las pantallas "core" de la app
-// (dashboard, billetera, convertir, transferir, historial, resumen y config),
-// no en comprobante, landing, login/registro, recuperar contraseña, etc.
+
 const CHAT_ASSISTANT_PATHS = new Set([
   "/",
   "/wallet",
