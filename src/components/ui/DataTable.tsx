@@ -48,7 +48,7 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   if (loading) {
     return (
-      <div className="rounded-card border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark overflow-hidden">
+      <div className="rounded-card border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark-elevated divide-y divide-border-light dark:divide-border-dark overflow-hidden">
         {Array.from({ length: skeletonRows }).map((_, i) => (
           <div key={i} className="h-16 bg-black/5 dark:bg-white/8 animate-pulse" />
         ))}
@@ -149,7 +149,7 @@ export function DataTable<T>({
   return (
     <>
       {/* ---------- Desktop ---------- */}
-      <div className="hidden lg:block rounded-card border border-border-light dark:border-border-dark overflow-hidden">
+      <div className="hidden lg:block rounded-card border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark-elevated overflow-hidden">
         <div
           style={gridStyle}
           className="grid gap-4 px-5 py-3 text-[11px] font-semibold tracking-widest uppercase text-text-light-tertiary dark:text-text-dark-tertiary border-b border-border-light dark:border-border-dark"
@@ -173,7 +173,7 @@ export function DataTable<T>({
                 {group.label}
               </p>
             )}
-            <div className="rounded-card border border-border-light dark:border-border-dark divide-y divide-border-light dark:divide-border-dark overflow-hidden">
+            <div className="rounded-card border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark-elevated divide-y divide-border-light dark:divide-border-dark overflow-hidden">
               {group.items.map(renderMobileRow)}
             </div>
           </div>

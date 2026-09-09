@@ -692,7 +692,7 @@ export default function Transfer() {
                 <div className="alert-note alert-note--warning-solid">
                   <div className="flex items-center gap-2">
                     <IconAlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
-                    <p className="alert-note__title text-amber-500">
+                    <p className="alert-note__title text-text-light-primary dark:text-text-dark-primary">
                       Esta transferencia no se puede deshacer
                     </p>
                   </div>
@@ -806,7 +806,7 @@ export default function Transfer() {
           <div className="alert-note alert-note--warning">
             <div className="flex items-center gap-2">
               <IconAlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
-              <p className="alert-note__title text-amber-500">
+              <p className="alert-note__title text-text-light-primary dark:text-text-dark-primary">
                 ANTES DE TRANSFERIR
               </p>
             </div>

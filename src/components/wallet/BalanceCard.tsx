@@ -31,7 +31,7 @@ export function BalanceCard() {
                 Saldo total
                 {balance.isPrimary && <IconStar className="w-3.5 h-3.5 text-amber-500" />}
               </p>
-              <span className="brand-mark bg-white w-9 h-9 opacity-90 shrink-0" aria-hidden="true" />
+              <span className="brand-mark bg-ink dark:bg-white w-9 h-9 opacity-90 shrink-0" aria-hidden="true" />
             </div>
             <div className="flex items-center justify-between mb-4">
               <p className="card__amount">
@@ -40,7 +40,7 @@ export function BalanceCard() {
               <button
                 type="button"
                 onClick={() => setShowBalance((v) => !v)}
-                className="text-text-dark-primary/80 hover:text-text-dark-primary shrink-0 ml-3"
+                className="text-text-light-primary/80 dark:text-text-dark-primary/80 hover:text-text-light-primary dark:hover:text-text-dark-primary shrink-0 ml-3"
                 aria-label={showBalance ? "Ocultar saldo" : "Mostrar saldo"}
               >
                 {showBalance ? <IconEye className="w-5 h-5" /> : <IconEyeOff className="w-5 h-5" />}

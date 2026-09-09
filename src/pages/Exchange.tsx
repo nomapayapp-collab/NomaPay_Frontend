@@ -254,9 +254,9 @@ export default function Exchange() {
             </section>
 
             {/* Resultado */}
-            <section className="mt-5 flex flex-col gap-5 rounded-card border border-[#275070] bg-linear-to-r from-[#104b59] to-[#101431] p-5 text-white sm:flex-row sm:items-center sm:justify-between">
+            <section className="mt-5 flex flex-col gap-5 rounded-card border border-border-light dark:border-[#275070] bg-surface-light dark:bg-linear-to-r dark:from-[#104b59] dark:to-[#101431] p-5 text-text-light-primary dark:text-white sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs font-bold tracking-widest text-[#aeb5d1]">
+                <p className="text-xs font-bold tracking-widest text-text-light-tertiary dark:text-[#aeb5d1]">
                   RECIBÍS
                 </p>
 
@@ -266,15 +266,15 @@ export default function Exchange() {
                 </p>
 
                 {walletLoading ? (
-                  <p className="mt-2 text-xs text-[#aeb5d1]">
+                  <p className="mt-2 text-xs text-text-light-tertiary dark:text-[#aeb5d1]">
                     Actualizando tasa...
                   </p>
                 ) : rateError ? (
-                  <p className="mt-2 text-xs text-magenta-300">
+                  <p className="mt-2 text-xs text-magenta-500">
                     {rateError}
                   </p>
                 ) : (
-                  <p className="mt-2 text-xs text-[#aeb5d1]">
+                  <p className="mt-2 text-xs text-text-light-tertiary dark:text-[#aeb5d1]">
                     1 {fromCurrency} ={" "}
                     {formatRate(exchangeRate)}{" "}
                     {toCurrency} · tasa actualizada
