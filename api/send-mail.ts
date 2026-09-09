@@ -1,7 +1,7 @@
 // api/send-mail.ts
 import type { VercelRequest, VercelResponse } from "@vercel/node"
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses"
-import { EMAIL_TEMPLATES } from "./_email-templates"
+import { EMAIL_TEMPLATES } from "./_email-templates.js"
 
 const ses = new SESClient({
   region: process.env.AWS_REGION,
