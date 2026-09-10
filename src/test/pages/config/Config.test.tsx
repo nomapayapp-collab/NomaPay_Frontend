@@ -141,7 +141,7 @@ describe("Config", () => {
 
     await waitFor(() => expect(mocks.deleteMyAccount).toHaveBeenCalledTimes(1));
     await waitFor(
-  () => expect(replace).toHaveBeenCalledWith("/login"),
+  () => expect(replace).toHaveBeenCalledWith("/"),
   { timeout: 7000 },
 );
   });
