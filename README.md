@@ -25,15 +25,64 @@ Este repositorio contiene **exclusivamente** la aplicación **Frontend**, constr
 - [Equipo](#equipo)
 
 ## Capturas
-  ![Landing](docs/screenshots/landing.png)
-  ![Dashboard desktop](docs/screenshots/dashboard-desktop.png)
-  ![Dashboard mobile](docs/screenshots/dashboard-mobile.png)
-  ![Convertir](docs/screenshots/exchange.gif)
-  ![Transferir](docs/screenshots/transfer.gif)
-  ![Resumen](docs/screenshots/summary.png)
-  ![Modo claro y oscuro](docs/screenshots/dark-light.gif)
-  ![Asistente conversacional](docs/screenshots/chat-assistant.gif)
 
+<div align="center">
+
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/landing.png" width="400"/>
+      <br />
+      <strong>Landing</strong>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/dashboard-desktop.png" width="400"/>
+      <br />
+      <strong>Dashboard</strong>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/dashboard-mobile.png" width="200"/>
+      <br />
+      <strong>Dashboard Mobile</strong>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/exchange.gif" width="400"/>
+      <br />
+      <strong>Conversión de divisas</strong>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/transfer.gif" width="400"/>
+      <br />
+      <strong>Transferencias</strong>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/summary.png" width="400"/>
+      <br />
+      <strong>Resumen</strong>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/dark-light.gif" width="400"/>
+      <br />
+      <strong>Modo claro y oscuro</strong>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/chat-assistant.gif" width="400"/>
+      <br />
+      <strong>Asistente conversacional</strong>
+    </td>
+  </tr>
+</table>
+
+</div>
 
 ## Recorrido de la app
 
