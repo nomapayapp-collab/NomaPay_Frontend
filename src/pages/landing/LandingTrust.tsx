@@ -4,7 +4,7 @@ import { Reveal } from "../../components/ui/Reveal";
 const TRUST = [
   { icon: IconShield, color: "text-violet-500", title: "Seguridad", description: "Protegemos tu cuenta y tus operaciones con tecnología de nivel bancario." },
   { icon: IconEye, color: "text-turquoise-500", title: "Transparencia", description: "Siempre sabés cuánto enviás, cuánto recibís y qué costos hay. La tasa se fija antes de confirmar." },
-  { icon: IconSmartphone, color: "text-magenta-500", title: "Todo en un lugar", description: "Gestioná tus movimientos, convertí divisas y usá tu dinero desde el celular, sin saltar entre apps." },
+  { icon: IconSmartphone, color: "text-magenta-500", title: "Todo en un lugar", description: "Gestioná tus movimientos, convertí monedas y usá tu dinero desde el celular, sin saltar entre apps." },
 ];
 
 export function LandingTrust() {

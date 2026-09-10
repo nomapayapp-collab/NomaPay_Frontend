@@ -6,7 +6,7 @@ import heroPhones from "../../assets/img/mockup-phone-02.png";
 
 const BULLETS = [
   "Manejá ARS, USD y BRL desde una sola cuenta",
-  "Convertí entre divisas viendo la tasa en el momento",
+  "Convertí entre monedas viendo la tasa en el momento",
   "Usá tu dinero estés donde estés",
 ];
 

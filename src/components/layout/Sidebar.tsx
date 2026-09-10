@@ -55,11 +55,6 @@ export function Sidebar() {
     <aside className="hidden lg:flex lg:w-64 lg:min-w-56 lg:flex-col lg:shrink-0 lg:h-screen lg:sticky lg:top-0 bg-surface-light dark:bg-surface-dark border-r border-border-light dark:border-white/10 px-5 py-6">
       <Logo variant="lockup-oscuro" className="w-32 h-auto mb-8 px-2 hidden dark:block" />
       <Logo variant="lockup-claro" className="w-32 h-auto mb-8 px-2 block dark:hidden" />
-
-      {/* -mx-5 saca el padding del <aside> para que la barra activa llegue
-          hasta el borde real de la sidebar (como en el mockup) — cada
-          NavLink compensa ese padding con pl-4 (16px) + border-l-4 (4px)
-          = 20px, los mismos px-5 del resto del contenido de acá arriba. */}
       <nav className="flex flex-col gap-1 -mx-5">
         {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
           <NavLink

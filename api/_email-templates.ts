@@ -549,7 +549,7 @@ export const EMAIL_TEMPLATES: Record<string, { subject: string; text: string; ht
 
                   <td valign="top"
                     style="font-size:14px; line-height:1.5; color:#C3C7DE;">
-                    <strong style="color:#FFFFFF;">Trabajar con distintas divisas</strong><br />
+                    <strong style="color:#FFFFFF;">Trabajar con distintas monedas</strong><br />
                     Operá con USD, BRL y ARS.
                   </td>
                 </tr>
@@ -721,10 +721,10 @@ export const EMAIL_TEMPLATES: Record<string, { subject: string; text: string; ht
 </html>`,
   },
 
-  // Resumen semanal de actividad.
+  // Resumen semanal de actividad — desglosado por las 3 monedas de la cuenta.
   weekly_summary: {
     subject: "Tu resumen semanal — NomaPay",
-    text: "Tu balance total es {{BALANCE_TOTAL}}. Entradas {{ENTRADAS_TOTAL}}, salidas {{SALIDAS_TOTAL}}, cambios de moneda {{CAMBIOS_TOTAL}}.",
+    text: "ARS: balance {{ARS_BALANCE}}, entradas {{ARS_ENTRADAS_MONTO}} ({{ARS_ENTRADAS_DETALLE}}), salidas {{ARS_SALIDAS_MONTO}} ({{ARS_SALIDAS_DETALLE}}), cambios {{ARS_CAMBIOS_MONTO}} ({{ARS_CAMBIOS_DETALLE}}). USD: balance {{USD_BALANCE}}, entradas {{USD_ENTRADAS_MONTO}} ({{USD_ENTRADAS_DETALLE}}), salidas {{USD_SALIDAS_MONTO}} ({{USD_SALIDAS_DETALLE}}), cambios {{USD_CAMBIOS_MONTO}} ({{USD_CAMBIOS_DETALLE}}). BRL: balance {{BRL_BALANCE}}, entradas {{BRL_ENTRADAS_MONTO}} ({{BRL_ENTRADAS_DETALLE}}), salidas {{BRL_SALIDAS_MONTO}} ({{BRL_SALIDAS_DETALLE}}), cambios {{BRL_CAMBIOS_MONTO}} ({{BRL_CAMBIOS_DETALLE}}).",
     html: `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -753,78 +753,163 @@ export const EMAIL_TEMPLATES: Record<string, { subject: string; text: string; ht
                 {{RANGO_FECHAS}}
               </p>
 
-              <h1 style="margin:0 0 20px 0; font-size:26px; font-weight:700; color:#FFFFFF; line-height:1.25;">
+              <h1 style="margin:0 0 8px 0; font-size:26px; font-weight:700; color:#FFFFFF; line-height:1.25;">
                 Tu resumen semanal
               </h1>
 
-              <p style="margin:0 0 4px 0; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#9BA3C7;">
-                Balance total
-              </p>
-              <p style="margin:0 0 24px 0; font-size:34px; font-weight:700; color:#FFFFFF;">
-                {{BALANCE_TOTAL}}
+              <p style="margin:0 0 28px 0; font-size:13.5px; line-height:1.5; color:#C3C7DE;">
+                Así estuvo tu semana en tus 3 monedas.
               </p>
 
-              <!-- Tiles -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <!-- ===== ARS ===== -->
+              <p style="margin:0 0 4px 0; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#9BA3C7;">
+                ARS · Peso argentino
+              </p>
+              <p style="margin:0 0 16px 0; font-size:28px; font-weight:700; color:#FFFFFF;">
+                {{ARS_BALANCE}}
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
                 <tr>
                   <td width="32%" valign="top" style="background-color:#0F1330; border-radius:12px; padding:14px 12px;">
                     <p style="margin:0 0 6px 0; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9BA3C7;">Entradas</p>
-                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#12E0D4;">+{{ENTRADAS_MONTO}}</p>
-                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{ENTRADAS_COUNT}} movimientos</p>
+                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#12E0D4;">+{{ARS_ENTRADAS_MONTO}}</p>
+                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{ARS_ENTRADAS_DETALLE}}</p>
                   </td>
                   <td width="2%"></td>
                   <td width="32%" valign="top" style="background-color:#0F1330; border-radius:12px; padding:14px 12px;">
                     <p style="margin:0 0 6px 0; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9BA3C7;">Salidas</p>
-                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#FF9CC4;">−{{SALIDAS_MONTO}}</p>
-                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{SALIDAS_COUNT}} movimiento</p>
+                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#FF9CC4;">−{{ARS_SALIDAS_MONTO}}</p>
+                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{ARS_SALIDAS_DETALLE}}</p>
                   </td>
                   <td width="2%"></td>
                   <td width="32%" valign="top" style="background-color:#0F1330; border-radius:12px; padding:14px 12px;">
                     <p style="margin:0 0 6px 0; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9BA3C7;">Cambios</p>
-                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#FFFFFF;">{{CAMBIOS_MONTO}}</p>
-                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{CAMBIOS_COUNT}} operaciones</p>
+                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#FFFFFF;">{{ARS_CAMBIOS_MONTO}}</p>
+                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{ARS_CAMBIOS_DETALLE}}</p>
                   </td>
                 </tr>
               </table>
 
-              <!-- Tu mejor día -->
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F1330; border-radius:12px; margin-bottom:24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F1330; border-radius:12px; margin-bottom:28px;">
                 <tr>
-                  <td style="padding:16px 18px;">
-                    <p style="margin:0 0 6px 0; font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#9BA3C7;">
+                  <td style="padding:14px 16px;">
+                    <p style="margin:0 0 4px 0; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#9BA3C7;">
                       Tu mejor día
                     </p>
-                    <p style="margin:0 0 4px 0; font-size:17px; font-weight:700; color:#FFFFFF;">
-                      {{MEJOR_DIA}}
+                    <p style="margin:0 0 3px 0; font-size:15px; font-weight:700; color:#FFFFFF;">
+                      {{ARS_MEJOR_DIA}}
                     </p>
-                    <p style="margin:0; font-size:13.5px; line-height:1.5; color:#C3C7DE;">
-                      {{MEJOR_DIA_DETALLE}}
+                    <p style="margin:0 0 8px 0; font-size:12.5px; line-height:1.5; color:#C3C7DE;">
+                      {{ARS_MEJOR_DIA_DETALLE}}
+                    </p>
+                    <p style="margin:0; font-size:12.5px; line-height:1.5; color:#C3C7DE; border-top:1px solid rgba(255,255,255,0.08); padding-top:8px;">
+                      {{ARS_COMPARACION}}
                     </p>
                   </td>
                 </tr>
               </table>
 
-              <p style="margin:0 0 12px 0; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#9BA3C7;">
-                Esta semana
+              <!-- ===== USD ===== -->
+              <p style="margin:0 0 4px 0; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#9BA3C7;">
+                USD · Dólar
+              </p>
+              <p style="margin:0 0 16px 0; font-size:28px; font-weight:700; color:#FFFFFF;">
+                {{USD_BALANCE}}
               </p>
 
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
                 <tr>
-                  <td style="padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.07); color:#9BA3C7; font-size:14px;">Entradas</td>
-                  <td style="padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.07); color:#FFFFFF; font-size:14px; font-weight:600;" align="right">{{ENTRADAS_TOTAL}}</td>
+                  <td width="32%" valign="top" style="background-color:#0F1330; border-radius:12px; padding:14px 12px;">
+                    <p style="margin:0 0 6px 0; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9BA3C7;">Entradas</p>
+                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#12E0D4;">+{{USD_ENTRADAS_MONTO}}</p>
+                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{USD_ENTRADAS_DETALLE}}</p>
+                  </td>
+                  <td width="2%"></td>
+                  <td width="32%" valign="top" style="background-color:#0F1330; border-radius:12px; padding:14px 12px;">
+                    <p style="margin:0 0 6px 0; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9BA3C7;">Salidas</p>
+                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#FF9CC4;">−{{USD_SALIDAS_MONTO}}</p>
+                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{USD_SALIDAS_DETALLE}}</p>
+                  </td>
+                  <td width="2%"></td>
+                  <td width="32%" valign="top" style="background-color:#0F1330; border-radius:12px; padding:14px 12px;">
+                    <p style="margin:0 0 6px 0; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9BA3C7;">Cambios</p>
+                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#FFFFFF;">{{USD_CAMBIOS_MONTO}}</p>
+                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{USD_CAMBIOS_DETALLE}}</p>
+                  </td>
                 </tr>
+              </table>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F1330; border-radius:12px; margin-bottom:28px;">
                 <tr>
-                  <td style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.07); color:#9BA3C7; font-size:14px;">Salidas</td>
-                  <td style="padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.07); color:#FFFFFF; font-size:14px; font-weight:600;" align="right">{{SALIDAS_TOTAL}}</td>
+                  <td style="padding:14px 16px;">
+                    <p style="margin:0 0 4px 0; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#9BA3C7;">
+                      Tu mejor día
+                    </p>
+                    <p style="margin:0 0 3px 0; font-size:15px; font-weight:700; color:#FFFFFF;">
+                      {{USD_MEJOR_DIA}}
+                    </p>
+                    <p style="margin:0 0 8px 0; font-size:12.5px; line-height:1.5; color:#C3C7DE;">
+                      {{USD_MEJOR_DIA_DETALLE}}
+                    </p>
+                    <p style="margin:0; font-size:12.5px; line-height:1.5; color:#C3C7DE; border-top:1px solid rgba(255,255,255,0.08); padding-top:8px;">
+                      {{USD_COMPARACION}}
+                    </p>
+                  </td>
                 </tr>
+              </table>
+
+              <!-- ===== BRL ===== -->
+              <p style="margin:0 0 4px 0; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#9BA3C7;">
+                BRL · Real
+              </p>
+              <p style="margin:0 0 16px 0; font-size:28px; font-weight:700; color:#FFFFFF;">
+                {{BRL_BALANCE}}
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:14px;">
                 <tr>
-                  <td style="padding-top:12px; color:#9BA3C7; font-size:14px;">Cambios de moneda</td>
-                  <td style="padding-top:12px; color:#FFFFFF; font-size:14px; font-weight:600;" align="right">{{CAMBIOS_TOTAL}}</td>
+                  <td width="32%" valign="top" style="background-color:#0F1330; border-radius:12px; padding:14px 12px;">
+                    <p style="margin:0 0 6px 0; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9BA3C7;">Entradas</p>
+                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#12E0D4;">+{{BRL_ENTRADAS_MONTO}}</p>
+                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{BRL_ENTRADAS_DETALLE}}</p>
+                  </td>
+                  <td width="2%"></td>
+                  <td width="32%" valign="top" style="background-color:#0F1330; border-radius:12px; padding:14px 12px;">
+                    <p style="margin:0 0 6px 0; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9BA3C7;">Salidas</p>
+                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#FF9CC4;">−{{BRL_SALIDAS_MONTO}}</p>
+                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{BRL_SALIDAS_DETALLE}}</p>
+                  </td>
+                  <td width="2%"></td>
+                  <td width="32%" valign="top" style="background-color:#0F1330; border-radius:12px; padding:14px 12px;">
+                    <p style="margin:0 0 6px 0; font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:#9BA3C7;">Cambios</p>
+                    <p style="margin:0 0 4px 0; font-size:16px; font-weight:700; color:#FFFFFF;">{{BRL_CAMBIOS_MONTO}}</p>
+                    <p style="margin:0; font-size:11px; color:#9BA3C7;">{{BRL_CAMBIOS_DETALLE}}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0F1330; border-radius:12px; margin-bottom:24px;">
+                <tr>
+                  <td style="padding:14px 16px;">
+                    <p style="margin:0 0 4px 0; font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:#9BA3C7;">
+                      Tu mejor día
+                    </p>
+                    <p style="margin:0 0 3px 0; font-size:15px; font-weight:700; color:#FFFFFF;">
+                      {{BRL_MEJOR_DIA}}
+                    </p>
+                    <p style="margin:0 0 8px 0; font-size:12.5px; line-height:1.5; color:#C3C7DE;">
+                      {{BRL_MEJOR_DIA_DETALLE}}
+                    </p>
+                    <p style="margin:0; font-size:12.5px; line-height:1.5; color:#C3C7DE; border-top:1px solid rgba(255,255,255,0.08); padding-top:8px;">
+                      {{BRL_COMPARACION}}
+                    </p>
+                  </td>
                 </tr>
               </table>
 
               <!-- Botón -->
-              <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom:8px;">
                 <tr>
                   <td align="center" bgcolor="#7B3BFF" style="border-radius:12px; background-color:#7B3BFF; background-image:linear-gradient(135deg, #7B3BFF 0%, #5A1FE0 100%);">
                     <a href="{{MOVIMIENTOS_LINK}}" style="display:inline-block; padding:15px 32px; font-size:15px; font-weight:600; color:#FFFFFF; text-decoration:none;">
@@ -833,14 +918,6 @@ export const EMAIL_TEMPLATES: Record<string, { subject: string; text: string; ht
                   </td>
                 </tr>
               </table>
-
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid rgba(255,255,255,0.10); margin-bottom:20px;">
-                <tr><td style="padding-top:20px;"></td></tr>
-              </table>
-
-              <p style="margin:0; font-size:13px; line-height:1.6; color:#C3C7DE;">
-                {{TEXTO_COMPARACION}}
-              </p>
 
             </td>
           </tr>
@@ -852,7 +929,7 @@ export const EMAIL_TEMPLATES: Record<string, { subject: string; text: string; ht
                 NomaPay — Cobrá global. Viví local.
               </p>
               <p style="margin:0; font-size:11.5px; line-height:1.6; color:#9BA3C7;">
-                Te enviamos este resumen porque activaste los avisos semanales para {{USER_EMAIL}}.<br />
+                Te enviamos este resumen automático porque activaste los avisos semanales para {{USER_EMAIL}}.<br />
                 Podés <a href="{{PREFERENCIAS_LINK}}" style="color:#C9AEFF; text-decoration:underline;">cambiar la frecuencia o darte de baja</a> cuando quieras.
               </p>
             </td>
@@ -865,7 +942,6 @@ export const EMAIL_TEMPLATES: Record<string, { subject: string; text: string; ht
 </body>
 </html>`,
   },
-
   // Conversión de divisas EXITOSA. 
   exchange_success: {
     subject: "Conversión realizada — NomaPay",

@@ -1,4 +1,3 @@
-// src/components/layout/TopTabBar.tsx
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import type { ComponentType, SVGProps } from "react";

@@ -2,7 +2,7 @@ import { useReveal } from "../../hooks/animations/useReveal";
 import { useCountUp } from "../../hooks/animations/useCountUp";
 
 const STATS = [
-  { value: "3", label: "divisas en una sola cuenta" },
+  { value: "3", label: "monedas en una sola cuenta" },
   { value: "1", label: "billetera para tu dinero" },
   { value: "24/7", label: "acceso desde cualquier lugar" },
   { value: "0", label: "fronteras para acceder a tu cuenta" },

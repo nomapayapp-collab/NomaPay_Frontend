@@ -292,7 +292,7 @@ export default function Config() {
           aria-live="polite"
           className="w-full max-w-md rounded-card border border-border-light bg-surface-light p-8 text-center shadow-lg dark:border-border-dark dark:bg-surface-dark-elevated"
         >
-          <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-violet-500/20 border-t-violet-500" />
+          <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-magenta-500/20 border-t-magenta-500" />
 
           <h1 className="mb-3 text-xl font-extrabold text-text-light-primary dark:text-text-dark-primary">
             Estamos eliminando tu cuenta…
