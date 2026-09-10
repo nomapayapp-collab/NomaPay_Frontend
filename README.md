@@ -1,10 +1,10 @@
 # NomaPay — Frontend
 
-Frontend de **NomaPay**, una billetera digital pensada para viajeros y nómades digitales: manejar varias monedas, transferir dinero, convertir entre monedas propias y llevar un seguimiento claro de los movimientos, todo desde una sola app.
-
-Proyecto Final de la carrera Full Stack de Henry, desarrollado en equipo (frontend + backend) siguiendo una metodología ágil por sprints.
+Frontend de **NomaPay**, una billetera digital multimoneda (simulada) pensada para viajeros y nómades digitales: manejar varias monedas, transferir dinero, convertir entre monedas propias y llevar un seguimiento claro de los movimientos, todo desde una sola app.
 
 Este repositorio contiene **exclusivamente** la aplicación **Frontend**, construida con **React, TypeScript y Vite**, e integrada contra la API REST de NomaPay ([`NomaPay_backend`](https://github.com/nomapayapp-collab/NomaPay_backend)).
+
+[`vista previa de la app`] (https://noma-pay-frontend.vercel.app/)
 
 ## Índice
 
@@ -25,30 +25,6 @@ Este repositorio contiene **exclusivamente** la aplicación **Frontend**, constr
 - [Equipo](#equipo)
 
 ## Capturas
-
-<!--
-  TODO: reemplazar estos placeholders por capturas/gifs reales, guardados en
-  docs/screenshots/. No hace falta mockup de dispositivo (marco de celular o
-  notebook) — una captura de navegador prolija alcanza y sobra. Reservá el
-  formato GIF para lo que es una interacción (algo que cambia mientras lo
-  usás), y PNG estático para lo que es solo layout/información.
-
-    docs/screenshots/landing.png        -> Landing pública (primera impresión / marca)
-    docs/screenshots/dashboard-desktop.png
-    docs/screenshots/dashboard-mobile.png  -> Dashboard en desktop y mobile lado a lado,
-                                              para mostrar el responsive de entrada
-    docs/screenshots/exchange.gif       -> Convertir: escribir el monto y ver la comisión
-                                            y el "recibís" recalcularse en vivo
-    docs/screenshots/transfer.gif       -> Transferir: escribir un alias que no existe
-                                            (se ve el error) y uno real (se ve validado) —
-                                            es el feature más fuerte para mostrar en vivo
-    docs/screenshots/summary.png        -> Resumen semanal con el gráfico y la comparación
-    docs/screenshots/dark-light.gif     -> Togglear el tema claro/oscuro en una misma pantalla
-    docs/screenshots/chat-assistant.gif -> Una consulta válida al asistente y, si entra,
-                                            una fuera de tema para mostrar que la rechaza
-
-  Una vez que estén los archivos ahí, reemplazar este bloque por:
-
   ![Landing](docs/screenshots/landing.png)
   ![Dashboard desktop](docs/screenshots/dashboard-desktop.png)
   ![Dashboard mobile](docs/screenshots/dashboard-mobile.png)
@@ -57,19 +33,17 @@ Este repositorio contiene **exclusivamente** la aplicación **Frontend**, constr
   ![Resumen](docs/screenshots/summary.png)
   ![Modo claro y oscuro](docs/screenshots/dark-light.gif)
   ![Asistente conversacional](docs/screenshots/chat-assistant.gif)
--->
 
-*(Próximamente: capturas y GIFs de las pantallas principales.)*
 
 ## Recorrido de la app
 
 Antes de entrar en el detalle de cada funcionalidad, así es el camino típico de un usuario dentro de NomaPay:
 
-1. **Registro e inicio de sesión.** Se registra o inicia sesión con su email, o directamente con su cuenta de Google.
+1. **Registro e inicio de sesión.** Se registra o inicia sesión con su email, o directamente con su cuenta de Google. Si se registra por primera vez, le llega un mail de bienvenida, y si olvido su contraseña le llega un mail para recuperarla.
 2. **Dashboard.** Llega a un panel con el saldo de sus tres monedas, accesos rápidos a las operaciones principales, sus movimientos recientes y las cotizaciones del día (actualizadas cada una hora).
-3. **Billetera.** Define cuál es su moneda preferida — la que después aparece por defecto al convertir o transferir — y ve cuánto tiene en cada divisa.
-4. **Convertir.** Elige entre qué monedas cambiar y el monto, con accesos rápidos al 10%, 25%, 50%, 80% o el máximo de su saldo. Antes de confirmar ve la cotización vigente, la comisión ya calculada en dinero (no solo el porcentaje) y cuánto va a recibir.
-5. **Transferir.** Busca al destinatario por alias o CBU, con verificación en vivo contra el backend — no deja avanzar si ese alias o CBU no existe. Completa el monto y un mensaje opcional, confirma en dos pasos y obtiene un comprobante.
+3. **Billetera.** Define cuál es su moneda favorita— la que después aparece por defecto al convertir o transferir como primera opción— y ve cuánto tiene en cada moneda.
+4. **Convertir.** Elige entre qué monedas cambiar y el monto, con accesos rápidos desde 10% hasta 100% de su saldo. Antes de confirmar ve la cotización vigente, la comisión ya calculada en dinero (no solo el porcentaje) y cuánto va a recibir. Le llega al usuario un mail de confirmación de transferencia
+5. **Transferir.** Busca al destinatario por alias o CBU, con verificación en vivo contra el backend — no deja avanzar si ese alias o CBU no existe. Completa el monto y un mensaje opcional, confirma en dos pasos y obtiene un comprobante. Llegandole por mail el comprobante de transferencia a las dos partes.
 6. **Historial y Resumen.** Consulta todos sus movimientos filtrando por período y tipo, o revisa el resumen semanal (de lunes a domingo) con el mejor día, el desglose por tipo y la comparación contra la semana anterior — este resumen también le llega por mail todos los domingos.
 7. **Configuración.** Edita su alias, contraseña, moneda favorita, país de residencia y tema claro/oscuro, o elimina la cuenta (con confirmación reescribiendo su email).
 8. **Asistente conversacional.** Disponible en las pantallas principales, responde consultas sobre la plataforma y no responde pedidos fuera de tema.
@@ -94,9 +68,9 @@ Antes de entrar en el detalle de cada funcionalidad, así es el camino típico d
 
 - Saldos en múltiples monedas (ARS, USD, BRL).
 - Carga de saldo simulada (depósito) por moneda, con límites configurables.
-- Selección de moneda principal/preferida.
+- Selección de moneda principal/favorita.
 
-### Convertir monedas (Exchange)
+### Convertir monedas
 
 - Conversión entre las monedas propias de la cuenta, usando la cotización vigente.
 - Comisión del 0,5% calculada y mostrada en dinero real antes de confirmar (no solo el porcentaje).
@@ -114,9 +88,10 @@ Antes de entrar en el detalle de cada funcionalidad, así es el camino típico d
 - Historial completo de movimientos (entradas, salidas, conversiones).
 - Resumen semanal con gráfico de entradas/salidas/cambios por día, mejor día de la semana, desglose por tipo y comparación contra la semana anterior.
 
-### Asistente conversacional
+### Asistente conversacional - ChatBot
 
 - Chat flotante conectado a un chatbot con Gemini del lado del backend, disponible en las pantallas principales de la app (Dashboard, Billetera, Convertir, Transferir, Historial, Resumen y Configuración).
+- Validaciones de conversación que solamente permite consultar temas relacionados con la aplicación.
 
 ### Perfil y configuración
 
@@ -127,8 +102,10 @@ Antes de entrar en el detalle de cada funcionalidad, así es el camino típico d
 
 ### Emails transaccionales
 
-- Confirmación de transacción exitosa (para quien envía y quien recibe) y de transacción rechazada.
+- Email de bienvenida para la primera vez que se registran
+- Confirmación de transacción exitosa (para quien envía y quien recibe).
 - Email de recuperación de contraseña.
+- Email de eliminación de cuenta.
 - Se envían desde una función serverless de Vercel (`api/send-mail.ts`) usando AWS SES; el backend le pide el envío a esa función en vez de mandar el mail directamente.
 
 ### Manejo de errores
@@ -159,7 +136,7 @@ src/
 ├── components/
 │   ├── auth/                # Panel de marca en Login/Register
 │   ├── chat/                 # Asistente conversacional (Gemini)
-│   ├── layout/               # Header, Sidebar, barra inferior móvil, AppLayout
+│   ├── layout/               # Header, Sidebar, AppLayout
 │   ├── ui/                    # Componentes reutilizables (Button, Card, Modal, Select, DataTable...)
 │   └── wallet/                # BalanceCard, ExchangeRatesList, RecentMovements, TopUpModal
 ├── constants/               # Monedas, límites de depósito, etc.
@@ -285,7 +262,7 @@ SES_FROM_EMAIL=
 
 El proyecto usa **Vitest** + **Testing Library** (`src/test/`), con la suite organizada en las mismas carpetas que el código que cubre: páginas (`Login`, `Register`, `Wallet`, `Exchange`, `Transfer`, `History`, `Summary`), contexto de autenticación, hooks, servicios (interceptor de refresh de `api.ts`) y componentes de UI.
 
-Algunos ejemplos concretos de lo que cubre la suite:
+Algunos ejemplos concretos de lo que cubre la suite de los 106 test:
 
 - Que ante un `401` la app pida un token nuevo contra `/auth/refresh` y reintente sola la petición original, sin que el usuario note nada.
 - Que no se pueda seleccionar un alias inexistente como destinatario en una transferencia.
@@ -298,7 +275,7 @@ npm run test
 
 ## Diseño y sistema visual
 
-- **Tailwind CSS v4** con configuración CSS-first (`@theme`) para los tokens de color, tipografía (Archivo) y espaciados — paleta navy / violeta / magenta / turquesa / ámbar.
+- **Tailwind CSS v4** con configuración CSS-first (`@theme`) para los tokens de color, tipografía y espaciados — paleta navy / violeta / magenta / turquesa / ámbar.
 - Tema **claro y oscuro**, persistido en la cuenta del usuario y sincronizado entre dispositivos.
 - Diseño responsive mobile-first, con navegación inferior en mobile y sidebar en desktop.
 - Componentes de UI propios y reutilizables (`src/components/ui/`) siguiendo una convención de clases BEM-lite en `index.css`.
@@ -309,22 +286,21 @@ El frontend está preparado para desplegarse como **Single Page Application** en
 
 ## Estado del proyecto
 
-NomaPay está en desarrollo activo como Proyecto Final de Henry. El alcance obligatorio (multi-moneda, conversión entre monedas propias, transferencias, emails transaccionales, chatbot, testing) está implementado; quedan pendientes mejoras de pulido visual/responsive y ampliar la cobertura de tests.
+NomaPay está en desarrollo activo como Proyecto Final de Henry. El alcance obligatorio (multi-moneda, conversión entre monedas propias, transferencias, emails transaccionales, chatbot, testing) está implementado; quedan pendientes mejoras de pulido visual/responsive, creación de usuario admin (dashboard y crud propio) y ampliar la cobertura de tests.
 
 ## Equipo
 
 **Frontend**
 
-- Candela Ferrari
-- Agustín Spataro
+- Candelaria Ferrari
+- Agustin Spataro
 
 **Backend**
 
-- Gastón
-- Gisella
-
+- Gastón Stratta
+- Gisella Massiero
 ---
 
 ### NomaPay
 
-**Tu ruta financiera.**
+**Cobrá global. Viví local.**
