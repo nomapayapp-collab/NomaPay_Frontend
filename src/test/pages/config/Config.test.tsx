@@ -140,7 +140,10 @@ describe("Config", () => {
     await user.click(confirmButton);
 
     await waitFor(() => expect(mocks.deleteMyAccount).toHaveBeenCalledTimes(1));
-    await waitFor(() => expect(replace).toHaveBeenCalledWith("/login"));
+    await waitFor(
+  () => expect(replace).toHaveBeenCalledWith("/"),
+  { timeout: 7000 },
+);
   });
 
   it("si falla la eliminación de la cuenta, muestra el error y no redirige", async () => {

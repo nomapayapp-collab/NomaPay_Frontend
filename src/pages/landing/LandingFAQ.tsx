@@ -5,12 +5,12 @@ import { Reveal } from "../../components/ui/Reveal";
 const FAQ_LEFT = [
   {
     q: "¿Qué es NomaPay?",
-    a: "NomaPay es una billetera digital pensada para personas que trabajan y se mueven por el mundo. Te permite tener ARS, USD y BRL en una misma cuenta, cambiar entre estas divisas y gestionar tu dinero estés donde estés.",
+    a: "NomaPay es una billetera digital pensada para personas que trabajan y se mueven por el mundo. Te permite tener ARS, USD y BRL en una misma cuenta, cambiar entre estas monedas y gestionar tu dinero estés donde estés.",
   },
 
   {
-    q: "¿Qué divisas puedo tener en NomaPay?",
-    a: "Actualmente podés manejar tres divisas: pesos argentinos (ARS), dólares estadounidenses (USD) y reales brasileños (BRL). Podés mantener saldo en cualquiera de ellas y cambiar entre las tres desde tu cuenta.",
+    q: "¿Qué monedas puedo tener en NomaPay?",
+    a: "Actualmente podés manejar tres monedas: pesos argentinos (ARS), dólares estadounidenses (USD) y reales brasileños (BRL). Podés mantener saldo en cualquiera de ellas y cambiar entre las tres desde tu cuenta.",
   },
 
   {

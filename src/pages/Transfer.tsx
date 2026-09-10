@@ -446,9 +446,14 @@ export default function Transfer() {
                       Buscando tus contactos frecuentes...
                     </p>
                   ) : (
-                  <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
-                    <ul className="flex flex-col gap-1">
-                      {filteredContacts.map((contact) => (
+                    <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
+                      {usableContacts.length === 0 ? (
+                        <p className="text-[13.5px] text-text-light-tertiary dark:text-text-dark-tertiary">
+                          Todavía no tenés contactos frecuentes. Buscá por alias o CBU para transferir.
+                        </p>
+                      ) : (
+                        <ul className="flex flex-col gap-1">
+                          {filteredContacts.map((contact) => (
                         <li key={contact.id}>
                           <button
                             type="button"
@@ -478,9 +483,10 @@ export default function Transfer() {
                             </div>
                           </button>
                         </li>
-                      ))}
-                    </ul>
-                  </div>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   )}
                 </div>
               )}

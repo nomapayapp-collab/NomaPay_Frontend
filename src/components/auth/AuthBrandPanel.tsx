@@ -1,7 +1,7 @@
 import { Logo } from "../ui/Logo";
 import { IconCheck } from "../../assets/icons/Icons";
 
-const FEATURES = ["3 divisas en una sola cuenta", "1 billetera para tu dinero", "Acceso 24/7, estés donde estés"];
+const FEATURES = ["3 monedas en una sola cuenta", "1 billetera para tu dinero", "Acceso 24/7, estés donde estés"];
 
 /**
  * Panel de marca del lado izquierdo en Login/Register, solo desktop (lg+).
