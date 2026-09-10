@@ -9,6 +9,7 @@ Este repositorio contiene **exclusivamente** la aplicación **Frontend**, constr
 ## Índice
 
 - [Capturas](#capturas)
+- [Recorrido de la app](#recorrido-de-la-app)
 - [Funcionalidades](#funcionalidades)
 - [Tecnologías utilizadas](#tecnologías-utilizadas)
 - [Arquitectura del proyecto](#arquitectura-del-proyecto)
@@ -26,25 +27,52 @@ Este repositorio contiene **exclusivamente** la aplicación **Frontend**, constr
 ## Capturas
 
 <!--
-  TODO: reemplazar estos placeholders por capturas/gifs reales de la app.
-  Sugerencia de contenido (un archivo por punto, mismo nombre que la ruta):
+  TODO: reemplazar estos placeholders por capturas/gifs reales, guardados en
+  docs/screenshots/. No hace falta mockup de dispositivo (marco de celular o
+  notebook) — una captura de navegador prolija alcanza y sobra. Reservá el
+  formato GIF para lo que es una interacción (algo que cambia mientras lo
+  usás), y PNG estático para lo que es solo layout/información.
 
-    docs/screenshots/dashboard.png     -> Dashboard con saldo y accesos rápidos
-    docs/screenshots/wallet.png        -> Billetera con saldos multi-moneda
-    docs/screenshots/exchange.png      -> Convertir monedas (con comisión visible)
-    docs/screenshots/transfer.gif      -> Flujo completo de Transferir (buscar alias -> confirmar)
-    docs/screenshots/summary.png       -> Resumen semanal con gráfico
-    docs/screenshots/chat-assistant.gif -> Asistente conversacional respondiendo una consulta
-    docs/screenshots/dark-light.gif    -> Toggle de tema claro/oscuro
+    docs/screenshots/landing.png        -> Landing pública (primera impresión / marca)
+    docs/screenshots/dashboard-desktop.png
+    docs/screenshots/dashboard-mobile.png  -> Dashboard en desktop y mobile lado a lado,
+                                              para mostrar el responsive de entrada
+    docs/screenshots/exchange.gif       -> Convertir: escribir el monto y ver la comisión
+                                            y el "recibís" recalcularse en vivo
+    docs/screenshots/transfer.gif       -> Transferir: escribir un alias que no existe
+                                            (se ve el error) y uno real (se ve validado) —
+                                            es el feature más fuerte para mostrar en vivo
+    docs/screenshots/summary.png        -> Resumen semanal con el gráfico y la comparación
+    docs/screenshots/dark-light.gif     -> Togglear el tema claro/oscuro en una misma pantalla
+    docs/screenshots/chat-assistant.gif -> Una consulta válida al asistente y, si entra,
+                                            una fuera de tema para mostrar que la rechaza
 
-  Una vez que estén los archivos en docs/screenshots/, descomentar las líneas
-  de abajo (o reemplazar esta sección entera).
+  Una vez que estén los archivos ahí, reemplazar este bloque por:
 
-  ![Dashboard](docs/screenshots/dashboard.png)
+  ![Landing](docs/screenshots/landing.png)
+  ![Dashboard desktop](docs/screenshots/dashboard-desktop.png)
+  ![Dashboard mobile](docs/screenshots/dashboard-mobile.png)
+  ![Convertir](docs/screenshots/exchange.gif)
   ![Transferir](docs/screenshots/transfer.gif)
+  ![Resumen](docs/screenshots/summary.png)
+  ![Modo claro y oscuro](docs/screenshots/dark-light.gif)
+  ![Asistente conversacional](docs/screenshots/chat-assistant.gif)
 -->
 
 *(Próximamente: capturas y GIFs de las pantallas principales.)*
+
+## Recorrido de la app
+
+Antes de entrar en el detalle de cada funcionalidad, así es el camino típico de un usuario dentro de NomaPay:
+
+1. **Registro e inicio de sesión.** Se registra o inicia sesión con su email, o directamente con su cuenta de Google.
+2. **Dashboard.** Llega a un panel con el saldo de sus tres monedas, accesos rápidos a las operaciones principales, sus movimientos recientes y las cotizaciones del día (actualizadas cada una hora).
+3. **Billetera.** Define cuál es su moneda preferida — la que después aparece por defecto al convertir o transferir — y ve cuánto tiene en cada divisa.
+4. **Convertir.** Elige entre qué monedas cambiar y el monto, con accesos rápidos al 10%, 25%, 50%, 80% o el máximo de su saldo. Antes de confirmar ve la cotización vigente, la comisión ya calculada en dinero (no solo el porcentaje) y cuánto va a recibir.
+5. **Transferir.** Busca al destinatario por alias o CBU, con verificación en vivo contra el backend — no deja avanzar si ese alias o CBU no existe. Completa el monto y un mensaje opcional, confirma en dos pasos y obtiene un comprobante.
+6. **Historial y Resumen.** Consulta todos sus movimientos filtrando por período y tipo, o revisa el resumen semanal (de lunes a domingo) con el mejor día, el desglose por tipo y la comparación contra la semana anterior — este resumen también le llega por mail todos los domingos.
+7. **Configuración.** Edita su alias, contraseña, moneda favorita, país de residencia y tema claro/oscuro, o elimina la cuenta (con confirmación reescribiendo su email).
+8. **Asistente conversacional.** Disponible en las pantallas principales, responde consultas sobre la plataforma y no responde pedidos fuera de tema.
 
 ## Funcionalidades
 
@@ -256,6 +284,13 @@ SES_FROM_EMAIL=
 ## Testing
 
 El proyecto usa **Vitest** + **Testing Library** (`src/test/`), con la suite organizada en las mismas carpetas que el código que cubre: páginas (`Login`, `Register`, `Wallet`, `Exchange`, `Transfer`, `History`, `Summary`), contexto de autenticación, hooks, servicios (interceptor de refresh de `api.ts`) y componentes de UI.
+
+Algunos ejemplos concretos de lo que cubre la suite:
+
+- Que ante un `401` la app pida un token nuevo contra `/auth/refresh` y reintente sola la petición original, sin que el usuario note nada.
+- Que no se pueda seleccionar un alias inexistente como destinatario en una transferencia.
+- Que una transacción rechazada no se cuente en los totales de Historial ni de Resumen.
+- Que el modal de carga de saldo no se cierre si el backend rechaza el depósito (por ejemplo, por superar el límite permitido).
 
 ```bash
 npm run test
