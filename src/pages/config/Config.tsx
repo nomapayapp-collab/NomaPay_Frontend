@@ -74,6 +74,7 @@ export default function Config() {
   >(null);
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState<string | null>(
     null,
   );
@@ -108,7 +109,8 @@ export default function Config() {
         setAlias(profile.alias ?? "");
       })
       .catch(() => {
-        // Se conservan los datos disponibles en AuthContext.
+        // Se conservan los datos disponibles
+        // en AuthContext.
       });
 
     authService
@@ -195,35 +197,43 @@ export default function Config() {
     navigate(-1);
   }
 
-  async function handleDeleteAccount() {
-    if (deletingAccount) return;
+ async function handleDeleteAccount() {
+  if (deletingAccount) return;
 
-    setDeletingAccount(true);
-    setDeleteError(null);
+  setDeleteModalOpen(false);
+  setDeletingAccount(true);
+  setDeleteError(null);
 
-    try {
-      await authService.deleteMyAccount();
+  try {
+    /*
+     * La pantalla de despedida se mostrará durante
+     * un mínimo de seis segundos.
+     */
+    const minimumMessageTime = new Promise<void>((resolve) => {
+      window.setTimeout(resolve, 6000);
+    });
 
-      setDeleteModalOpen(false);
+    await Promise.all([
+      authService.deleteMyAccount(),
+      minimumMessageTime,
+    ]);
 
-      /*
-       * El backend elimina la cookie de sesión.
-       * Al recargar también se limpia el usuario
-       * que se encuentra guardado en AuthContext.
-       */
-      window.location.replace("/login");
-    } catch (requestError) {
-      const message = extractErrorMessage(
-        requestError,
-        "No pudimos eliminar tu cuenta. Intentá nuevamente.",
-      );
+    /*
+     * El backend elimina la cookie de sesión.
+     * La recarga limpia el usuario guardado
+     * en AuthContext.
+     */
+    window.location.replace("/login");
+  } catch (requestError) {
+    const message = extractErrorMessage(
+      requestError,
+      "No pudimos eliminar tu cuenta. Intentá nuevamente.",
+    );
 
-      setDeleteError(message);
-      setDeleteModalOpen(false);
-    } finally {
-      setDeletingAccount(false);
-    }
+    setDeleteError(message);
+    setDeletingAccount(false);
   }
+}
 
   function openDeleteModal() {
     if (deletingAccount) return;
@@ -242,9 +252,6 @@ export default function Config() {
     .filter(Boolean)
     .join(" ");
 
-  // Mismo picker de moneda favorita en las dos posiciones donde aparece
-  // (mobile, dentro del form; desktop, en la columna derecha) — se define acá
-  // en vez de duplicar el JSX en los dos lugares.
   function renderCurrencyPicker() {
     return (
       <div>
@@ -257,7 +264,9 @@ export default function Config() {
             <button
               key={currencyCode}
               type="button"
-              onClick={() => setPreferredCurrency(currencyCode)}
+              onClick={() =>
+                setPreferredCurrency(currencyCode)
+              }
               className={[
                 "rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors",
                 preferredCurrency === currencyCode
@@ -273,284 +282,248 @@ export default function Config() {
     );
   }
 
+  /*
+   * Esta pantalla reemplaza temporalmente la
+   * configuración mientras se elimina la cuenta.
+   */
+  if (deletingAccount) {
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center px-5">
+        <div
+          role="status"
+          aria-live="polite"
+          className="w-full max-w-md rounded-card border border-border-light bg-surface-light p-8 text-center shadow-lg dark:border-border-dark dark:bg-surface-dark-elevated"
+        >
+          <div className="mx-auto mb-6 h-12 w-12 animate-spin rounded-full border-4 border-violet-500/20 border-t-violet-500" />
+
+          <h1 className="mb-3 text-xl font-extrabold text-text-light-primary dark:text-text-dark-primary">
+            Estamos eliminando tu cuenta…
+          </h1>
+
+          <p className="text-sm text-text-light-secondary dark:text-text-dark-secondary">
+            Gracias por haber sido parte de NomaPay.
+          </p>
+
+          <p className="mt-2 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
+            Por favor, no cierres esta ventana.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="px-5 pt-8 pb-8 lg:px-10 lg:py-8 max-w-md lg:max-w-none w-full mx-auto">
-      <Header title="Mi perfil" subtitle="Datos, cuenta y seguridad" />
+    <div className="mx-auto w-full max-w-md px-5 pb-8 pt-8 lg:max-w-none lg:px-10 lg:py-8">
+      <Header
+        title="Mi perfil"
+        subtitle="Datos, cuenta y seguridad"
+      />
 
       {error && (
-            <div
-              role="alert"
-              className="alert-note alert-note--error mb-4"
-            >
-              <p className="alert-note__description">
-                {error}
+        <div
+          role="alert"
+          className="alert-note alert-note--error mb-4"
+        >
+          <p className="alert-note__description">
+            {error}
+          </p>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
+        {/* Columna principal */}
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          {/* Perfil */}
+          <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-light lg:bg-surface-light lg:p-5 dark:lg:border-border-dark dark:lg:bg-surface-dark-elevated">
+            <Avatar user={user} size="lg" />
+
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xl font-extrabold text-text-light-primary dark:text-text-dark-primary">
+                {displayName || "Tu perfil"}
               </p>
+
+              {alias && (
+                <p className="truncate text-sm text-text-light-tertiary dark:text-text-dark-tertiary">
+                  @{alias}
+                </p>
+              )}
             </div>
-          )}
+          </div>
 
-          <div className="flex flex-col gap-5 lg:grid lg:grid-cols-3 lg:items-start lg:gap-6">
-            {/* Columna principal */}
-            <div className="flex flex-col gap-6 lg:col-span-2">
-              {/* Perfil */}
-              <div className="flex items-center gap-4 lg:rounded-card lg:border lg:border-border-light lg:bg-surface-light lg:p-5 dark:lg:border-border-dark dark:lg:bg-surface-dark-elevated">
-                <Avatar user={user} size="lg" />
+          <form
+            id="config-form"
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-6"
+          >
+            {/* Datos personales */}
+            <div className="flex flex-col gap-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
+                Datos personales
+              </p>
 
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xl font-extrabold text-text-light-primary dark:text-text-dark-primary">
-                    {displayName || "Tu perfil"}
-                  </p>
+              <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2">
+                <Input
+                  label="Nombre"
+                  id="name"
+                  value={name}
+                  disabled
+                  className="cursor-not-allowed opacity-60"
+                />
 
-                  {alias && (
-                    <p className="truncate text-sm text-text-light-tertiary dark:text-text-dark-tertiary">
-                      @{alias}
-                    </p>
-                  )}
-                </div>
+                <Input
+                  label="Apellido"
+                  id="surname"
+                  value={surname}
+                  disabled
+                  className="cursor-not-allowed opacity-60"
+                />
               </div>
 
-              <form
-                id="config-form"
-                onSubmit={handleSubmit}
-                className="flex flex-col gap-6"
-              >
-                {/* Datos personales */}
-                <div className="flex flex-col gap-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
-                    Datos personales
-                  </p>
+              <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2">
+                <div>
+                  <label
+                    className="input__label"
+                    htmlFor="email"
+                  >
+                    Email
+                  </label>
 
-                  <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2">
-                    <Input
-                      label="Nombre"
-                      id="name"
-                      value={name}
+                  <div className="relative">
+                    <input
+                      id="email"
+                      className="input cursor-not-allowed pr-11 opacity-60"
+                      value={user?.email ?? ""}
                       disabled
-                      className="cursor-not-allowed opacity-60"
+                      readOnly
                     />
 
-                    <Input
-                      label="Apellido"
-                      id="surname"
-                      value={surname}
-                      disabled
-                      className="cursor-not-allowed opacity-60"
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2">
-                    <div>
-                      <label
-                        className="input__label"
-                        htmlFor="email"
-                      >
-                        Email
-                      </label>
-
-                      <div className="relative">
-                        <input
-                          id="email"
-                          className="input cursor-not-allowed pr-11 opacity-60"
-                          value={user?.email ?? ""}
-                          disabled
-                          readOnly
-                        />
-
-                        <IconCheck className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-turquoise-500" />
-                      </div>
-                    </div>
-
-                    <Select
-                      label="País de residencia"
-                      id="country"
-                      value={country}
-                      onChange={setCountry}
-                      options={COUNTRIES.map(
-                        (countryOption) => ({
-                          value: countryOption.code,
-                          label: countryOption.name,
-                        }),
-                      )}
-                    />
+                    <IconCheck className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-turquoise-500" />
                   </div>
                 </div>
 
-                {/* Cuenta */}
-                <div className="flex flex-col gap-1">
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
-                    Cuenta
-                  </p>
-
-                  <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light bg-surface-light dark:divide-border-dark dark:border-border-dark dark:bg-surface-dark-elevated">
-                    {/* Alias */}
-                    <div className="flex items-center justify-between px-4 py-3.5">
-                      <div className="min-w-0 flex-1">
-                        <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
-                          Alias
-                        </p>
-
-                        <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
-                          {alias}
-                        </p>
-                      </div>
-
-                      <div className="ml-3 flex shrink-0 items-center gap-3">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setAliasModalOpen(true)
-                          }
-                          className="text-text-light-tertiary transition hover:text-text-light-primary dark:text-text-dark-tertiary dark:hover:text-text-dark-primary"
-                          aria-label="Editar alias"
-                        >
-                          <IconEdit className="h-5 w-5" />
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            copyToClipboard(
-                              alias,
-                              "alias",
-                            )
-                          }
-                          className="text-text-light-tertiary transition hover:text-text-light-primary dark:text-text-dark-tertiary dark:hover:text-text-dark-primary"
-                          aria-label="Copiar alias"
-                        >
-                          {copiedField === "alias" ? (
-                            <IconCheck className="h-5 w-5 text-turquoise-500" />
-                          ) : (
-                            <IconCopy className="h-5 w-5" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* CBU */}
-                    <div className="flex items-center justify-between px-4 py-3.5">
-                      <div className="min-w-0">
-                        <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
-                          CBU
-                        </p>
-
-                        <p className="truncate font-semibold tabular-nums text-text-light-primary dark:text-text-dark-primary">
-                          {user?.cbu ?? ""}
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          copyToClipboard(
-                            user?.cbu ?? "",
-                            "cbu",
-                          )
-                        }
-                        className="ml-3 shrink-0 text-text-light-tertiary transition hover:text-text-light-primary dark:text-text-dark-tertiary dark:hover:text-text-dark-primary"
-                        aria-label="Copiar CBU"
-                      >
-                        {copiedField === "cbu" ? (
-                          <IconCheck className="h-5 w-5 text-turquoise-500" />
-                        ) : (
-                          <IconCopy className="h-5 w-5" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Contraseña */}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setPasswordModalOpen(true)
-                      }
-                      className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-black/5 dark:hover:bg-white/5"
-                    >
-                      <span className="font-medium text-text-light-primary dark:text-text-dark-primary">
-                        Cambiar contraseña
-                      </span>
-
-                      <IconChevronRight className="h-4 w-4 text-text-light-tertiary dark:text-text-dark-tertiary" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Moneda favorita — en desktop esta sección se muestra en la
-                    columna derecha, debajo de "Tu cuenta" y arriba de
-                    Guardar cambios; acá solo queda para mobile. */}
-                <div className="lg:hidden">{renderCurrencyPicker()}</div>
-
-                {/* Acciones mobile */}
-                <div className="flex flex-col gap-3 lg:hidden">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    fullWidth
-                    loading={loading}
-                  >
-                    Guardar cambios
-                  </Button>
-
-                  <Button
-                    type="button"
-                    variant="destructiveOutline"
-                    fullWidth
-                    disabled={deletingAccount}
-                    onClick={openDeleteModal}
-                  >
-                    Eliminar cuenta
-                  </Button>
-
-                  {deleteError && (
-                    <div
-                      role="alert"
-                      className="alert-note alert-note--error"
-                    >
-                      <p className="alert-note__description">
-                        {deleteError}
-                      </p>
-                    </div>
+                <Select
+                  label="País de residencia"
+                  id="country"
+                  value={country}
+                  onChange={setCountry}
+                  options={COUNTRIES.map(
+                    (countryOption) => ({
+                      value: countryOption.code,
+                      label: countryOption.name,
+                    }),
                   )}
-                </div>
-              </form>
+                />
+              </div>
             </div>
 
-            {/* Columna derecha desktop */}
-            <div className="hidden flex-col gap-4 lg:flex">
-              {/* Datos de la cuenta */}
-              <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
-                <p className="mb-4 text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
-                  Tu cuenta
-                </p>
+            {/* Cuenta */}
+            <div className="flex flex-col gap-1">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-text-light-tertiary dark:text-text-dark-tertiary">
+                Cuenta
+              </p>
 
-                <div className="flex flex-col gap-4">
-                  <div>
+              <div className="divide-y divide-border-light overflow-hidden rounded-card border border-border-light bg-surface-light dark:divide-border-dark dark:border-border-dark dark:bg-surface-dark-elevated">
+                {/* Alias */}
+                <div className="flex items-center justify-between px-4 py-3.5">
+                  <div className="min-w-0 flex-1">
                     <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
                       Alias
                     </p>
 
-                    <p className="truncate text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
+                    <p className="truncate font-semibold text-text-light-primary dark:text-text-dark-primary">
                       {alias}
                     </p>
                   </div>
 
-                  <div>
+                  <div className="ml-3 flex shrink-0 items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setAliasModalOpen(true)
+                      }
+                      className="text-text-light-tertiary transition hover:text-text-light-primary dark:text-text-dark-tertiary dark:hover:text-text-dark-primary"
+                      aria-label="Editar alias"
+                    >
+                      <IconEdit className="h-5 w-5" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        copyToClipboard(
+                          alias,
+                          "alias",
+                        )
+                      }
+                      className="text-text-light-tertiary transition hover:text-text-light-primary dark:text-text-dark-tertiary dark:hover:text-text-dark-primary"
+                      aria-label="Copiar alias"
+                    >
+                      {copiedField === "alias" ? (
+                        <IconCheck className="h-5 w-5 text-turquoise-500" />
+                      ) : (
+                        <IconCopy className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* CBU */}
+                <div className="flex items-center justify-between px-4 py-3.5">
+                  <div className="min-w-0">
                     <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
                       CBU
                     </p>
 
-                    <p className="truncate text-sm font-semibold tabular-nums text-text-light-primary dark:text-text-dark-primary">
+                    <p className="truncate font-semibold tabular-nums text-text-light-primary dark:text-text-dark-primary">
                       {user?.cbu ?? ""}
                     </p>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      copyToClipboard(
+                        user?.cbu ?? "",
+                        "cbu",
+                      )
+                    }
+                    className="ml-3 shrink-0 text-text-light-tertiary transition hover:text-text-light-primary dark:text-text-dark-tertiary dark:hover:text-text-dark-primary"
+                    aria-label="Copiar CBU"
+                  >
+                    {copiedField === "cbu" ? (
+                      <IconCheck className="h-5 w-5 text-turquoise-500" />
+                    ) : (
+                      <IconCopy className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
+
+                {/* Contraseña */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPasswordModalOpen(true)
+                  }
+                  className="flex w-full items-center justify-between px-4 py-3.5 text-left transition hover:bg-black/5 dark:hover:bg-white/5"
+                >
+                  <span className="font-medium text-text-light-primary dark:text-text-dark-primary">
+                    Cambiar contraseña
+                  </span>
+
+                  <IconChevronRight className="h-4 w-4 text-text-light-tertiary dark:text-text-dark-tertiary" />
+                </button>
               </div>
+            </div>
 
-              {/* Moneda favorita — abajo de Tu cuenta, arriba de Guardar cambios */}
+            {/* Moneda favorita en mobile */}
+            <div className="lg:hidden">
               {renderCurrencyPicker()}
+            </div>
 
-              {/* Guardar debajo de los datos */}
+            {/* Acciones mobile */}
+            <div className="flex flex-col gap-3 lg:hidden">
               <Button
                 type="submit"
-                form="config-form"
                 variant="primary"
                 fullWidth
                 loading={loading}
@@ -558,7 +531,6 @@ export default function Config() {
                 Guardar cambios
               </Button>
 
-              {/* Eliminar debajo de guardar */}
               <Button
                 type="button"
                 variant="destructiveOutline"
@@ -580,7 +552,77 @@ export default function Config() {
                 </div>
               )}
             </div>
+          </form>
+        </div>
+
+        {/* Columna derecha desktop */}
+        <div className="hidden flex-col gap-4 lg:flex">
+          {/* Datos de la cuenta */}
+          <div className="rounded-card border border-border-light bg-surface-light p-5 dark:border-border-dark dark:bg-surface-dark-elevated">
+            <p className="mb-4 text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
+              Tu cuenta
+            </p>
+
+            <div className="flex flex-col gap-4">
+              <div>
+                <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
+                  Alias
+                </p>
+
+                <p className="truncate text-sm font-semibold text-text-light-primary dark:text-text-dark-primary">
+                  {alias}
+                </p>
+              </div>
+
+              <div>
+                <p className="mb-1 text-xs text-text-light-tertiary dark:text-text-dark-tertiary">
+                  CBU
+                </p>
+
+                <p className="truncate text-sm font-semibold tabular-nums text-text-light-primary dark:text-text-dark-primary">
+                  {user?.cbu ?? ""}
+                </p>
+              </div>
+            </div>
           </div>
+
+          {/* Moneda favorita */}
+          {renderCurrencyPicker()}
+
+          {/* Guardar cambios */}
+          <Button
+            type="submit"
+            form="config-form"
+            variant="primary"
+            fullWidth
+            loading={loading}
+          >
+            Guardar cambios
+          </Button>
+
+          {/* Eliminar cuenta */}
+          <Button
+            type="button"
+            variant="destructiveOutline"
+            fullWidth
+            disabled={deletingAccount}
+            onClick={openDeleteModal}
+          >
+            Eliminar cuenta
+          </Button>
+
+          {deleteError && (
+            <div
+              role="alert"
+              className="alert-note alert-note--error"
+            >
+              <p className="alert-note__description">
+                {deleteError}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Modal para editar alias */}
       <EditAliasModal
@@ -635,7 +677,11 @@ export default function Config() {
               }
             : undefined
         }
-        confirmLabel="Sí, eliminar cuenta"
+        confirmLabel={
+          deletingAccount
+            ? "Eliminando cuenta..."
+            : "Sí, eliminar cuenta"
+        }
       />
     </div>
   );
