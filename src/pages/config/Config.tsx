@@ -197,43 +197,41 @@ export default function Config() {
     navigate(-1);
   }
 
- async function handleDeleteAccount() {
-  if (deletingAccount) return;
+  async function handleDeleteAccount() {
+    if (deletingAccount) return;
 
-  setDeleteModalOpen(false);
-  setDeletingAccount(true);
-  setDeleteError(null);
+    setDeleteModalOpen(false);
+    setDeletingAccount(true);
+    setDeleteError(null);
 
-  try {
-    /*
-     * La pantalla de despedida se mostrará durante
-     * un mínimo de seis segundos.
-     */
-    const minimumMessageTime = new Promise<void>((resolve) => {
-      window.setTimeout(resolve, 6000);
-    });
+    try {
+      /*
+       * La pantalla de despedida permanece visible durante
+       * un mínimo de cinco segundos mientras se elimina la cuenta.
+       */
+      const minimumMessageTime = new Promise<void>((resolve) => {
+        window.setTimeout(resolve, 5000);
+      });
 
-    await Promise.all([
-      authService.deleteMyAccount(),
-      minimumMessageTime,
-    ]);
+      await Promise.all([
+        authService.deleteMyAccount(),
+        minimumMessageTime,
+      ]);
 
-    /*
-     * El backend elimina la cookie de sesión.
-     * La recarga limpia el usuario guardado
-     * en AuthContext.
-     */
-    window.location.replace("/login");
-  } catch (requestError) {
-    const message = extractErrorMessage(
-      requestError,
-      "No pudimos eliminar tu cuenta. Intentá nuevamente.",
-    );
+      /*
+       * Recarga la aplicación en la landing y sale del AppLayout.
+       */
+      window.location.replace("/");
+    } catch (requestError) {
+      const message = extractErrorMessage(
+        requestError,
+        "No pudimos eliminar tu cuenta. Intentá nuevamente.",
+      );
 
-    setDeleteError(message);
-    setDeletingAccount(false);
+      setDeleteError(message);
+      setDeletingAccount(false);
+    }
   }
-}
 
   function openDeleteModal() {
     if (deletingAccount) return;
@@ -288,7 +286,7 @@ export default function Config() {
    */
   if (deletingAccount) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center px-5">
+      <div className="fixed inset-0 z-9999 flex min-h-screen items-center justify-center bg-surface-light px-5 dark:bg-surface-dark">
         <div
           role="status"
           aria-live="polite"
