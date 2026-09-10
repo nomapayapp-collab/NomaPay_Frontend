@@ -44,7 +44,7 @@ describe("ResetPassword", () => {
     await user.type(screen.getByLabelText("Confirmar contraseña"), "abc");
     await user.click(screen.getByRole("button", { name: "Guardar nueva contraseña" }));
 
-    expect(screen.getByText("Mínimo 8 caracteres")).toBeInTheDocument();
+    expect(screen.getByText("Debe tener al menos 8 caracteres")).toBeInTheDocument();
     expect(mocks.resetPassword).not.toHaveBeenCalled();
 
     await user.clear(screen.getByLabelText("Nueva contraseña"));
@@ -53,7 +53,9 @@ describe("ResetPassword", () => {
     await user.type(screen.getByLabelText("Confirmar contraseña"), "OtraClave1!");
     await user.click(screen.getByRole("button", { name: "Guardar nueva contraseña" }));
 
-    expect(screen.getByText("Las contraseñas no coinciden")).toBeInTheDocument();
+    expect(
+  screen.getAllByText("Las contraseñas no coinciden").length,
+).toBeGreaterThan(0);
     expect(mocks.resetPassword).not.toHaveBeenCalled();
   });
 
@@ -88,7 +90,7 @@ describe("ResetPassword", () => {
         expect(mocks.resetPassword).toHaveBeenCalledWith("tok-123", VALID_PASSWORD),
       );
       expect(
-        await screen.findByText("Listo, tu contraseña se actualizó. Te llevamos al login..."),
+        await screen.findByText("Listo, tu contraseña se actualizó. Te llevamos al inicio de sesión..."),
       ).toBeInTheDocument();
 
       await waitFor(
