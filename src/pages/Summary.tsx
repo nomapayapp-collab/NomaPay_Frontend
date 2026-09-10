@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Header } from "../components/layout/Header";
 import { Card } from "../components/ui/Card";
 import { useWallet } from "../hooks/useWallet";
-import { useSummary, type DaySummary, type SummaryCategory } from "../hooks/useSummary";
+import { useSummary, CURRENCIES, type DaySummary, type SummaryCategory } from "../hooks/useSummary";
 import { formatCurrency } from "../utils/formatCurrency";
+import type { CurrencyCode } from "../types/wallet";
 
 const balanceFormatter = new Intl.NumberFormat("es-AR", {
   minimumFractionDigits: 2,
@@ -27,24 +29,20 @@ function formatPct(pct: number): { label: string; positive: boolean } {
 
 export default function Summary() {
   const { wallet, loading: walletLoading } = useWallet();
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode | null>(null);
 
   const primaryBalance = wallet.balances.find((balance) => balance.isPrimary);
-  const balanceCode = primaryBalance?.currency.code ?? "ARS";
+  const favoriteCode = primaryBalance?.currency.code ?? "ARS";
+  // El usuario puede ver el resumen de cualquiera de sus 3 monedas, no solo
+  // la favorita; por defecto arranca en la favorita.
+  const balanceCode = selectedCurrency ?? favoriteCode;
+  const displayedBalance = wallet.balances.find((balance) => balance.currency.code === balanceCode);
 
-  const {
-    loading: summaryLoading,
-    error,
-    weekStart,
-    days,
-    thisWeek,
-    bestDay,
-    comparison,
-    netThisWeek,
-    hasMovementsThisWeek,
-  } = useSummary(balanceCode);
+  const { loading: summaryLoading, error, weekStart, summaries } = useSummary();
+  const { days, thisWeek, bestDay, comparison, netThisWeek, hasMovementsThisWeek } = summaries[balanceCode];
 
   const loading = walletLoading || summaryLoading;
-  const currentBalance = primaryBalance?.amount ?? 0;
+  const currentBalance = displayedBalance?.amount ?? 0;
   const balanceAtWeekStart = currentBalance - netThisWeek;
   const balancePct = balanceAtWeekStart > 0 ? ((currentBalance - balanceAtWeekStart) / balanceAtWeekStart) * 100 : null;
 
@@ -61,6 +59,26 @@ export default function Summary() {
       {/* Encabezado */}
       <div className="mb-5 xl:mb-0">
         <Header title="Resumen" subtitle={formatWeekRange(weekStart)} />
+
+        <div className="mt-3 flex items-center gap-2" role="tablist" aria-label="Moneda del resumen">
+          <p className="text-xs font-bold  text-text-light-tertiary dark:text-white">Selecciona la moneda para ver el resumen</p> 
+          {CURRENCIES.map((code) => (
+            <button
+              key={code}
+              type="button"
+              role="tab"
+              aria-selected={balanceCode === code}
+              onClick={() => setSelectedCurrency(code)}
+              className={`px-3 py-1.5 rounded-control text-[12.5px] font-medium transition-colors ${
+                balanceCode === code
+                  ? "bg-violet-500/15 text-violet-300"
+                  : "text-text-light-tertiary dark:text-text-dark-tertiary hover:text-text-light-primary dark:hover:text-text-dark-primary"
+              }`}
+            >
+              {code}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Balance general */}
