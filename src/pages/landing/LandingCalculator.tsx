@@ -41,7 +41,7 @@ export function LandingCalculator() {
   const received = net * rate;
 
   return (
-    <section className="border-t border-border-light px-6 md:px-12 py-16 bg-surface-light text-text-light-primary grid md:grid-cols-2 gap-10">
+    <section className="border-t border-border-light px-6 md:px-6 py-16 bg-surface-light text-text-light-primary grid md:grid-cols-2 gap-10">
       <div>
         <p className="text-xs tracking-[0.2em] uppercase text-turquoise-700 font-semibold mb-3">
           Calculadora
@@ -108,7 +108,7 @@ export function LandingCalculator() {
           Tu trabajo puede estar en cualquier lugar. Tu dinero también.
         </h3>
         <p className="text-sm text-text-light-secondary mb-6">
-          Con NomaPay recibís pagos en múltiples divisas y los manejás desde
+          Con NomaPay recibís pagos en múltiples monedas y los manejás desde
           una única cuenta, con la tasa siempre a la vista.
         </p>
         <div className="relative aspect-square h-80 w-full rounded-card overflow-hidden">
